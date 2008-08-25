@@ -11,31 +11,59 @@ public class ObjectReflectionAttribute implements Attribute
 	private final Field field;
 	private final Method setter;
 	private final Method getter;
+	private final String name;
+	private Class<?> type;
 	
 	public ObjectReflectionAttribute(Object obj, Field field)
 	{
 		this.obj = obj;
 		this.field = field;
+		name = field.getName();
+		type = field.getType();
 		
 		if (!Modifier.isFinal(field.getModifiers()))
-			setter = getMethod(void.class, "set" + firstUp(field.getName()), field.getType());
+			setter = getMethod(void.class, "set" + firstUp(name), type);
 		else
 			setter = null;
 		
-		Method m = getMethod(field.getType(), "get" + firstUp(field.getName()));
+		Method m = getMethod(type, "get" + firstUp(name));
 		if (m == null)
-			m = getMethod(field.getType(), "is" + firstUp(field.getName()));
+			m = getMethod(type, "is" + firstUp(name));
 		getter = m;
 	}
 	
-	private Method getMethod(Class<?> returnType, String name, Class<?>... paramTypes)
+	public ObjectReflectionAttribute(Object obj, String name)
+	{
+		this.obj = obj;
+		field = null;
+		this.name = name;
+		
+		Method m = getMethod("get" + firstUp(name));
+		if (m == null)
+			m = getMethod("is" + firstUp(name));
+		if (m == null || m.getReturnType() == void.class)
+			throw new IllegalArgumentException();
+		
+		type = m.getReturnType();
+		getter = m;
+		setter = getMethod(void.class, "set" + firstUp(name), type);
+	}
+	
+	private Method getMethod(Class<?> returnType, String methodName, Class<?>... paramTypes)
+	{
+		Method method = getMethod(methodName, paramTypes);
+		if (method != null && method.getReturnType() == returnType)
+			return method;
+		else
+			return null;
+	}
+	
+	private Method getMethod(String methodName, Class<?>... paramTypes)
 	{
 		Class<?> cls = obj.getClass();
 		try
 		{
-			Method method = cls.getMethod(name, paramTypes);
-			if (method.getReturnType() == returnType)
-				return method;
+			return cls.getMethod(methodName, paramTypes);
 		}
 		catch (SecurityException e)
 		{
@@ -53,12 +81,12 @@ public class ObjectReflectionAttribute implements Attribute
 	
 	public String getName()
 	{
-		return field.getName();
+		return name;
 	}
 	
 	public boolean canWrite()
 	{
-		return !Modifier.isFinal(field.getModifiers());
+		return setter != null || (field != null && !Modifier.isFinal(field.getModifiers()));
 	}
 	
 	public boolean canListen()
@@ -68,7 +96,7 @@ public class ObjectReflectionAttribute implements Attribute
 	
 	public Object getType()
 	{
-		return field.getType();
+		return type;
 	}
 	
 	public Object getValue()
@@ -92,7 +120,7 @@ public class ObjectReflectionAttribute implements Attribute
 				throw new ObjectReflectionException(e);
 			}
 		}
-		else
+		else if (field != null)
 		{
 			try
 			{
@@ -106,6 +134,10 @@ public class ObjectReflectionAttribute implements Attribute
 			{
 				throw new ObjectReflectionException(e);
 			}
+		}
+		else
+		{
+			throw new IllegalStateException();
 		}
 	}
 	
@@ -133,7 +165,7 @@ public class ObjectReflectionAttribute implements Attribute
 				throw new ObjectReflectionException(e);
 			}
 		}
-		else
+		else if (field != null)
 		{
 			try
 			{
@@ -147,6 +179,10 @@ public class ObjectReflectionAttribute implements Attribute
 			{
 				throw new ObjectReflectionException(e);
 			}
+		}
+		else
+		{
+			throw new IllegalStateException();
 		}
 	}
 	
