@@ -1,4 +1,4 @@
-package jfg;
+package jfg.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -6,14 +6,24 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import jfg.Attribute;
+import jfg.AttributeGroup;
+
 public class ObjectReflectionGroup implements AttributeGroup
 {
 	private final Object obj;
+	private final ObjectReflectionData data;
 	private ArrayList<Object> attributes;
 	
 	public ObjectReflectionGroup(Object obj)
 	{
+		this(obj, new ObjectReflectionData());
+	}
+	
+	public ObjectReflectionGroup(Object obj, ObjectReflectionData data)
+	{
 		this.obj = obj;
+		this.data = data;
 	}
 	
 	public Collection<Object> getAttributes()
@@ -35,7 +45,7 @@ public class ObjectReflectionGroup implements AttributeGroup
 			if (Modifier.isStatic(field.getModifiers()))
 				continue;
 			
-			attributes.add(new ObjectReflectionAttribute(obj, field));
+			attributes.add(new ObjectReflectionAttribute(obj, field, data));
 		}
 		
 		for (Method method : cls.getMethods())
@@ -63,9 +73,10 @@ public class ObjectReflectionGroup implements AttributeGroup
 			if (hasAttribute(name))
 				continue;
 			
-			attributes.add(new ObjectReflectionAttribute(obj, name));
+			attributes.add(new ObjectReflectionAttribute(obj, name, data));
 		}
 	}
+	
 	private boolean hasAttribute(String name)
 	{
 		for (Object attribute : attributes)
@@ -79,6 +90,7 @@ public class ObjectReflectionGroup implements AttributeGroup
 		}
 		return false;
 	}
+	
 	private String firstLower(String str)
 	{
 		return str.substring(0, 1).toLowerCase() + str.substring(1);
@@ -88,5 +100,4 @@ public class ObjectReflectionGroup implements AttributeGroup
 	{
 		return obj.getClass().getSimpleName();
 	}
-	
 }

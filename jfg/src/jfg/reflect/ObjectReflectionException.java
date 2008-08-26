@@ -1,6 +1,8 @@
-package jfg;
+package jfg.reflect;
 
-public class ObjectReflectionException extends RuntimeException
+import jfg.AttributeException;
+
+public class ObjectReflectionException extends AttributeException
 {
 	public ObjectReflectionException()
 	{
