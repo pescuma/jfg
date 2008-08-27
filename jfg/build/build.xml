@@ -3,6 +3,15 @@
         jfg build file
     </description>
 
+	<script language="javascript">
+		<![CDATA[ 
+	        importClass(java.util.Locale);
+	        actualDefault = Locale.getDefault();
+	        project.setProperty("---actual-default-locale---", actualDefault);
+	        Locale.setDefault(Locale.US);
+	    ]]>
+	</script>
+
 	<!-- set global properties for this build -->
 	<property name="libs.src" location="../lib" />
 	<property name="libs.build" location="lib" />
