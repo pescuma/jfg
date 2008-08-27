@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import jfg.Attribute;
+import jfg.AttributeGroup;
 import jfg.AttributeListener;
 import jfg.AttributeListenerConverter;
 
@@ -93,6 +94,7 @@ public class ReflectionGroupTest
 		Attribute attr = (Attribute) obj;
 		assertEquals(true, attr.canWrite());
 		assertEquals(false, attr.canListen());
+		assertEquals(null, attr.asGroup());
 		
 		AttributeListener listener = new AttributeListener() {
 			public void onChange()
@@ -334,6 +336,11 @@ public class ReflectionGroupTest
 		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
 		assertEquals("TestClassWithEverything", group.getName());
 		
+		testWithEverything(tc, group);
+	}
+	
+	private void testWithEverything(TestClassWithEverything tc, AttributeGroup group)
+	{
 		Collection<Object> attributes = group.getAttributes();
 		assertEquals(3, attributes.size());
 		
@@ -375,7 +382,6 @@ public class ReflectionGroupTest
 		assertEquals("x", attr.getValue());
 		attr.setValue("y");
 		assertEquals("y", attr.getValue());
-		
 	}
 	
 	private static class TestClassWithExtends extends TestClassWithEverything
@@ -524,25 +530,25 @@ public class ReflectionGroupTest
 		
 		assertEquals(true, attr.canListen());
 		
-		final boolean[] called = new boolean[1];
+		final int[] called = new int[1];
 		AttributeListener listener = new AttributeListener() {
 			public void onChange()
 			{
-				called[0] = true;
+				called[0]++;
 			}
 		};
 		
 		attr.addListener(listener);
 		
-		called[0] = false;
+		called[0] = 0;
 		tc.setAa(1);
-		assertTrue(called[0]);
+		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
-		called[0] = false;
+		called[0] = 0;
 		tc.setAa(1);
-		assertFalse(called[0]);
+		assertEquals(0, called[0]);
 	}
 	
 	private interface StrangeListener
@@ -607,25 +613,37 @@ public class ReflectionGroupTest
 		
 		assertEquals(true, attr.canListen());
 		
-		final boolean[] called = new boolean[1];
+		final int[] called = new int[1];
 		AttributeListener listener = new AttributeListener() {
 			public void onChange()
 			{
-				called[0] = true;
+				called[0]++;
 			}
 		};
 		
 		attr.addListener(listener);
 		
-		called[0] = false;
+		called[0] = 0;
 		tc.setAa(1);
-		assertTrue(called[0]);
+		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
-		called[0] = false;
+		called[0] = 0;
 		tc.setAa(1);
-		assertFalse(called[0]);
+		assertEquals(0, called[0]);
+		
+		attr.addListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(1, called[0]);
+		
+		attr.removeListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(0, called[0]);
 	}
 	
 	private interface WrongListener
@@ -719,7 +737,6 @@ public class ReflectionGroupTest
 		
 		it = attributes.iterator();
 		
-		// aa
 		obj = it.next();
 		assertTrue(obj instanceof Attribute);
 		
@@ -730,24 +747,205 @@ public class ReflectionGroupTest
 		
 		assertEquals(true, attr.canListen());
 		
-		final boolean[] called = new boolean[1];
+		final int[] called = new int[1];
 		AttributeListener listener = new AttributeListener() {
 			public void onChange()
 			{
-				called[0] = true;
+				called[0]++;
 			}
 		};
 		
 		attr.addListener(listener);
 		
-		called[0] = false;
+		called[0] = 0;
 		tc.setAa(1);
-		assertTrue(called[0]);
+		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
-		called[0] = false;
+		called[0] = 0;
 		tc.setAa(1);
-		assertFalse(called[0]);
+		assertEquals(0, called[0]);
+		
+		attr.addListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(1, called[0]);
+		
+		attr.removeListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(0, called[0]);
+	}
+	
+	private static interface GroupListener
+	{
+		void changed(int field);
+	}
+	
+	private static class TestClassWithGroupListener
+	{
+		private long aa;
+		private long bb;
+		private final List<GroupListener> listeners = new ArrayList<GroupListener>();
+		
+		public long getAa()
+		{
+			return aa;
+		}
+		public void setAa(long aa)
+		{
+			this.aa = aa;
+			
+			notifyOnChange(1);
+		}
+		
+		public long getBb()
+		{
+			return bb;
+		}
+		public void setBb(long bb)
+		{
+			this.bb = bb;
+			
+			notifyOnChange(2);
+		}
+		
+		private void notifyOnChange(int field)
+		{
+			for (GroupListener listener : listeners)
+			{
+				listener.changed(field);
+			}
+		}
+		public void addListener(GroupListener listener)
+		{
+			listeners.add(listener);
+		}
+		public void removeListener(GroupListener listener)
+		{
+			listeners.remove(listener);
+		}
+	}
+	
+	@Test
+	public void testWithGroupListener()
+	{
+		TestClassWithGroupListener tc = new TestClassWithGroupListener();
+		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		assertEquals("TestClassWithGroupListener", group.getName());
+		
+		Collection<Object> attributes = group.getAttributes();
+		assertEquals(2, attributes.size());
+		
+		Iterator<Object> it = attributes.iterator();
+		
+		// aa
+		Object obj = it.next();
+		assertTrue(obj instanceof Attribute);
+		
+		Attribute attr = (Attribute) obj;
+		assertEquals("aa", attr.getName());
+		assertEquals(true, attr.canWrite());
+		assertEquals(long.class, attr.getType());
+		
+		assertEquals(true, attr.canListen());
+		
+		final int[] called = new int[1];
+		AttributeListener listener = new AttributeListener() {
+			public void onChange()
+			{
+				called[0]++;
+			}
+		};
+		
+		attr.addListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(1, called[0]);
+		
+		attr.removeListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(0, called[0]);
+		
+		// bb
+		obj = it.next();
+		assertTrue(obj instanceof Attribute);
+		
+		attr = (Attribute) obj;
+		assertEquals("bb", attr.getName());
+		assertEquals(true, attr.canWrite());
+		assertEquals(long.class, attr.getType());
+		
+		assertEquals(true, attr.canListen());
+		
+		attr.addListener(listener);
+		
+		called[0] = 0;
+		tc.setBb(1);
+		assertEquals(1, called[0]);
+		
+		attr.removeListener(listener);
+		
+		called[0] = 0;
+		tc.setBb(1);
+		assertEquals(0, called[0]);
+		
+		// This is the side-effect :(
+		
+		attr.addListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(1, called[0]);
+		
+		attr.removeListener(listener);
+		
+		called[0] = 0;
+		tc.setAa(1);
+		assertEquals(0, called[0]);
+	}
+	
+	private static class TestClassWithOther
+	{
+		public TestClassWithEverything aa;
+	}
+	
+	@Test
+	public void testAsGroup()
+	{
+		TestClassWithOther tc = new TestClassWithOther();
+		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		assertEquals("TestClassWithOther", group.getName());
+		
+		Collection<Object> attributes = group.getAttributes();
+		assertEquals(1, attributes.size());
+		
+		Iterator<Object> it = attributes.iterator();
+		
+		// aa
+		Object obj = it.next();
+		assertTrue(obj instanceof Attribute);
+		
+		Attribute attr = (Attribute) obj;
+		assertEquals("aa", attr.getName());
+		assertEquals(true, attr.canWrite());
+		assertEquals(TestClassWithEverything.class, attr.getType());
+		assertEquals(false, attr.canListen());
+		
+		AttributeGroup ag = attr.asGroup();
+		assertNull(ag);
+		
+		tc.aa = new TestClassWithEverything();
+		
+		ag = attr.asGroup();
+		assertNotNull(ag);
+		
+		testWithEverything(tc.aa, ag);
 	}
 }
