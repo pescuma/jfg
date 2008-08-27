@@ -1,0 +1,158 @@
+<project name="jfg" default="dist" basedir=".">
+	<description>
+        jfg build file
+    </description>
+
+	<!-- set global properties for this build -->
+	<property name="libs.src" location="../lib" />
+	<property name="libs.build" location="lib" />
+	<property name="src.src" location="../src" />
+	<property name="src.test" location="../test" />
+	<property name="build.src" location="build/src" />
+	<property name="build.test" value="build/test" />
+	<property name="build.debug" location="build/debug" />
+	<property name="build.crap4j" location="build/crap4j" />
+	<property name="dist.jar" location="dist/lib" />
+	<property name="dist.junit" location="dist/junit" />
+	<property name="dist.crap4j" location="dist/crap4j" />
+
+	<property name="CRAP4J_HOME" value="${basedir}/lib/crap4j" />
+
+	<!-- Define the Crap4j ant task -->
+	<taskdef name="crap4j" classname="org.crap4j.anttask.Crap4jAntTask">
+		<classpath>
+			<fileset dir="${CRAP4J_HOME}/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</classpath>
+	</taskdef>
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp />
+	</target>
+
+	<target name="compile" depends="init" description="compile the source">
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build.src}" />
+
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac srcdir="${src.src}" destdir="${build.src}">
+			<classpath>
+				<fileset dir="${libs.src}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="compile-debug" depends="init" description="compile the source with version data">
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build.debug}" />
+
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac srcdir="${src.src}" destdir="${build.debug}" debug="true">
+			<classpath>
+				<fileset dir="${libs.src}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="compile-tests" depends="compile-debug">
+		<mkdir dir="${build.test}" />
+
+		<javac srcdir="${src.test}" destdir="${build.test}" debug="true">
+			<classpath>
+				<pathelement location="${build.debug}" />
+				<fileset dir="${libs.src}">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="${libs.build}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="test" depends="compile-tests">
+		<mkdir dir="${dist.junit}" />
+
+		<junit>
+			<classpath>
+				<pathelement location="${build.debug}" />
+				<pathelement location="${build.test}" />
+				<fileset dir="${libs.src}">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="${libs.build}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+
+			<formatter type="xml" />
+
+			<batchtest fork="no" todir="${dist.junit}" haltonerror="true" haltonfailure="false">
+				<fileset dir="${src.test}">
+					<include name="**/*Test*.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="crap4j" depends="compile-tests">
+		<mkdir dir="${dist.crap4j}" />
+		<mkdir dir="${build.crap4j}" />
+
+		<crap4j projectdir="${build.crap4j}" outputDir="${dist.crap4j}" dontTest="false" debug="false" downloadAverages="false" crap4jhome="${CRAP4J_HOME}">
+			<classes>
+				<pathElement location="${build.debug}" />
+			</classes>
+
+			<srces>
+				<pathElement location="${src.src}" />
+			</srces>
+
+			<testClasses>
+				<pathelement location="${build.test}" />
+			</testClasses>
+
+			<libClasspath>
+				<fileset dir="${libs.src}">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="${libs.build}">
+					<include name="**/*.jar" />
+				</fileset>
+				<!-- if you get errors loading any agitar classes, like the mock classes, add this entry -->
+				<!--
+				<fileset dir="${CRAP4J_HOME}/lib/com.agitar.eclipse.api_4.2.0.401405/lib/ext">
+				                    <include name="**/*.jar" />
+				                </fileset>
+				 -->
+			</libClasspath>
+		</crap4j>
+	</target>
+
+	<target name="pack" depends="compile">
+		<!-- Create the distribution directory -->
+		<mkdir dir="${dist.jar}" />
+
+		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+		<jar jarfile="${dist.jar}/jfg.jar" basedir="${build.src}" />
+	</target>
+
+	<target name="dist" depends="compile, test, crap4j, pack, clean-build" description="generate the distribution">
+	</target>
+
+	<target name="clean-build">
+		<delete dir="build" />
+	</target>
+
+	<target name="clean" description="clean up">
+		<delete dir="build" />
+		<delete dir="dist" />
+	</target>
+
+</project>

@@ -93,24 +93,24 @@ public class ObjectReflectionGroup implements AttributeGroup
 			if (method.getReturnType() == void.class)
 				continue;
 			
-			String name = method.getName();
-			if (name.equals("getClass"))
+			String attrName = method.getName();
+			if (attrName.equals("getClass"))
 				continue;
-			else if (name.startsWith("get"))
-				name = firstLower(name.substring(3));
-			else if (name.startsWith("is"))
-				name = firstLower(name.substring(2));
+			else if (attrName.startsWith("get"))
+				attrName = firstLower(attrName.substring(3));
+			else if (attrName.startsWith("is"))
+				attrName = firstLower(attrName.substring(2));
 			else
 				continue;
 			
-			if (hasAttribute(name))
+			if (hasAttribute(attrName))
 				continue;
 			
-			attributes.add(new ObjectReflectionAttribute(this, obj, name, data));
+			attributes.add(new ObjectReflectionAttribute(this, obj, attrName, data));
 		}
 	}
 	
-	private boolean hasAttribute(String name)
+	private boolean hasAttribute(String attrName)
 	{
 		for (Object attribute : attributes)
 		{
@@ -118,7 +118,7 @@ public class ObjectReflectionGroup implements AttributeGroup
 				continue;
 			
 			Attribute attr = (Attribute) attribute;
-			if (attr.getName().equals(name))
+			if (attr.getName().equals(attrName))
 				return true;
 		}
 		return false;
