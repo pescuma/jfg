@@ -187,6 +187,29 @@ class ObjectReflectionUtils
 		}
 	}
 	
+	public static Object getDefaultValue(Class<?> returnType)
+	{
+		if (returnType == byte.class || returnType == Byte.class)
+			return new Byte((byte) 0);
+		if (returnType == short.class || returnType == Short.class)
+			return new Short((short) 0);
+		if (returnType == int.class || returnType == Integer.class)
+			return new Integer(0);
+		if (returnType == long.class || returnType == Long.class)
+			return new Long(0);
+		if (returnType == float.class || returnType == Float.class)
+			return new Float(0);
+		if (returnType == double.class || returnType == Double.class)
+			return new Double(0);
+		if (returnType == boolean.class || returnType == Boolean.class)
+			return Boolean.FALSE;
+		if (returnType == char.class || returnType == Character.class)
+			return new Character('\0');
+		if (returnType == String.class)
+			return "";
+		return null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static <T> T wrapListener(Class<T> interfaceClass, AttributeListener attributeListener, ObjectReflectionData data)
 	{
@@ -259,28 +282,6 @@ class ObjectReflectionUtils
 			}
 		}
 		
-		private Object getDefaultValue(Class<?> returnType)
-		{
-			if (returnType == byte.class || returnType == Byte.class)
-				return new Byte((byte) 0);
-			if (returnType == short.class || returnType == Short.class)
-				return new Short((short) 0);
-			if (returnType == int.class || returnType == Integer.class)
-				return new Integer(0);
-			if (returnType == long.class || returnType == Long.class)
-				return new Long(0);
-			if (returnType == float.class || returnType == Float.class)
-				return new Float(0);
-			if (returnType == double.class || returnType == Double.class)
-				return new Double(0);
-			if (returnType == boolean.class || returnType == Boolean.class)
-				return Boolean.FALSE;
-			if (returnType == char.class || returnType == Character.class)
-				return new Character('\0');
-			if (returnType == String.class)
-				return "";
-			return null;
-		}
 		protected Integer proxyHashCode(Object proxy)
 		{
 			return new Integer(System.identityHashCode(proxy));
