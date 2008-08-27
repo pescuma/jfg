@@ -207,7 +207,7 @@
 	             and individually overridden for each report type:
 	        	-->
 				<txt outfile="${dist.emma}/coverage.txt" depth="package" columns="class,method,block,line,name" />
-				<xml outfile="${dist.emma}/coverage.xml" depth="package" />
+				<xml outfile="${dist.emma}/coverage.xml" depth="method" />
 				<html outfile="${dist.emma}/coverage.html" depth="method" columns="name,class,method,block,line" />
 			</report>
 		</emma>
