@@ -12,20 +12,11 @@
 	<property name="build.test" value="build/test" />
 	<property name="build.debug" location="build/debug" />
 	<property name="build.crap4j" location="build/crap4j" />
+	<property name="build.emma" location="build/emma" />
 	<property name="dist.jar" location="dist/lib" />
 	<property name="dist.junit" location="dist/junit" />
 	<property name="dist.crap4j" location="dist/crap4j" />
-
-	<property name="CRAP4J_HOME" value="${basedir}/lib/crap4j" />
-
-	<!-- Define the Crap4j ant task -->
-	<taskdef name="crap4j" classname="org.crap4j.anttask.Crap4jAntTask">
-		<classpath>
-			<fileset dir="${CRAP4J_HOME}/lib">
-				<include name="**/*.jar" />
-			</fileset>
-		</classpath>
-	</taskdef>
+	<property name="dist.emma" location="dist/emma" />
 
 	<target name="init">
 		<!-- Create the time stamp -->
@@ -40,7 +31,7 @@
 		<javac srcdir="${src.src}" destdir="${build.src}">
 			<classpath>
 				<fileset dir="${libs.src}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -54,7 +45,7 @@
 		<javac srcdir="${src.src}" destdir="${build.debug}" debug="true">
 			<classpath>
 				<fileset dir="${libs.src}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -67,10 +58,10 @@
 			<classpath>
 				<pathelement location="${build.debug}" />
 				<fileset dir="${libs.src}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 				<fileset dir="${libs.build}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -79,21 +70,21 @@
 	<target name="test" depends="compile-tests">
 		<mkdir dir="${dist.junit}" />
 
-		<junit>
+		<junit printsummary="yes" fork="yes" haltonerror="false" haltonfailure="false">
 			<classpath>
 				<pathelement location="${build.debug}" />
 				<pathelement location="${build.test}" />
 				<fileset dir="${libs.src}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 				<fileset dir="${libs.build}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 
 			<formatter type="xml" />
 
-			<batchtest fork="no" todir="${dist.junit}" haltonerror="true" haltonfailure="false">
+			<batchtest todir="${dist.junit}">
 				<fileset dir="${src.test}">
 					<include name="**/*Test*.java" />
 				</fileset>
@@ -104,6 +95,16 @@
 	<target name="crap4j" depends="compile-tests">
 		<mkdir dir="${dist.crap4j}" />
 		<mkdir dir="${build.crap4j}" />
+
+		<property name="CRAP4J_HOME" value="${basedir}/lib/crap4j" />
+
+		<taskdef name="crap4j" classname="org.crap4j.anttask.Crap4jAntTask">
+			<classpath>
+				<fileset dir="${CRAP4J_HOME}/lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</taskdef>
 
 		<crap4j projectdir="${build.crap4j}" outputDir="${dist.crap4j}" dontTest="false" debug="false" downloadAverages="false" crap4jhome="${CRAP4J_HOME}">
 			<classes>
@@ -120,10 +121,10 @@
 
 			<libClasspath>
 				<fileset dir="${libs.src}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 				<fileset dir="${libs.build}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
 				</fileset>
 				<!-- if you get errors loading any agitar classes, like the mock classes, add this entry -->
 				<!--
@@ -135,6 +136,74 @@
 		</crap4j>
 	</target>
 
+
+	<target name="emma" depends="compile-tests">
+		<mkdir dir="${build.emma}" />
+		<mkdir dir="${dist.emma}" />
+
+		<taskdef resource="emma_ant.properties">
+			<classpath>
+				<fileset dir="${libs.build}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</taskdef>
+
+		<path id="emma.classpath">
+			<pathelement location="${build.debug}" />
+		</path>
+
+		<emma>
+			<instr instrpathref="emma.classpath" destdir="${build.emma}" metadatafile="${build.emma}/metadata.emma" merge="true" />
+		</emma>
+
+		<junit printsummary="yes" fork="yes" haltonerror="false" haltonfailure="false">
+			<classpath>
+				<!-- instrumented classes must be first in the classpath: -->
+				<pathelement location="${build.emma}" />
+				<pathelement location="${build.debug}" />
+				<pathelement location="${build.test}" />
+				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.build}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+
+			<jvmarg value="-Demma.coverage.out.file=${build.emma}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+			<formatter type="xml" />
+
+			<batchtest todir="${build.emma}">
+				<fileset dir="${src.test}">
+					<include name="**/*Test*.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+
+		<emma>
+			<report sourcepath="${src.src}" sort="+block,+name,+method,+class" metrics="method:70,block:80,line:80,class:100">
+				<!-- collect all EMMA data dumps (metadata and runtime)
+	             [this can be done via nested <fileset> fileset elements
+	             or <file> elements pointing to a single file]:
+	        	-->
+				<fileset dir="${build.emma}">
+					<include name="*.emma" />
+				</fileset>
+
+				<!-- for every type of report desired, configure a nested
+	             element; various report parameters
+	             can be inherited from the parent <report>
+	             and individually overridden for each report type:
+	        	-->
+				<txt outfile="${dist.emma}/coverage.txt" depth="package" columns="class,method,block,line,name" />
+				<xml outfile="${dist.emma}/coverage.xml" depth="package" />
+				<html outfile="${dist.emma}/coverage.html" depth="method" columns="name,class,method,block,line" />
+			</report>
+		</emma>
+	</target>
+
 	<target name="pack" depends="compile">
 		<!-- Create the distribution directory -->
 		<mkdir dir="${dist.jar}" />
@@ -143,7 +212,7 @@
 		<jar jarfile="${dist.jar}/jfg.jar" basedir="${build.src}" />
 	</target>
 
-	<target name="dist" depends="compile, test, crap4j, pack, clean-build" description="generate the distribution">
+	<target name="dist" depends="compile, pack, test, crap4j, emma, clean-build" description="generate the distribution">
 	</target>
 
 	<target name="clean-build">
