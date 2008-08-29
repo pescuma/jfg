@@ -71,6 +71,11 @@ public class ObjectReflectionGroup implements AttributeGroup
 		if (addListener != null)
 			removeListener = getMethod(obj, data.getRemoveObjectListenerNames(), addListener.getParameterTypes());
 		
+		if (addListener != null)
+			addListener.setAccessible(true);
+		if (removeListener != null)
+			removeListener.setAccessible(true);
+		
 		Class<?> cls = obj.getClass();
 		
 		for (Field field : cls.getFields())

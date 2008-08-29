@@ -50,6 +50,8 @@ class ObjectReflectionAttribute implements Attribute
 			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(name), addListener.getParameterTypes());
 		else
 			removeListener = null;
+		
+		setAccessible();
 	}
 	
 	public ObjectReflectionAttribute(AttributeGroup parent, Object obj, String name, ObjectReflectionData data)
@@ -72,6 +74,22 @@ class ObjectReflectionAttribute implements Attribute
 			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(name), addListener.getParameterTypes());
 		else
 			removeListener = null;
+		
+		setAccessible();
+	}
+	
+	private void setAccessible()
+	{
+		if (field != null)
+			field.setAccessible(true);
+		if (getter != null)
+			getter.setAccessible(true);
+		if (setter != null)
+			setter.setAccessible(true);
+		if (addListener != null)
+			addListener.setAccessible(true);
+		if (removeListener != null)
+			removeListener.setAccessible(true);
 	}
 	
 	public String getName()
