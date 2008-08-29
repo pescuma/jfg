@@ -35,43 +35,45 @@ class ObjectReflectionAttribute implements Attribute
 		this.data = data;
 		this.obj = obj;
 		this.field = field;
-		name = field.getName();
+		
+		String simpleName = field.getName();
+		name = field.getDeclaringClass().getName() + "." + simpleName;
 		type = field.getType();
 		
-		getter = getMethod(obj, data.getGetterNames(name));
+		getter = getMethod(obj, data.getGetterNames(simpleName));
 		
 		if (!Modifier.isFinal(field.getModifiers()))
-			setter = getMethod(obj, void.class, data.getSetterNames(name), type);
+			setter = getMethod(obj, void.class, data.getSetterNames(simpleName), type);
 		else
 			setter = null;
 		
-		addListener = getListenerMethod(obj, data.getAddFieldListenerNames(name), data.getRemoveFieldListenerNames(name), data);
+		addListener = getListenerMethod(obj, data.getAddFieldListenerNames(simpleName), data.getRemoveFieldListenerNames(simpleName), data);
 		if (addListener != null)
-			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(name), addListener.getParameterTypes());
+			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(simpleName), addListener.getParameterTypes());
 		else
 			removeListener = null;
 		
 		setAccessible();
 	}
 	
-	public ObjectReflectionAttribute(AttributeGroup parent, Object obj, String name, ObjectReflectionData data)
+	public ObjectReflectionAttribute(AttributeGroup parent, Object obj, String fullName, String simpleName, ObjectReflectionData data)
 	{
 		this.parent = parent;
 		this.data = data;
 		this.obj = obj;
 		field = null;
-		this.name = name;
+		name = fullName;
 		
-		getter = getMethod(obj, data.getGetterNames(name));
+		getter = getMethod(obj, data.getGetterNames(simpleName));
 		if (getter == null || getter.getReturnType() == void.class)
 			throw new IllegalArgumentException();
 		
 		type = getter.getReturnType();
-		setter = getMethod(obj, void.class, data.getSetterNames(name), type);
+		setter = getMethod(obj, void.class, data.getSetterNames(simpleName), type);
 		
-		addListener = getListenerMethod(obj, data.getAddFieldListenerNames(name), data.getRemoveFieldListenerNames(name), data);
+		addListener = getListenerMethod(obj, data.getAddFieldListenerNames(simpleName), data.getRemoveFieldListenerNames(simpleName), data);
 		if (addListener != null)
-			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(name), addListener.getParameterTypes());
+			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(simpleName), addListener.getParameterTypes());
 		else
 			removeListener = null;
 		
@@ -224,4 +226,11 @@ class ObjectReflectionAttribute implements Attribute
 			listener = null;
 		}
 	}
+	
+	@Override
+	public String toString()
+	{
+		return "ObjectReflectionAttribute[" + name + "]";
+	}
+	
 }

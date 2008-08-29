@@ -16,6 +16,8 @@ public class JfgFormData
 	
 	public TextTranslator textTranslator = new SimpleTextTranslator();
 	
+	public boolean showReadOnly = false;
+	
 	public JfgFormData()
 	{
 		builders.put(String.class, new SWTTextBuilder());
@@ -28,6 +30,9 @@ public class JfgFormData
 		builders.put(Integer.class, new SWTNumberBuilder());
 		builders.put(long.class, new SWTNumberBuilder());
 		builders.put(Long.class, new SWTNumberBuilder());
+		
+		builders.put(boolean.class, new SWTCheckboxBuilder());
+		builders.put(Boolean.class, new SWTCheckboxBuilder());
 	}
 	
 }

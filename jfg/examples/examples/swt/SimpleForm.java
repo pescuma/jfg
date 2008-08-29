@@ -29,6 +29,7 @@ public class SimpleForm
 	{
 		private int a;
 		private String name;
+		private boolean valid;
 		
 		private List<ChangeListener> listeners = new ArrayList<ChangeListener>();
 		
@@ -52,6 +53,18 @@ public class SimpleForm
 		public void setName(String name)
 		{
 			this.name = name;
+			
+			notifyListeners();
+		}
+		
+		public boolean isValid()
+		{
+			return valid;
+		}
+		
+		public void setValid(boolean valid)
+		{
+			this.valid = valid;
 			
 			notifyListeners();
 		}
@@ -96,6 +109,7 @@ public class SimpleForm
 			{
 				obj.setA(1);
 				obj.setName("Name");
+				obj.setValid(true);
 			}
 		});
 		set.setText("Set");

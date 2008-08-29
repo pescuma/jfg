@@ -78,17 +78,32 @@ public class ObjectReflectionGroup implements AttributeGroup
 		
 		Class<?> cls = obj.getClass();
 		
-		for (Field field : cls.getFields())
+		addAttributesFrom(cls);
+	}
+	
+	private void addAttributesFrom(Class<?> cls)
+	{
+		if (cls == Object.class)
+			return;
+		
+		addAttributesFrom(cls.getSuperclass());
+		
+		for (Field field : cls.getDeclaredFields())
 		{
-			if (Modifier.isStatic(field.getModifiers()))
+			int modifiers = field.getModifiers();
+			if (Modifier.isStatic(modifiers))
 				continue;
 			
-			attributes.add(new ObjectReflectionAttribute(this, obj, field, data));
+			if (Modifier.isPublic(modifiers) || getMethod(obj, data.getGetterNames(field.getName())) != null)
+				attributes.add(new ObjectReflectionAttribute(this, obj, field, data));
 		}
 		
-		for (Method method : cls.getMethods())
+		for (Method method : cls.getDeclaredMethods())
 		{
-			if (Modifier.isStatic(method.getModifiers()))
+			int modifiers = method.getModifiers();
+			if (Modifier.isStatic(modifiers))
+				continue;
+			if (!Modifier.isPublic(modifiers))
 				continue;
 			
 			Class<?>[] parameterTypes = method.getParameterTypes();
@@ -108,10 +123,11 @@ public class ObjectReflectionGroup implements AttributeGroup
 			else
 				continue;
 			
-			if (hasAttribute(attrName))
+			String fullName = cls.getName() + "." + attrName;
+			if (hasAttribute(fullName))
 				continue;
 			
-			attributes.add(new ObjectReflectionAttribute(this, obj, attrName, data));
+			attributes.add(new ObjectReflectionAttribute(this, obj, fullName, attrName, data));
 		}
 	}
 	

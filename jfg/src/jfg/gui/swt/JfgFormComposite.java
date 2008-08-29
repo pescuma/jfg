@@ -30,7 +30,7 @@ public class JfgFormComposite extends Composite
 	public void setContents(AttributeGroup group)
 	{
 		initLayout();
-		buildAttributes(group, null, 0);
+		buildAttributes(group, 0);
 	}
 	
 	@Override
@@ -54,28 +54,18 @@ public class JfgFormComposite extends Composite
 		setLayout(new GridLayout(2, false));
 	}
 	
-	private String getFieldName(String parentName, String name)
+	private void buildAttributes(AttributeGroup group, int currentLevel)
 	{
-		if (parentName == null)
-			return name;
-		else
-			return parentName + "." + name;
-	}
-	
-	private void buildAttributes(AttributeGroup group, String parentName, int currentLevel)
-	{
-		String fieldName = getFieldName(parentName, group.getName());
-		
 		for (Object attrib : group.getAttributes())
 		{
 			if (attrib instanceof AttributeGroup)
-				buildGroup(this, (AttributeGroup) attrib, fieldName, currentLevel);
+				buildGroup(this, (AttributeGroup) attrib, currentLevel);
 			else if (attrib instanceof Attribute)
-				buildAttribute(this, (Attribute) attrib, fieldName, currentLevel);
+				buildAttribute(this, (Attribute) attrib, currentLevel);
 		}
 	}
 	
-	private void buildAttribute(Composite parent, Attribute attrib, String parentName, int currentLevel)
+	private void buildAttribute(Composite parent, Attribute attrib, int currentLevel)
 	{
 		SWTWidgetBuilder builder = data.builders.get(attrib.getType());
 		if (builder == null)
@@ -84,10 +74,13 @@ public class JfgFormComposite extends Composite
 			{
 				AttributeGroup group = attrib.asGroup();
 				if (group != null)
-					buildGroup(parent, group, parentName, currentLevel + 1);
+					buildGroup(parent, group, currentLevel + 1);
 			}
 			return;
 		}
+		
+		if (!data.showReadOnly && !attrib.canWrite())
+			return;
 		
 		if (!builder.acceptType(attrib.getType()))
 			throw new IllegalArgumentException("Wrong configuration");
@@ -97,7 +90,7 @@ public class JfgFormComposite extends Composite
 		if (builder.wantNameLabel())
 		{
 			Label name = new Label(parent, SWT.NONE);
-			name.setText(data.textTranslator.fieldName(getFieldName(parentName, attrib.getName())) + ":");
+			name.setText(data.textTranslator.fieldName(attrib.getName()) + ":");
 			
 			numColumns++;
 		}
@@ -110,7 +103,7 @@ public class JfgFormComposite extends Composite
 		attributes.add(swta);
 	}
 	
-	private void buildGroup(Composite parent, AttributeGroup group, String parentName, int currentLevel)
+	private void buildGroup(Composite parent, AttributeGroup group, int currentLevel)
 	{
 		GridLayout layout = (GridLayout) getLayout();
 		
@@ -118,6 +111,6 @@ public class JfgFormComposite extends Composite
 		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		frame.setLayout(new GridLayout(2, false));
 		
-		buildAttributes(group, parentName, currentLevel);
+		buildAttributes(group, currentLevel);
 	}
 }

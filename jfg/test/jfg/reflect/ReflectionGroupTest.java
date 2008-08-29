@@ -53,7 +53,7 @@ public class ReflectionGroupTest
 		assertSimpleFieldAttribute(obj);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFields.aa", attr.getName());
 		assertEquals(int.class, attr.getType());
 		assertEquals(new Integer(0), attr.getValue());
 		tc.aa = 1;
@@ -65,7 +65,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("bb", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFields.bb", attr.getName());
 		assertEquals(long.class, attr.getType());
 		assertEquals(new Long(0), attr.getValue());
 		tc.bb = 1;
@@ -77,7 +77,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("cc", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFields.cc", attr.getName());
 		assertEquals(String.class, attr.getType());
 		assertEquals(null, attr.getValue());
 		tc.cc = "x";
@@ -170,7 +170,7 @@ public class ReflectionGroupTest
 		assertSimpleFieldAttribute(obj);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.aa", attr.getName());
 		assertEquals(int.class, attr.getType());
 		assertEquals(new Integer(100), attr.getValue());
 		tc.aa = 1;
@@ -182,7 +182,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("bb", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.bb", attr.getName());
 		assertEquals(long.class, attr.getType());
 		assertEquals(new Long(100), attr.getValue());
 		tc.bb = 1;
@@ -194,7 +194,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("cc", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.cc", attr.getName());
 		assertEquals(String.class, attr.getType());
 		assertEquals(null, attr.getValue());
 		tc.cc = "x";
@@ -263,7 +263,7 @@ public class ReflectionGroupTest
 		assertSimpleFieldAttribute(obj);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOnlyMethods.aa", attr.getName());
 		assertEquals(int.class, attr.getType());
 		assertEquals(new Integer(0), attr.getValue());
 		tc.setAa(1);
@@ -275,7 +275,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("bb", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOnlyMethods.bb", attr.getName());
 		assertEquals(long.class, attr.getType());
 		assertEquals(new Long(0), attr.getValue());
 		tc.setBb(1);
@@ -287,7 +287,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("cc", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOnlyMethods.cc", attr.getName());
 		assertEquals(String.class, attr.getType());
 		assertEquals(null, attr.getValue());
 		tc.setCc("x");
@@ -351,7 +351,7 @@ public class ReflectionGroupTest
 		assertSimpleFieldAttribute(obj);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.aa", attr.getName());
 		assertEquals(int.class, attr.getType());
 		assertEquals(new Integer(100), attr.getValue());
 		tc.aa = 1;
@@ -363,7 +363,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("bb", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.bb", attr.getName());
 		assertEquals(long.class, attr.getType());
 		assertEquals(new Long(0), attr.getValue());
 		tc.setBb(1);
@@ -375,7 +375,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("cc", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.cc", attr.getName());
 		assertEquals(String.class, attr.getType());
 		assertEquals(null, attr.getValue());
 		tc.setCc("x");
@@ -411,25 +411,12 @@ public class ReflectionGroupTest
 		
 		Iterator<Object> it = attributes.iterator();
 		
-		// dd
+		// aa
 		Object obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("dd", attr.getName());
-		assertEquals(int.class, attr.getType());
-		assertEquals(new Integer(0), attr.getValue());
-		tc.dd = 1;
-		assertEquals(new Integer(1), attr.getValue());
-		attr.setValue(new Integer(2));
-		assertEquals(new Integer(2), attr.getValue());
-		
-		// aa
-		obj = it.next();
-		assertSimpleFieldAttribute(obj);
-		
-		attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.aa", attr.getName());
 		assertEquals(int.class, attr.getType());
 		assertEquals(new Integer(100), attr.getValue());
 		tc.aa = 1;
@@ -437,23 +424,11 @@ public class ReflectionGroupTest
 		attr.setValue(new Integer(2));
 		assertEquals(new Integer(112), attr.getValue());
 		
-		// ee
-		obj = it.next();
-		assertSimpleFieldAttribute(obj);
-		attr = (Attribute) obj;
-		assertEquals("ee", attr.getName());
-		assertEquals(long.class, attr.getType());
-		assertEquals(new Long(0), attr.getValue());
-		tc.setEe(1);
-		assertEquals(new Long(1), attr.getValue());
-		attr.setValue(new Long(2));
-		assertEquals(new Long(2), attr.getValue());
-		
 		// bb
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("bb", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.bb", attr.getName());
 		assertEquals(long.class, attr.getType());
 		assertEquals(new Long(0), attr.getValue());
 		tc.setBb(1);
@@ -465,13 +440,39 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj);
 		attr = (Attribute) obj;
-		assertEquals("cc", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.cc", attr.getName());
 		assertEquals(String.class, attr.getType());
 		assertEquals(null, attr.getValue());
 		tc.setCc("x");
 		assertEquals("x", attr.getValue());
 		attr.setValue("y");
 		assertEquals("y", attr.getValue());
+		
+		// dd
+		obj = it.next();
+		assertSimpleFieldAttribute(obj);
+		
+		attr = (Attribute) obj;
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithExtends.dd", attr.getName());
+		assertEquals(int.class, attr.getType());
+		assertEquals(new Integer(0), attr.getValue());
+		tc.dd = 1;
+		assertEquals(new Integer(1), attr.getValue());
+		attr.setValue(new Integer(2));
+		assertEquals(new Integer(2), attr.getValue());
+		
+		// ee
+		obj = it.next();
+		assertSimpleFieldAttribute(obj);
+		attr = (Attribute) obj;
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithExtends.ee", attr.getName());
+		assertEquals(long.class, attr.getType());
+		assertEquals(new Long(0), attr.getValue());
+		tc.setEe(1);
+		assertEquals(new Long(1), attr.getValue());
+		attr.setValue(new Long(2));
+		assertEquals(new Long(2), attr.getValue());
+		
 	}
 	
 	private static class TestClassWithFieldListener
@@ -524,7 +525,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithFieldListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -607,7 +608,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithStrangeFieldListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -741,7 +742,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithWrongFieldListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -847,7 +848,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithGroupListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -878,7 +879,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		attr = (Attribute) obj;
-		assertEquals("bb", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithGroupListener.bb", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -933,7 +934,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("aa", attr.getName());
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOther.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(TestClassWithEverything.class, attr.getType());
 		assertEquals(false, attr.canListen());
