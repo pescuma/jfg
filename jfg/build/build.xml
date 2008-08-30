@@ -13,6 +13,7 @@
 	</script>
 
 	<!-- set global properties for this build -->
+	<property name="project" value="jfg" />
 	<property name="libs.src" location="../lib" />
 	<property name="libs.build" location="lib" />
 	<property name="src.src" location="../src" />
@@ -26,6 +27,7 @@
 	<property name="dist.junit" location="dist/junit" />
 	<property name="dist.crap4j" location="dist/crap4j" />
 	<property name="dist.emma" location="dist/emma" />
+	<property name="dist.findbugs" location="dist/findbugs" />
 
 	<target name="init">
 		<!-- Create the time stamp -->
@@ -105,7 +107,7 @@
 		<mkdir dir="${dist.crap4j}" />
 		<mkdir dir="${build.crap4j}" />
 
-		<property name="CRAP4J_HOME" value="${basedir}/lib/crap4j" />
+		<property name="CRAP4J_HOME" value="${libs.build}/crap4j" />
 
 		<taskdef name="crap4j" classname="org.crap4j.anttask.Crap4jAntTask">
 			<classpath>
@@ -213,12 +215,57 @@
 		</emma>
 	</target>
 
+	<target name="findbugs" depends="compile-debug">
+		<mkdir dir="${dist.findbugs}" />
+
+		<property name="FINDBUGS_HOME" value="${libs.build}/findbugs" />
+
+		<taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask">
+			<classpath>
+				<fileset dir="${FINDBUGS_HOME}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</taskdef>
+
+		<taskdef name="convertXmlToText" classname="edu.umd.cs.findbugs.anttask.ConvertXmlToTextTask">
+			<classpath>
+				<fileset dir="${FINDBUGS_HOME}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</taskdef>
+
+		<findbugs home="${FINDBUGS_HOME}" output="xml:withMessages" outputFile="${dist.findbugs}/findbugs.xml" effort="max" projectName="${project}">
+			<auxClasspath>
+				<pathelement location="${build.debug}" />
+				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+			</auxClasspath>
+			<sourcePath path="${src.src}" />
+			<class location="${build.debug}" />
+		</findbugs>
+
+		<findbugs home="${FINDBUGS_HOME}" output="html" outputFile="${dist.findbugs}/findbugs.html" effort="max" projectName="${project}">
+			<auxClasspath>
+				<pathelement location="${build.debug}" />
+				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+			</auxClasspath>
+			<sourcePath path="${src.src}" />
+			<class location="${build.debug}" />
+		</findbugs>
+
+	</target>
+
 	<target name="pack" depends="compile">
 		<!-- Create the distribution directory -->
 		<mkdir dir="${dist.jar}" />
 
 		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-		<jar jarfile="${dist.jar}/jfg.jar" basedir="${build.src}" />
+		<jar jarfile="${dist.jar}/${project}.jar" basedir="${build.src}" />
 	</target>
 
 	<target name="dist" depends="compile, pack, test, crap4j, emma, clean-build" description="generate the distribution">
