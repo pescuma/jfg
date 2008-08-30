@@ -61,7 +61,7 @@ class TypeUtils
 		long v;
 		if (value == null)
 			v = 0;
-		if (type == byte.class || type == Byte.class)
+		else if (type == byte.class || type == Byte.class)
 			v = (Byte) value;
 		else if (type == short.class || type == Short.class)
 			v = (Short) value;

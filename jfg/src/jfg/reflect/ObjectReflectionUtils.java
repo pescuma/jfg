@@ -190,21 +190,21 @@ class ObjectReflectionUtils
 	public static Object getDefaultValue(Class<?> returnType)
 	{
 		if (returnType == byte.class || returnType == Byte.class)
-			return new Byte((byte) 0);
+			return Byte.valueOf((byte) 0);
 		if (returnType == short.class || returnType == Short.class)
-			return new Short((short) 0);
+			return Short.valueOf((short) 0);
 		if (returnType == int.class || returnType == Integer.class)
-			return new Integer(0);
+			return Integer.valueOf(0);
 		if (returnType == long.class || returnType == Long.class)
-			return new Long(0);
+			return Long.valueOf(0);
 		if (returnType == float.class || returnType == Float.class)
-			return new Float(0);
+			return Float.valueOf(0);
 		if (returnType == double.class || returnType == Double.class)
-			return new Double(0);
+			return Double.valueOf(0);
 		if (returnType == boolean.class || returnType == Boolean.class)
 			return Boolean.FALSE;
 		if (returnType == char.class || returnType == Character.class)
-			return new Character('\0');
+			return Character.valueOf('\0');
 		if (returnType == String.class)
 			return "";
 		return null;
@@ -284,7 +284,7 @@ class ObjectReflectionUtils
 		
 		protected Integer proxyHashCode(Object proxy)
 		{
-			return new Integer(System.identityHashCode(proxy));
+			return Integer.valueOf(System.identityHashCode(proxy));
 		}
 		
 		protected Boolean proxyEquals(Object proxy, Object other)
