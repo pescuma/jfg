@@ -28,16 +28,8 @@ public class SWTNumberBuilder extends SWTTextBuilder
 					return;
 				
 				String append = e.text;
-				for (int i = 0; i < append.length(); i++)
+				if (!isValidNumber(append, e.start))
 				{
-					char c = append.charAt(i);
-					
-					if (i == 0 && e.start == 0 && c == '-')
-						continue;
-					
-					if ('0' <= c && c <= '9')
-						continue;
-					
 					e.doit = false;
 					return;
 				}
@@ -98,17 +90,23 @@ public class SWTNumberBuilder extends SWTTextBuilder
 	
 	private long castNumber(Object value, Object type)
 	{
-		long v;
-		if (value == null)
-			v = 0;
-		if (type == byte.class || type == Byte.class)
-			v = (Byte) value;
-		else if (type == short.class || type == Short.class)
-			v = (Short) value;
-		else if (type == int.class || type == Integer.class)
-			v = (Integer) value;
-		else
-			v = (Long) value;
-		return v;
+		return TypeUtils.castNumber(value, type);
+	}
+	
+	static boolean isValidNumber(String append, int start)
+	{
+		for (int i = 0; i < append.length(); i++)
+		{
+			char c = append.charAt(i);
+			
+			if (i == 0 && start == 0 && c == '-')
+				continue;
+			
+			if ('0' <= c && c <= '9')
+				continue;
+			
+			return false;
+		}
+		return true;
 	}
 }

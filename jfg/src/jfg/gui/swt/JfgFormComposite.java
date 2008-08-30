@@ -67,36 +67,28 @@ public class JfgFormComposite extends Composite
 	
 	private void buildAttribute(Composite parent, Attribute attrib, int currentLevel)
 	{
-		SWTWidgetBuilder builder = data.builders.get(attrib.getType());
-		if (builder == null)
-		{
-			if (currentLevel < data.maxGroupAttributeLevels)
-			{
-				AttributeGroup group = attrib.asGroup();
-				if (group != null)
-					buildGroup(parent, group, currentLevel + 1);
-			}
-			return;
-		}
-		
 		if (!data.showReadOnly && !attrib.canWrite())
 			return;
 		
+		SWTWidgetBuilder builder = data.builders.get(attrib.getType());
+		if (builder == null)
+		{
+			buildGroup(parent, attrib.asGroup(), currentLevel + 1);
+			return;
+		}
 		if (!builder.acceptType(attrib.getType()))
 			throw new IllegalArgumentException("Wrong configuration");
-		
-		int numColumns = 0;
 		
 		if (builder.wantNameLabel())
 		{
 			Label name = new Label(parent, SWT.NONE);
 			name.setText(data.textTranslator.fieldName(attrib.getName()) + ":");
-			
-			numColumns++;
 		}
 		
 		GridLayout layout = (GridLayout) getLayout();
-		numColumns = layout.numColumns - numColumns;
+		int numColumns = layout.numColumns;
+		if (builder.wantNameLabel())
+			numColumns--;
 		
 		SWTAttribute swta = builder.build((numColumns > 1 ? createHorizontalComposite(parent, numColumns) : parent), attrib, data);
 		swta.init();
@@ -105,6 +97,11 @@ public class JfgFormComposite extends Composite
 	
 	private void buildGroup(Composite parent, AttributeGroup group, int currentLevel)
 	{
+		if (group == null)
+			return;
+		if (currentLevel >= data.maxGroupAttributeLevels)
+			return;
+		
 		GridLayout layout = (GridLayout) getLayout();
 		
 		Group frame = new Group(createHorizontalComposite(parent, layout.numColumns), SWT.BORDER);

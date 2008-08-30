@@ -54,4 +54,36 @@ public class TypeUtilsTest
 		assertArrayEquals(new long[] { Long.MIN_VALUE, Long.MAX_VALUE }, getMinMax(long.class));
 		assertArrayEquals(new long[] { Long.MIN_VALUE, Long.MAX_VALUE }, getMinMax(Long.class));
 	}
+	
+	@Test
+	public void testCastNumber() throws Exception
+	{
+		assertEquals(0, castNumber(new Byte((byte) 0), Byte.class));
+		assertEquals(10, castNumber(new Byte((byte) 10), Byte.class));
+		assertEquals(-10, castNumber(new Byte((byte) -10), Byte.class));
+		assertEquals(0, castNumber(new Byte((byte) 0), Byte.class));
+		assertEquals(10, castNumber(new Byte((byte) 10), Byte.class));
+		assertEquals(-10, castNumber(new Byte((byte) -10), Byte.class));
+		
+		assertEquals(0, castNumber(new Short((short) 0), Short.class));
+		assertEquals(10, castNumber(new Short((short) 10), Short.class));
+		assertEquals(-10, castNumber(new Short((short) -10), Short.class));
+		assertEquals(0, castNumber(new Short((short) 0), Short.class));
+		assertEquals(10, castNumber(new Short((short) 10), Short.class));
+		assertEquals(-10, castNumber(new Short((short) -10), Short.class));
+		
+		assertEquals(0, castNumber(new Integer(0), Integer.class));
+		assertEquals(10, castNumber(new Integer(10), Integer.class));
+		assertEquals(-10, castNumber(new Integer(-10), Integer.class));
+		assertEquals(0, castNumber(new Integer(0), Integer.class));
+		assertEquals(10, castNumber(new Integer(10), Integer.class));
+		assertEquals(-10, castNumber(new Integer(-10), Integer.class));
+		
+		assertEquals(0, castNumber(new Long(0), Long.class));
+		assertEquals(10, castNumber(new Long(10), Long.class));
+		assertEquals(-10, castNumber(new Long(-10), Long.class));
+		assertEquals(0, castNumber(new Long(0), Long.class));
+		assertEquals(10, castNumber(new Long(10), Long.class));
+		assertEquals(-10, castNumber(new Long(-10), Long.class));
+	}
 }

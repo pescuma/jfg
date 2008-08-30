@@ -55,4 +55,21 @@ class TypeUtils
 		
 		return mm;
 	}
+	
+	public static long castNumber(Object value, Object type)
+	{
+		long v;
+		if (value == null)
+			v = 0;
+		if (type == byte.class || type == Byte.class)
+			v = (Byte) value;
+		else if (type == short.class || type == Short.class)
+			v = (Short) value;
+		else if (type == int.class || type == Integer.class)
+			v = (Integer) value;
+		else
+			v = (Long) value;
+		return v;
+	}
+	
 }
