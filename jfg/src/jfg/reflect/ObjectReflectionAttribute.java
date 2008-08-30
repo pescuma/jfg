@@ -6,6 +6,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import jfg.Attribute;
@@ -24,7 +27,8 @@ class ObjectReflectionAttribute implements Attribute
 	private final Method addListener;
 	private final Method removeListener;
 	private final String name;
-	private Class<?> type;
+	private final Class<?> type;
+	private AttributeValueRange range;
 	
 	private Object listener;
 	private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
@@ -38,6 +42,7 @@ class ObjectReflectionAttribute implements Attribute
 		
 		String simpleName = field.getName();
 		name = field.getDeclaringClass().getName() + "." + simpleName;
+		
 		type = field.getType();
 		
 		getter = getMethod(obj, data.getGetterNames(simpleName));
@@ -69,6 +74,7 @@ class ObjectReflectionAttribute implements Attribute
 			throw new IllegalArgumentException();
 		
 		type = getter.getReturnType();
+		
 		setter = getMethod(obj, void.class, data.getSetterNames(simpleName), type);
 		
 		addListener = getListenerMethod(obj, data.getAddFieldListenerNames(simpleName), data.getRemoveFieldListenerNames(simpleName), data);
@@ -106,7 +112,49 @@ class ObjectReflectionAttribute implements Attribute
 	
 	public AttributeValueRange getValueRange()
 	{
-		return null;
+		if (!type.isEnum())
+			return null;
+		
+		if (range == null)
+		{
+			range = new AttributeValueRange() {
+				
+				public boolean canBeNull()
+				{
+					return true;
+				}
+				
+				public Comparator<Object> getComparator()
+				{
+					return null;
+				}
+				
+				public Object getMax()
+				{
+					return null;
+				}
+				
+				public Object getMin()
+				{
+					return null;
+				}
+				
+				private Collection<Object> values;
+				
+				public Collection<Object> getPossibleValues()
+				{
+					if (values == null)
+					{
+						values = new ArrayList<Object>();
+						Collections.addAll(values, type.getEnumConstants());
+					}
+					
+					return values;
+				}
+			};
+		}
+		
+		return range;
 	}
 	
 	public AttributeGroup asGroup()

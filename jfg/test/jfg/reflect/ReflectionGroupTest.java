@@ -11,6 +11,7 @@ import jfg.Attribute;
 import jfg.AttributeGroup;
 import jfg.AttributeListener;
 import jfg.AttributeListenerConverter;
+import jfg.AttributeValueRange;
 
 import org.junit.Test;
 
@@ -89,6 +90,12 @@ public class ReflectionGroupTest
 	
 	private void assertSimpleFieldAttribute(Object obj)
 	{
+		Attribute attr = assertSimpleFieldIgnoreRange(obj);
+		assertEquals(null, attr.getValueRange());
+	}
+	
+	private Attribute assertSimpleFieldIgnoreRange(Object obj)
+	{
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
@@ -119,8 +126,7 @@ public class ReflectionGroupTest
 		catch (RuntimeException e)
 		{
 		}
-		
-		assertEquals(null, attr.getValueRange());
+		return attr;
 	}
 	
 	private static class TestClassWithPublicFieldsAndGettersSetters
@@ -948,5 +954,59 @@ public class ReflectionGroupTest
 		assertNotNull(ag);
 		
 		testWithEverything(tc.aa, ag);
+	}
+	
+	private static enum TestEnum
+	{
+		EnumValue1,
+		EnumValue2,
+		EnumValue3
+	}
+	
+	private static class TestClassWithEnum
+	{
+		public TestEnum aa;
+	}
+	
+	@Test
+	public void testWithPublicEnum()
+	{
+		TestClassWithEnum tc = new TestClassWithEnum();
+		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		assertEquals("TestClassWithEnum", group.getName());
+		
+		Collection<Object> attributes = group.getAttributes();
+		assertEquals(1, attributes.size());
+		
+		Iterator<Object> it = attributes.iterator();
+		
+		// aa
+		Object obj = it.next();
+		assertSimpleFieldIgnoreRange(obj);
+		
+		Attribute attr = (Attribute) obj;
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEnum.aa", attr.getName());
+		assertEquals(TestEnum.class, attr.getType());
+		assertEquals(null, attr.getValue());
+		tc.aa = TestEnum.EnumValue2;
+		assertEquals(TestEnum.EnumValue2, attr.getValue());
+		attr.setValue(TestEnum.EnumValue1);
+		assertEquals(TestEnum.EnumValue1, attr.getValue());
+		
+		AttributeValueRange range = attr.getValueRange();
+		assertNotNull(range);
+		assertTrue(range.canBeNull());
+		assertNull(range.getComparator());
+		assertNull(range.getMax());
+		assertNull(range.getMin());
+		
+		Collection<Object> values = range.getPossibleValues();
+		assertNotNull(values);
+		assertEquals(3, values.size());
+		
+		it = values.iterator();
+		assertEquals(TestEnum.EnumValue1, it.next());
+		assertEquals(TestEnum.EnumValue2, it.next());
+		assertEquals(TestEnum.EnumValue3, it.next());
 	}
 }
