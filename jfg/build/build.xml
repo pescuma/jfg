@@ -268,7 +268,7 @@
 		<jar jarfile="${dist.jar}/${project}.jar" basedir="${build.src}" />
 	</target>
 
-	<target name="dist" depends="compile, pack, test, crap4j, emma, clean-build" description="generate the distribution">
+	<target name="dist" depends="compile, pack, test, crap4j, emma, findbugs, clean-build" description="generate the distribution">
 	</target>
 
 	<target name="clean-build">
