@@ -33,6 +33,8 @@ public class JfgFormData
 		
 		builders.put(boolean.class, new SWTCheckboxBuilder());
 		builders.put(Boolean.class, new SWTCheckboxBuilder());
+		
+		builders.put(Enum.class, new SWTComboBuilder());
 	}
 	
 }

@@ -70,13 +70,13 @@ public class JfgFormComposite extends Composite
 		if (!data.showReadOnly && !attrib.canWrite())
 			return;
 		
-		SWTWidgetBuilder builder = data.builders.get(attrib.getType());
+		SWTWidgetBuilder builder = getBuilderFor(attrib.getType());
 		if (builder == null)
 		{
 			buildGroup(parent, attrib.asGroup(), currentLevel + 1);
 			return;
 		}
-		if (!builder.acceptType(attrib.getType()))
+		if (!builder.accept(attrib))
 			throw new IllegalArgumentException("Wrong configuration");
 		
 		if (builder.wantNameLabel())
@@ -93,6 +93,22 @@ public class JfgFormComposite extends Composite
 		SWTAttribute swta = builder.build((numColumns > 1 ? createHorizontalComposite(parent, numColumns) : parent), attrib, data);
 		swta.init();
 		attributes.add(swta);
+	}
+	
+	private SWTWidgetBuilder getBuilderFor(Object type)
+	{
+		SWTWidgetBuilder builder = data.builders.get(type);
+		if (builder != null)
+			return builder;
+		
+		if (type instanceof Class)
+		{
+			Class<?> cls = (Class<?>) type;
+			if (cls.isEnum())
+				return data.builders.get(Enum.class);
+		}
+		
+		return builder;
 	}
 	
 	private void buildGroup(Composite parent, AttributeGroup group, int currentLevel)

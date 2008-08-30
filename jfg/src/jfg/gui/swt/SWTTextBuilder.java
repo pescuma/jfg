@@ -12,8 +12,9 @@ import org.eclipse.swt.widgets.Text;
 
 public class SWTTextBuilder implements SWTWidgetBuilder
 {
-	public boolean acceptType(Object type)
+	public boolean accept(Attribute attrib)
 	{
+		Object type = attrib.getType();
 		return type == String.class;
 	}
 	

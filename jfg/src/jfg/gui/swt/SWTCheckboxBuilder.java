@@ -12,8 +12,9 @@ import org.eclipse.swt.widgets.Listener;
 
 public class SWTCheckboxBuilder implements SWTWidgetBuilder
 {
-	public boolean acceptType(Object type)
+	public boolean accept(Attribute attrib)
 	{
+		Object type = attrib.getType();
 		return type == Boolean.class || type == boolean.class;
 	}
 	

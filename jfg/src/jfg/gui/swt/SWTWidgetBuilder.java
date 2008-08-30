@@ -6,7 +6,7 @@ import org.eclipse.swt.widgets.Composite;
 
 public interface SWTWidgetBuilder
 {
-	boolean acceptType(Object type);
+	boolean accept(Attribute attrib);
 	
 	boolean wantNameLabel();
 	

@@ -4,17 +4,27 @@ public class SimpleTextTranslator implements TextTranslator
 {
 	public String fieldName(String fieldName)
 	{
-		int index = fieldName.lastIndexOf('.');
+		return formatText(fieldName);
+	}
+	
+	public String enumElement(String enumElement)
+	{
+		return formatText(enumElement);
+	}
+	
+	private String formatText(String text)
+	{
+		int index = text.lastIndexOf('.');
 		if (index >= 0)
-			fieldName = fieldName.substring(index + 1);
+			text = text.substring(index + 1);
 		
-		fieldName = fieldName.replaceAll("_", " - ");
-		fieldName = fieldName.replaceAll("([A-Z]+)", " $1");
-		fieldName = fieldName.replaceAll("([A-Z]+)([A-Z][^ A-Z])", "$1 $2");
-		fieldName = fieldName.replaceAll("^( -)+", "");
-		fieldName = fieldName.replaceAll("(- )+$", "");
-		fieldName = fieldName.replaceAll(" +", " ");
-		return firstUpper(fieldName.trim());
+		text = text.replaceAll("_", " - ");
+		text = text.replaceAll("([A-Z]+)", " $1");
+		text = text.replaceAll("([A-Z]+)([A-Z][^ A-Z])", "$1 $2");
+		text = text.replaceAll("^( -)+", "");
+		text = text.replaceAll("(- )+$", "");
+		text = text.replaceAll(" +", " ");
+		return firstUpper(text.trim());
 	}
 	
 	private String firstUpper(String str)
@@ -26,6 +36,11 @@ public class SimpleTextTranslator implements TextTranslator
 			return str.toUpperCase();
 		else
 			return str.substring(0, 1).toUpperCase() + str.substring(1);
+	}
+	
+	public String translate(String text)
+	{
+		return text;
 	}
 	
 }

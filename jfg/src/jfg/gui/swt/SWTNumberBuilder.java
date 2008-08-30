@@ -1,6 +1,7 @@
 package jfg.gui.swt;
 
 import static jfg.gui.swt.TypeUtils.*;
+import jfg.Attribute;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
@@ -10,8 +11,9 @@ import org.eclipse.swt.widgets.Text;
 public class SWTNumberBuilder extends SWTTextBuilder
 {
 	@Override
-	public boolean acceptType(Object type)
+	public boolean accept(Attribute attrib)
 	{
+		Object type = attrib.getType();
 		return type == byte.class || type == Byte.class || type == short.class || type == Short.class || type == int.class
 				|| type == Integer.class || type == long.class || type == Long.class;
 	}
