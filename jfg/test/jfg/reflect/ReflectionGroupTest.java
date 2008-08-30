@@ -90,18 +90,21 @@ public class ReflectionGroupTest
 	
 	private void assertSimpleFieldAttribute(Object obj)
 	{
-		Attribute attr = assertSimpleFieldIgnoreRange(obj);
-		assertEquals(null, attr.getValueRange());
+		assertFieldAttribute(obj, true, false, false, false);
 	}
 	
-	private Attribute assertSimpleFieldIgnoreRange(Object obj)
+	private void assertFieldAttribute(Object obj, boolean canWrite, boolean canListen, boolean asGroup, boolean hasRange)
 	{
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals(true, attr.canWrite());
-		assertEquals(false, attr.canListen());
-		assertEquals(null, attr.asGroup());
+		assertEquals(canWrite, attr.canWrite());
+		assertEquals(canListen, attr.canListen());
+		
+		if (asGroup)
+			assertNotNull(attr.asGroup());
+		else
+			assertNull(attr.asGroup());
 		
 		AttributeListener listener = new AttributeListener() {
 			public void onChange()
@@ -112,21 +115,31 @@ public class ReflectionGroupTest
 		try
 		{
 			attr.addListener(listener);
-			fail();
+			if (!canListen)
+				fail();
 		}
 		catch (RuntimeException e)
 		{
+			if (canListen)
+				fail();
 		}
 		
 		try
 		{
 			attr.removeListener(listener);
-			fail();
+			if (!canListen)
+				fail();
 		}
 		catch (RuntimeException e)
 		{
+			if (canListen)
+				fail();
 		}
-		return attr;
+		
+		if (hasRange)
+			assertNotNull(attr.getValueRange());
+		else
+			assertNull(attr.getValueRange());
 	}
 	
 	private static class TestClassWithPublicFieldsAndGettersSetters
@@ -134,7 +147,7 @@ public class ReflectionGroupTest
 		public static float xx;
 		
 		public int aa;
-		public long bb;
+		protected long bb;
 		public String cc;
 		protected int dd;
 		
@@ -186,15 +199,23 @@ public class ReflectionGroupTest
 		
 		// bb
 		obj = it.next();
-		assertSimpleFieldAttribute(obj);
+		assertFieldAttribute(obj, false, false, false, false);
 		attr = (Attribute) obj;
 		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.bb", attr.getName());
 		assertEquals(long.class, attr.getType());
 		assertEquals(new Long(100), attr.getValue());
 		tc.bb = 1;
 		assertEquals(new Long(101), attr.getValue());
-		attr.setValue(new Long(2));
-		assertEquals(new Long(102), attr.getValue());
+		try
+		{
+			attr.setValue(new Long(2));
+			fail();
+		}
+		catch (ObjectReflectionException e)
+		{
+			
+		}
+		assertEquals(new Long(101), attr.getValue());
 		
 		// cc
 		obj = it.next();
@@ -982,7 +1003,7 @@ public class ReflectionGroupTest
 		
 		// aa
 		Object obj = it.next();
-		assertSimpleFieldIgnoreRange(obj);
+		assertFieldAttribute(obj, true, false, false, true);
 		
 		Attribute attr = (Attribute) obj;
 		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEnum.aa", attr.getName());

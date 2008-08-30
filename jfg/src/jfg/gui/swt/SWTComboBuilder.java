@@ -49,7 +49,6 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				if (attrib.canWrite())
 				{
 					combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
-					combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					fill();
 				}
 				else
@@ -86,13 +85,26 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 					});
 				}
 				
-				combo.addListener(SWT.Dispose, new Listener() {
-					public void handleEvent(Event event)
-					{
-						if (attrib.canListen())
-							attrib.removeListener(attributeListener);
-					}
-				});
+				if (attrib.canWrite())
+				{
+					combo.addListener(SWT.Dispose, new Listener() {
+						public void handleEvent(Event event)
+						{
+							if (attrib.canListen())
+								attrib.removeListener(attributeListener);
+						}
+					});
+				}
+				else
+				{
+					text.addListener(SWT.Dispose, new Listener() {
+						public void handleEvent(Event event)
+						{
+							if (attrib.canListen())
+								attrib.removeListener(attributeListener);
+						}
+					});
+				}
 				
 				copyToGUI();
 			}

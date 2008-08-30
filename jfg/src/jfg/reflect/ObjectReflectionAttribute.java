@@ -38,7 +38,11 @@ class ObjectReflectionAttribute implements Attribute
 		this.parent = parent;
 		this.data = data;
 		this.obj = obj;
-		this.field = field;
+		
+		if (Modifier.isPublic(field.getModifiers()))
+			this.field = field;
+		else
+			this.field = null;
 		
 		String simpleName = field.getName();
 		name = field.getDeclaringClass().getName() + "." + simpleName;

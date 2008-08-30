@@ -117,6 +117,7 @@ public class SimpleForm
 		final TestClass obj = new TestClass();
 		
 		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, new JfgFormData());
+		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		form.setContents(new ObjectReflectionGroup(obj));
 		
 		Button set = new Button(shell, SWT.PUSH);

@@ -34,9 +34,19 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 			
 			public void init()
 			{
-				chk = data.componentFactory.createCheckbox(parent, attrib.canWrite() ? 0 : SWT.READ_ONLY);
+				chk = data.componentFactory.createCheckbox(parent, 0);
 				chk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				chk.setText(data.textTranslator.fieldName(attrib.getName()));
+				
+				if (!attrib.canWrite())
+				{
+					chk.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event)
+						{
+							copyToGUI();
+						}
+					});
+				}
 				
 				if (attrib.canListen())
 				{
