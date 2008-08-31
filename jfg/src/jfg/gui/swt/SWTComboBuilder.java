@@ -4,15 +4,12 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import jfg.Attribute;
-import jfg.AttributeListener;
 import jfg.AttributeValueRange;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 public class SWTComboBuilder implements SWTWidgetBuilder
@@ -31,18 +28,12 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 		return true;
 	}
 	
-	public SWTAttribute build(final Composite parent, final Attribute attrib, final JfgFormData data)
+	public SWTAttribute build(Composite parent, Attribute attrib, JfgFormData data)
 	{
-		
-		return new SWTAttribute() {
+		return new AbstractSWTAttribute(parent, attrib, data) {
 			
-			private boolean ignoreToGUI;
-			private boolean ignoreToAttribute;
-			private AttributeListener attributeListener;
 			private Combo combo;
 			private Text text;
-			private Collection<Object> values = attrib.getValueRange().getPossibleValues();
-			private boolean canBeNull = attrib.getValueRange().canBeNull();
 			
 			public void init()
 			{
@@ -50,101 +41,51 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				{
 					combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
 					fill();
+					combo.addListener(SWT.Modify, getModifyListener());
+					combo.addListener(SWT.Dispose, getDisposeListener());
 				}
 				else
 				{
 					text = data.componentFactory.createText(parent, SWT.READ_ONLY);
 					text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					text.addListener(SWT.Dispose, getDisposeListener());
 				}
 				
-				if (attrib.canListen())
-				{
-					attributeListener = new AttributeListener() {
-						public void onChange()
-						{
-							if (ignoreToGUI)
-								return;
-							
-							copyToGUI();
-						}
-					};
-					
-					attrib.addListener(attributeListener);
-				}
-				
-				if (attrib.canWrite())
-				{
-					combo.addListener(SWT.Modify, new Listener() {
-						public void handleEvent(Event event)
-						{
-							if (ignoreToAttribute)
-								return;
-							
-							copyToAttribute();
-						}
-					});
-				}
-				
-				if (attrib.canWrite())
-				{
-					combo.addListener(SWT.Dispose, new Listener() {
-						public void handleEvent(Event event)
-						{
-							if (attrib.canListen())
-								attrib.removeListener(attributeListener);
-						}
-					});
-				}
-				else
-				{
-					text.addListener(SWT.Dispose, new Listener() {
-						public void handleEvent(Event event)
-						{
-							if (attrib.canListen())
-								attrib.removeListener(attributeListener);
-						}
-					});
-				}
+				addAttributeListener();
 				
 				copyToGUI();
 			}
 			
 			private void fill()
 			{
-				if (canBeNull)
+				if (canBeNull())
 					combo.add(data.textTranslator.translate("<None>"));
 				
-				for (Iterator<Object> it = values.iterator(); it.hasNext();)
+				for (Iterator<Object> it = getPossibleValues().iterator(); it.hasNext();)
 				{
 					Object object = it.next();
 					combo.add(convertToString(object, attrib.getType()));
 				}
 			}
 			
-			public void copyToAttribute()
+			@Override
+			protected void guiToAttribute()
 			{
-				if (!attrib.canWrite())
-					return;
-				
-				ignoreToGUI = true;
-				
 				attrib.setValue(getValue(combo.getSelectionIndex()));
-				
-				ignoreToGUI = false;
 			}
 			
 			private Object getValue(int index)
 			{
 				int i = 0;
 				
-				if (canBeNull)
+				if (canBeNull())
 				{
 					if (i == index)
 						return null;
 					i++;
 				}
 				
-				for (Iterator<Object> it = values.iterator(); it.hasNext();)
+				for (Iterator<Object> it = getPossibleValues().iterator(); it.hasNext();)
 				{
 					Object object = it.next();
 					if (i == index)
@@ -155,30 +96,27 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				throw new IllegalArgumentException();
 			}
 			
-			public void copyToGUI()
+			@Override
+			protected void attibuteToGUI()
 			{
-				ignoreToAttribute = true;
-				
 				if (attrib.canWrite())
 					combo.select(getIndex(attrib.getValue()));
 				else
 					text.setText(convertToString(attrib.getValue(), attrib.getType()));
-				
-				ignoreToAttribute = false;
 			}
 			
 			private int getIndex(Object value)
 			{
 				int i = 0;
 				
-				if (canBeNull)
+				if (canBeNull())
 				{
 					if (value == null)
 						return i;
 					i++;
 				}
 				
-				for (Iterator<Object> it = values.iterator(); it.hasNext();)
+				for (Iterator<Object> it = getPossibleValues().iterator(); it.hasNext();)
 				{
 					Object object = it.next();
 					if (object == value)
@@ -203,7 +141,17 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				
 				return value.toString();
 			}
+			
+			private Collection<Object> getPossibleValues()
+			{
+				return attrib.getValueRange().getPossibleValues();
+			}
+			
+			private boolean canBeNull()
+			{
+				return attrib.getValueRange().canBeNull();
+			}
+			
 		};
 	}
-	
 }

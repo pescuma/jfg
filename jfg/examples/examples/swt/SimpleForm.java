@@ -131,6 +131,12 @@ public class SimpleForm
 		
 		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, new JfgFormData());
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		// If you want to change borders:
+//		GridLayout layout = new GridLayout(2, false);
+//		layout.marginHeight = 0;
+//		layout.marginWidth = 0;
+//		form.setLayout(layout);
+		
 		form.setContents(new ObjectReflectionGroup(obj));
 		
 		Button set = new Button(shell, SWT.PUSH);

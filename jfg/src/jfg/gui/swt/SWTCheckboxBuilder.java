@@ -1,7 +1,6 @@
 package jfg.gui.swt;
 
 import jfg.Attribute;
-import jfg.AttributeListener;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -25,11 +24,8 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 	
 	public SWTAttribute build(final Composite parent, final Attribute attrib, final JfgFormData data)
 	{
-		return new SWTAttribute() {
+		return new AbstractSWTAttribute(parent, attrib, data) {
 			
-			private boolean ignoreToGUI;
-			private boolean ignoreToAttribute;
-			private AttributeListener attributeListener;
 			private Button chk;
 			
 			public void init()
@@ -37,7 +33,10 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 				chk = data.componentFactory.createCheckbox(parent, 0);
 				chk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				chk.setText(data.textTranslator.fieldName(attrib.getName()));
+				chk.addListener(SWT.Selection, getModifyListener());
+				chk.addListener(SWT.Dispose, getDisposeListener());
 				
+				// SWT does not support a read-only checkbox
 				if (!attrib.canWrite())
 				{
 					chk.addListener(SWT.Selection, new Listener() {
@@ -48,64 +47,21 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 					});
 				}
 				
-				if (attrib.canListen())
-				{
-					attributeListener = new AttributeListener() {
-						public void onChange()
-						{
-							if (ignoreToGUI)
-								return;
-							
-							copyToGUI();
-						}
-					};
-					
-					attrib.addListener(attributeListener);
-				}
-				
-				if (attrib.canWrite())
-				{
-					chk.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event)
-						{
-							if (ignoreToAttribute)
-								return;
-							
-							copyToAttribute();
-						}
-					});
-				}
-				
-				chk.addListener(SWT.Dispose, new Listener() {
-					public void handleEvent(Event event)
-					{
-						if (attrib.canListen())
-							attrib.removeListener(attributeListener);
-					}
-				});
+				addAttributeListener();
 				
 				copyToGUI();
 			}
 			
-			public void copyToAttribute()
+			@Override
+			protected void guiToAttribute()
 			{
-				if (!attrib.canWrite())
-					return;
-				
-				ignoreToGUI = true;
-				
 				attrib.setValue(chk.getSelection() ? Boolean.TRUE : Boolean.FALSE);
-				
-				ignoreToGUI = false;
 			}
 			
-			public void copyToGUI()
+			@Override
+			protected void attibuteToGUI()
 			{
-				ignoreToAttribute = true;
-				
 				chk.setSelection((Boolean) attrib.getValue());
-				
-				ignoreToAttribute = false;
 			}
 		};
 	}
