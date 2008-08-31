@@ -6,20 +6,6 @@ import java.text.ParseException;
 
 class TypeUtils
 {
-	public static int getMaxLengthOfTextRepresentation(Object type)
-	{
-		if (type == byte.class || type == Byte.class)
-			return 4;
-		else if (type == short.class || type == Short.class)
-			return 6;
-		else if (type == int.class || type == Integer.class)
-			return 11;
-		else if (type == long.class || type == Long.class)
-			return 20;
-		else
-			throw new IllegalArgumentException();
-	}
-	
 	public static long[] getMinMaxAsLong(Object type)
 	{
 		final long[] mm = new long[2];
