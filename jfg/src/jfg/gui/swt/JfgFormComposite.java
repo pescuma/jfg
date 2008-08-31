@@ -27,10 +27,10 @@ public class JfgFormComposite extends Composite
 		this.data = data;
 	}
 	
-	public void setContents(AttributeGroup group)
+	public void addContentsFrom(AttributeGroup group)
 	{
 		initLayout();
-		buildAttributes(group, 0);
+		buildAttributes(this, group, 0);
 	}
 	
 	@Override
@@ -54,30 +54,31 @@ public class JfgFormComposite extends Composite
 		setLayout(new GridLayout(2, false));
 	}
 	
-	private void buildAttributes(AttributeGroup group, int currentLevel)
+	private void buildAttributes(Composite parent, AttributeGroup group, int currentLevel)
 	{
 		for (Object attrib : group.getAttributes())
 		{
 			if (attrib instanceof AttributeGroup)
-				buildGroup(this, (AttributeGroup) attrib, currentLevel);
+				buildGroup(parent, (AttributeGroup) attrib, currentLevel);
 			else if (attrib instanceof Attribute)
-				buildAttribute(this, (Attribute) attrib, currentLevel);
+				buildAttribute(parent, (Attribute) attrib, currentLevel);
 		}
 	}
 	
 	private void buildAttribute(Composite parent, Attribute attrib, int currentLevel)
 	{
-		if (!data.showReadOnly && !attrib.canWrite())
-			return;
-		
 		SWTWidgetBuilder builder = getBuilderFor(attrib.getType());
 		if (builder == null)
 		{
-			buildGroup(parent, attrib.asGroup(), currentLevel + 1);
+			if (!attrib.canWrite())
+				buildGroup(parent, attrib.asGroup(), currentLevel + 1);
 			return;
 		}
 		if (!builder.accept(attrib))
 			throw new IllegalArgumentException("Wrong configuration");
+		
+		if (!data.showReadOnly && !attrib.canWrite())
+			return;
 		
 		if (builder.wantNameLabel())
 		{
@@ -115,15 +116,16 @@ public class JfgFormComposite extends Composite
 	{
 		if (group == null)
 			return;
-		if (currentLevel >= data.maxGroupAttributeLevels)
+		if (currentLevel > data.maxGroupAttributeLevels)
 			return;
 		
 		GridLayout layout = (GridLayout) getLayout();
 		
-		Group frame = new Group(createHorizontalComposite(parent, layout.numColumns), SWT.BORDER);
+		Group frame = data.componentFactory.createGroup(createHorizontalComposite(parent, layout.numColumns), SWT.NONE);
 		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		frame.setLayout(new GridLayout(2, false));
+		frame.setText(data.textTranslator.groupName(group.getName()));
 		
-		buildAttributes(group, currentLevel);
+		buildAttributes(frame, group, currentLevel);
 	}
 }

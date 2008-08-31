@@ -12,6 +12,22 @@ import org.eclipse.swt.widgets.Shell;
 
 public class ReadOnlyForm
 {
+	static class TestSub
+	{
+		private int b = 987;
+		private String cd = "CD!!";
+		
+		public int getB()
+		{
+			return b;
+		}
+		
+		public String getCd()
+		{
+			return cd;
+		}
+	}
+	
 	static class TestClass
 	{
 		static enum TestEnum
@@ -27,6 +43,7 @@ public class ReadOnlyForm
 		private boolean valid = true;
 		private TestEnum side = TestEnum.Rigth;
 		private double real = 1234.56;
+		private TestSub sub = new TestSub();
 		
 		public int getA()
 		{
@@ -52,6 +69,11 @@ public class ReadOnlyForm
 		{
 			return real;
 		}
+		
+		public TestSub getSub()
+		{
+			return sub;
+		}
 	}
 	
 	public static void main(String[] args)
@@ -72,7 +94,7 @@ public class ReadOnlyForm
 //		layout.marginWidth = 0;
 //		form.setLayout(layout);
 		
-		form.setContents(new ObjectReflectionGroup(obj));
+		form.addContentsFrom(new ObjectReflectionGroup(obj));
 		
 		shell.setText("Read-Only Form");
 		shell.setSize(300, 300);

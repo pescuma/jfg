@@ -12,6 +12,11 @@ public class SimpleTextTranslator implements TextTranslator
 		return formatText(enumElement);
 	}
 	
+	public String groupName(String groupName)
+	{
+		return formatText(groupName);
+	}
+	
 	private String formatText(String text)
 	{
 		int index = text.lastIndexOf('.');

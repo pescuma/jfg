@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
 public class SWTSimpleComponentFactory implements SWTComponentFactory
@@ -21,6 +22,11 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 	public Combo createCombo(Composite parent, int style)
 	{
 		return new Combo(parent, style);
+	}
+	
+	public Group createGroup(Composite parent, int style)
+	{
+		return new Group(parent, style);
 	}
 	
 }

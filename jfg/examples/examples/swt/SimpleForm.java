@@ -26,7 +26,57 @@ public class SimpleForm
 		void onChange();
 	}
 	
-	static class TestClass
+	static class ObjectWithListener
+	{
+		private List<ChangeListener> listeners = new ArrayList<ChangeListener>();
+		
+		protected void notifyListeners()
+		{
+			for (ChangeListener l : listeners)
+				l.onChange();
+		}
+		
+		public boolean addListener(ChangeListener e)
+		{
+			return listeners.add(e);
+		}
+		
+		public boolean removeListener(ChangeListener o)
+		{
+			return listeners.remove(o);
+		}
+	}
+	
+	static class TestSub extends ObjectWithListener
+	{
+		private int b;
+		private String cd;
+		
+		public int getB()
+		{
+			return b;
+		}
+		
+		public void setB(int b)
+		{
+			this.b = b;
+			
+			notifyListeners();
+		}
+		
+		public String getCd()
+		{
+			return cd;
+		}
+		
+		public void setCd(String cd)
+		{
+			this.cd = cd;
+			notifyListeners();
+		}
+	}
+	
+	static class TestClass extends ObjectWithListener
 	{
 		static enum TestEnum
 		{
@@ -41,8 +91,7 @@ public class SimpleForm
 		private boolean valid;
 		private TestEnum side;
 		private double real;
-		
-		private List<ChangeListener> listeners = new ArrayList<ChangeListener>();
+		private TestSub sub = new TestSub();
 		
 		public int getA()
 		{
@@ -104,21 +153,18 @@ public class SimpleForm
 			notifyListeners();
 		}
 		
-		private void notifyListeners()
+		public TestSub getSub()
 		{
-			for (ChangeListener l : listeners)
-				l.onChange();
+			return sub;
 		}
 		
-		public boolean addListener(ChangeListener e)
-		{
-			return listeners.add(e);
-		}
-		
-		public boolean removeListener(ChangeListener o)
-		{
-			return listeners.remove(o);
-		}
+		// Right now it will only show inner objects if they are read-only
+//		public void setSub(TestSub sub)
+//		{
+//			this.sub = sub;
+//			
+//			notifyListeners();
+//		}
 	}
 	
 	public static void main(String[] args)
@@ -137,7 +183,7 @@ public class SimpleForm
 //		layout.marginWidth = 0;
 //		form.setLayout(layout);
 		
-		form.setContents(new ObjectReflectionGroup(obj));
+		form.addContentsFrom(new ObjectReflectionGroup(obj));
 		
 		Button set = new Button(shell, SWT.PUSH);
 		set.addListener(SWT.Selection, new Listener() {
@@ -148,22 +194,27 @@ public class SimpleForm
 				obj.setValid(true);
 				obj.setSide(TestEnum.Top);
 				obj.setReal(1234.56);
+				obj.getSub().setB(987);
+				obj.getSub().setCd("CD!!");
 			}
 		});
 		set.setText("Set");
 		
 		final Text txt = new Text(shell, SWT.BORDER | SWT.V_SCROLL);
+		
 		txt.setLayoutData(new GridData(GridData.FILL_BOTH));
-		obj.addListener(new ChangeListener() {
+		ChangeListener listener = new ChangeListener() {
 			public void onChange()
 			{
 				showObj(txt, obj);
 			}
-		});
+		};
+		obj.addListener(listener);
+		obj.getSub().addListener(listener);
 		showObj(txt, obj);
 		
 		shell.setText("Simple Form");
-		shell.setSize(300, 300);
+		shell.setSize(300, 400);
 		shell.open();
 		while (!shell.isDisposed())
 		{
@@ -175,6 +226,6 @@ public class SimpleForm
 	protected static void showObj(Text txt, TestClass obj)
 	{
 		txt.setText("a = " + obj.getA() + "\nname = " + obj.getName() + "\nvalid = " + obj.isValid() + "\nside = " + obj.getSide()
-				+ "\nreal = " + obj.getReal());
+				+ "\nreal = " + obj.getReal() + "\n  b = " + obj.getSub().getB() + "\n  cd = " + obj.getSub().getCd());
 	}
 }
