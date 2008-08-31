@@ -1,6 +1,10 @@
 package jfg.gui.swt;
 
 import static jfg.gui.swt.TypeUtils.*;
+
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+
 import jfg.Attribute;
 
 import org.eclipse.swt.SWT;
@@ -8,15 +12,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-public class SWTNumberBuilder extends SWTTextBuilder
+public class SWTRealBuilder extends SWTTextBuilder
 {
 	@Override
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
-		return type == byte.class || type == Byte.class || type == short.class || type == Short.class || type == int.class
-				|| type == Integer.class || type == long.class || type == Long.class || type == float.class || type == Float.class
-				|| type == double.class || type == Double.class;
+		return type == float.class || type == Float.class || type == double.class || type == Double.class;
 	}
 	
 	@Override
@@ -29,18 +31,18 @@ public class SWTNumberBuilder extends SWTTextBuilder
 					return;
 				
 				String append = e.text;
-				if (!isValidNumber(append, e.start))
+				String txt = text.getText();
+				txt = txt.substring(0, e.start) + append + txt.substring(e.end);
+				
+				if (!isValidNumber(txt, e.start))
 				{
 					e.doit = false;
 					return;
 				}
 				
-				String txt = text.getText();
-				txt = txt.substring(0, e.start) + append + txt.substring(e.end);
-				
 				try
 				{
-					parseLong(txt, type);
+					parseDouble(txt, type);
 				}
 				catch (NumberFormatException ex)
 				{
@@ -58,13 +60,17 @@ public class SWTNumberBuilder extends SWTTextBuilder
 			return "";
 		
 		String oldText = text.getText();
-		long o = parseLong(oldText, type);
-		long v = asLong(value);
+		double o = parseDouble(oldText, type);
+		double v = asDouble(value);
 		
 		if (o == v)
 			return oldText;
 		else
-			return value.toString();
+		{
+			NumberFormat formater = NumberFormat.getNumberInstance();
+			formater.setGroupingUsed(false);
+			return formater.format(v);
+		}
 	}
 	
 	@Override
@@ -75,12 +81,20 @@ public class SWTNumberBuilder extends SWTTextBuilder
 	
 	static boolean isValidNumber(String append, int start)
 	{
+		char sep = new DecimalFormatSymbols().getDecimalSeparator();
+		boolean hasSeparator = false;
 		for (int i = 0; i < append.length(); i++)
 		{
 			char c = append.charAt(i);
 			
 			if (i == 0 && start == 0 && c == '-')
 				continue;
+			
+			if (c == sep && !hasSeparator)
+			{
+				hasSeparator = true;
+				continue;
+			}
 			
 			if ('0' <= c && c <= '9')
 				continue;

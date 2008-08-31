@@ -31,6 +31,11 @@ public class JfgFormData
 		builders.put(long.class, new SWTNumberBuilder());
 		builders.put(Long.class, new SWTNumberBuilder());
 		
+		builders.put(float.class, new SWTRealBuilder());
+		builders.put(Float.class, new SWTRealBuilder());
+		builders.put(double.class, new SWTRealBuilder());
+		builders.put(Double.class, new SWTRealBuilder());
+		
 		builders.put(boolean.class, new SWTCheckboxBuilder());
 		builders.put(Boolean.class, new SWTCheckboxBuilder());
 		

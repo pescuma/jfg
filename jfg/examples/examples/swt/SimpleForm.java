@@ -40,6 +40,7 @@ public class SimpleForm
 		private String name;
 		private boolean valid;
 		private TestEnum side;
+		private double real;
 		
 		private List<ChangeListener> listeners = new ArrayList<ChangeListener>();
 		
@@ -91,6 +92,18 @@ public class SimpleForm
 			notifyListeners();
 		}
 		
+		public double getReal()
+		{
+			return real;
+		}
+		
+		public void setReal(double real)
+		{
+			this.real = real;
+			
+			notifyListeners();
+		}
+		
 		private void notifyListeners()
 		{
 			for (ChangeListener l : listeners)
@@ -128,6 +141,7 @@ public class SimpleForm
 				obj.setName("Name");
 				obj.setValid(true);
 				obj.setSide(TestEnum.Top);
+				obj.setReal(1234.56);
 			}
 		});
 		set.setText("Set");
@@ -152,9 +166,9 @@ public class SimpleForm
 		}
 		display.dispose();
 	}
-	
 	protected static void showObj(Text txt, TestClass obj)
 	{
-		txt.setText("a = " + obj.getA() + "\nname = " + obj.getName() + "\nvalid = " + obj.isValid() + "\nside = " + obj.getSide());
+		txt.setText("a = " + obj.getA() + "\nname = " + obj.getName() + "\nvalid = " + obj.isValid() + "\nside = " + obj.getSide()
+				+ "\nreal = " + obj.getReal());
 	}
 }

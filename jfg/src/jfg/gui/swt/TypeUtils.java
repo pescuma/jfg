@@ -1,33 +1,25 @@
 package jfg.gui.swt;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
+
 class TypeUtils
 {
-	public static Object valueOf(String value, Object type, String defVal)
+	public static int getMaxLengthOfTextRepresentation(Object type)
 	{
-		if (value == null || value.isEmpty())
-			value = defVal;
-		
 		if (type == byte.class || type == Byte.class)
-		{
-			return Byte.valueOf(value);
-		}
+			return 4;
 		else if (type == short.class || type == Short.class)
-		{
-			return Short.valueOf(value);
-		}
+			return 6;
 		else if (type == int.class || type == Integer.class)
-		{
-			return Integer.valueOf(value);
-		}
+			return 11;
 		else if (type == long.class || type == Long.class)
-		{
-			return Long.valueOf(value);
-		}
+			return 20;
 		else
 			throw new IllegalArgumentException();
 	}
 	
-	public static long[] getMinMax(Object type)
+	public static long[] getMinMaxAsLong(Object type)
 	{
 		final long[] mm = new long[2];
 		if (type == byte.class || type == Byte.class)
@@ -56,20 +48,99 @@ class TypeUtils
 		return mm;
 	}
 	
-	public static long castNumber(Object value, Object type)
+	public static long asLong(Object value)
 	{
+		Class<?> type = (value == null ? null : value.getClass());
+		
 		long v;
 		if (value == null)
 			v = 0;
 		else if (type == byte.class || type == Byte.class)
-			v = (Byte) value;
+			v = ((Byte) value).longValue();
 		else if (type == short.class || type == Short.class)
-			v = (Short) value;
+			v = ((Short) value).longValue();
 		else if (type == int.class || type == Integer.class)
-			v = (Integer) value;
+			v = ((Integer) value).longValue();
+		else if (type == long.class || type == Long.class)
+			v = ((Long) value).longValue();
+		else if (type == float.class || type == Float.class)
+			v = ((Float) value).longValue();
+		else if (type == double.class || type == Double.class)
+			v = ((Double) value).longValue();
 		else
-			v = (Long) value;
+			throw new IllegalArgumentException();
+		
 		return v;
 	}
 	
+	public static double asDouble(Object value)
+	{
+		Class<?> type = (value == null ? null : value.getClass());
+		
+		double v;
+		if (value == null)
+			v = 0;
+		else if (type == byte.class || type == Byte.class)
+			v = ((Byte) value).doubleValue();
+		else if (type == short.class || type == Short.class)
+			v = ((Short) value).doubleValue();
+		else if (type == int.class || type == Integer.class)
+			v = ((Integer) value).doubleValue();
+		else if (type == long.class || type == Long.class)
+			v = ((Long) value).doubleValue();
+		else if (type == float.class || type == Float.class)
+			v = ((Float) value).doubleValue();
+		else if (type == double.class || type == Double.class)
+			v = ((Double) value).doubleValue();
+		else
+			throw new IllegalArgumentException();
+		return v;
+	}
+	
+	public static Object valueOf(String value, Object type, String defVal)
+	{
+		if (value == null || value.isEmpty())
+			value = defVal;
+		
+		if (type == byte.class || type == Byte.class)
+			return Byte.valueOf(value);
+		else if (type == short.class || type == Short.class)
+			return Short.valueOf(value);
+		else if (type == int.class || type == Integer.class)
+			return Integer.valueOf(value);
+		else if (type == long.class || type == Long.class)
+			return Long.valueOf(value);
+		else if (type == float.class || type == Float.class)
+		{
+			try
+			{
+				return Float.valueOf(NumberFormat.getNumberInstance().parse(value).floatValue());
+			}
+			catch (ParseException e)
+			{
+				throw new NumberFormatException(e.getMessage());
+			}
+		}
+		else if (type == double.class || type == Double.class)
+			try
+			{
+				return Double.valueOf(NumberFormat.getNumberInstance().parse(value).doubleValue());
+			}
+			catch (ParseException e)
+			{
+				throw new NumberFormatException(e.getMessage());
+			}
+		else
+			throw new IllegalArgumentException();
+	}
+	
+	public static long parseLong(String value, Object type)
+	{
+		return ((Number) valueOf(value, type, "0")).longValue();
+	}
+	
+	public static double parseDouble(String value, Object type)
+	{
+		return ((Number) valueOf(value, type, "0")).doubleValue();
+	}
 }
