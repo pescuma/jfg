@@ -3,10 +3,17 @@ package jfg.gui.swt;
 import static jfg.gui.swt.TypeUtils.*;
 import static org.junit.Assert.*;
 
+import java.util.Locale;
+
 import org.junit.Test;
 
 public class TypeUtilsTest
 {
+	static
+	{
+		Locale.setDefault(new Locale("pt"));
+	}
+	
 	@Test
 	public void testValueOf()
 	{
@@ -41,16 +48,28 @@ public class TypeUtilsTest
 		assertEquals(Float.valueOf(0), valueOf(null, float.class, "0"));
 		assertEquals(Float.valueOf(10), valueOf("10", float.class, "0"));
 		assertEquals(Float.valueOf(-10), valueOf("-10", float.class, "0"));
+		assertEquals(Float.valueOf(0), valueOf(",", float.class, "0"));
+		assertEquals(Float.valueOf(0.123123f), valueOf(",123123", float.class, "0"));
+		assertEquals(Float.valueOf(123123), valueOf("123123,", float.class, "0"));
 		assertEquals(Float.valueOf(0), valueOf(null, Float.class, "0"));
 		assertEquals(Float.valueOf(10), valueOf("10", Float.class, "0"));
-		assertEquals(Float.valueOf(-10), valueOf("-10", Float.class, "0"));
+		assertEquals(Float.valueOf(-10.1f), valueOf("-10,1", Float.class, "0"));
+		assertEquals(Float.valueOf(0), valueOf(",", Float.class, "0"));
+		assertEquals(Float.valueOf(0.123123f), valueOf(",123123", Float.class, "0"));
+		assertEquals(Float.valueOf(123123), valueOf("123123,", Float.class, "0"));
 		
 		assertEquals(Double.valueOf(0), valueOf(null, double.class, "0"));
 		assertEquals(Double.valueOf(10), valueOf("10", double.class, "0"));
-		assertEquals(Double.valueOf(-10), valueOf("-10", double.class, "0"));
+		assertEquals(Double.valueOf(-10.1), valueOf("-10,1", double.class, "0"));
+		assertEquals(Double.valueOf(0), valueOf(",", double.class, "0"));
+		assertEquals(Double.valueOf(0.123123), valueOf(",123123", double.class, "0"));
+		assertEquals(Double.valueOf(123123), valueOf("123123,", double.class, "0"));
 		assertEquals(Double.valueOf(0), valueOf(null, Double.class, "0"));
 		assertEquals(Double.valueOf(10), valueOf("10", Double.class, "0"));
-		assertEquals(Double.valueOf(-10), valueOf("-10", Double.class, "0"));
+		assertEquals(Double.valueOf(-10.1), valueOf("-10,1", Double.class, "0"));
+		assertEquals(Double.valueOf(0), valueOf(",", Double.class, "0"));
+		assertEquals(Double.valueOf(0.123123), valueOf(",123123", Double.class, "0"));
+		assertEquals(Double.valueOf(123123), valueOf("123123,", Double.class, "0"));
 	}
 	
 	@Test

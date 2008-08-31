@@ -1,5 +1,6 @@
 package jfg.gui.swt;
 
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
@@ -99,7 +100,7 @@ class TypeUtils
 	
 	public static Object valueOf(String value, Object type, String defVal)
 	{
-		if (value == null || value.isEmpty())
+		if (value == null || value.isEmpty() || value.equals(String.valueOf(new DecimalFormatSymbols().getDecimalSeparator())))
 			value = defVal;
 		
 		if (type == byte.class || type == Byte.class)
