@@ -112,40 +112,40 @@ public class TypeUtilsTest
 	@Test
 	public void testAsDouble() throws Exception
 	{
-		assertEquals(0, asDouble(Byte.valueOf((byte) 0)));
-		assertEquals(10, asDouble(Byte.valueOf((byte) 10)));
-		assertEquals(-10, asDouble(Byte.valueOf((byte) -10)));
+		assertEquals(0, asDouble(Byte.valueOf((byte) 0)), 0.001f);
+		assertEquals(10, asDouble(Byte.valueOf((byte) 10)), 0.001f);
+		assertEquals(-10, asDouble(Byte.valueOf((byte) -10)), 0.001f);
 		
-		assertEquals(0, asDouble(Short.valueOf((short) 0)));
-		assertEquals(10, asDouble(Short.valueOf((short) 10)));
-		assertEquals(-10, asDouble(Short.valueOf((short) -10)));
+		assertEquals(0, asDouble(Short.valueOf((short) 0)), 0.001f);
+		assertEquals(10, asDouble(Short.valueOf((short) 10)), 0.001f);
+		assertEquals(-10, asDouble(Short.valueOf((short) -10)), 0.001f);
 		
-		assertEquals(0, asDouble(Integer.valueOf(0)));
-		assertEquals(10, asDouble(Integer.valueOf(10)));
-		assertEquals(-10, asDouble(Integer.valueOf(-10)));
+		assertEquals(0, asDouble(Integer.valueOf(0)), 0.001f);
+		assertEquals(10, asDouble(Integer.valueOf(10)), 0.001f);
+		assertEquals(-10, asDouble(Integer.valueOf(-10)), 0.001f);
 		
-		assertEquals(0, asDouble(Long.valueOf(0)));
-		assertEquals(10, asDouble(Long.valueOf(10)));
-		assertEquals(-10, asDouble(Long.valueOf(-10)));
+		assertEquals(0, asDouble(Long.valueOf(0)), 0.001f);
+		assertEquals(10, asDouble(Long.valueOf(10)), 0.001f);
+		assertEquals(-10, asDouble(Long.valueOf(-10)), 0.001f);
 		
-		assertEquals(0, asDouble(Float.valueOf(0)));
-		assertEquals(10, asDouble(Float.valueOf(10)));
-		assertEquals(-10, asDouble(Float.valueOf(-10)));
-		assertEquals(0.1f, asDouble(Float.valueOf(0.1f)));
-		assertEquals(10.1f, asDouble(Float.valueOf(10.1f)));
-		assertEquals(-10.1f, asDouble(Float.valueOf(-10.1f)));
-		assertEquals(0.9f, asDouble(Float.valueOf(0.9f)));
-		assertEquals(10.9f, asDouble(Float.valueOf(10.9f)));
-		assertEquals(-10.9f, asDouble(Float.valueOf(-10.9f)));
+		assertEquals(0, asDouble(Float.valueOf(0)), 0.001f);
+		assertEquals(10, asDouble(Float.valueOf(10)), 0.001f);
+		assertEquals(-10, asDouble(Float.valueOf(-10)), 0.001f);
+		assertEquals(0.1f, asDouble(Float.valueOf(0.1f)), 0.001f);
+		assertEquals(10.1f, asDouble(Float.valueOf(10.1f)), 0.001f);
+		assertEquals(-10.1f, asDouble(Float.valueOf(-10.1f)), 0.001f);
+		assertEquals(0.9f, asDouble(Float.valueOf(0.9f)), 0.001f);
+		assertEquals(10.9f, asDouble(Float.valueOf(10.9f)), 0.001f);
+		assertEquals(-10.9f, asDouble(Float.valueOf(-10.9f)), 0.001f);
 		
-		assertEquals(0, asDouble(Double.valueOf(0)));
-		assertEquals(10, asDouble(Double.valueOf(10)));
-		assertEquals(-10, asDouble(Double.valueOf(-10)));
-		assertEquals(0.1, asDouble(Double.valueOf(0.1)));
-		assertEquals(10.1, asDouble(Double.valueOf(10.1)));
-		assertEquals(-10.1, asDouble(Double.valueOf(-10.1)));
-		assertEquals(0.9, asDouble(Double.valueOf(0.9)));
-		assertEquals(10.9, asDouble(Double.valueOf(10.9)));
-		assertEquals(-10.9, asDouble(Double.valueOf(-10.9)));
+		assertEquals(0, asDouble(Double.valueOf(0)), 0.001f);
+		assertEquals(10, asDouble(Double.valueOf(10)), 0.001f);
+		assertEquals(-10, asDouble(Double.valueOf(-10)), 0.001f);
+		assertEquals(0.1, asDouble(Double.valueOf(0.1)), 0.001f);
+		assertEquals(10.1, asDouble(Double.valueOf(10.1)), 0.001f);
+		assertEquals(-10.1, asDouble(Double.valueOf(-10.1)), 0.001f);
+		assertEquals(0.9, asDouble(Double.valueOf(0.9)), 0.001f);
+		assertEquals(10.9, asDouble(Double.valueOf(10.9)), 0.001f);
+		assertEquals(-10.9, asDouble(Double.valueOf(-10.9)), 0.001f);
 	}
 }
