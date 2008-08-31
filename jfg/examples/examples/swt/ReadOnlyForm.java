@@ -12,11 +12,6 @@ import org.eclipse.swt.widgets.Shell;
 
 public class ReadOnlyForm
 {
-	static interface ChangeListener
-	{
-		void onChange();
-	}
-	
 	static class TestClass
 	{
 		static enum TestEnum
@@ -31,6 +26,7 @@ public class ReadOnlyForm
 		private String name = "Asdf";
 		private boolean valid = true;
 		private TestEnum side = TestEnum.Rigth;
+		private double real = 1234.56;
 		
 		public int getA()
 		{
@@ -51,6 +47,11 @@ public class ReadOnlyForm
 		{
 			return side;
 		}
+		
+		public double getReal()
+		{
+			return real;
+		}
 	}
 	
 	public static void main(String[] args)
@@ -65,6 +66,12 @@ public class ReadOnlyForm
 		data.showReadOnly = true;
 		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		// If you want to change borders:
+//		GridLayout layout = new GridLayout(2, false);
+//		layout.marginHeight = 0;
+//		layout.marginWidth = 0;
+//		form.setLayout(layout);
+		
 		form.setContents(new ObjectReflectionGroup(obj));
 		
 		shell.setText("Read-Only Form");
