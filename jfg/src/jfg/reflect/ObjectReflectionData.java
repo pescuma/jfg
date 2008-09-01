@@ -9,21 +9,31 @@ import jfg.AttributeListenerConverter;
 
 public class ObjectReflectionData
 {
-	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>();
+	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters;
 	
-	public final List<String> getterTemplates = new ArrayList<String>();
-	public final List<String> setterTemplates = new ArrayList<String>();
-	public final List<String> addFieldListenerTemplates = new ArrayList<String>();
-	public final List<String> removeFieldListenerTemplates = new ArrayList<String>();
-	public final List<String> addObjectListenerTemplates = new ArrayList<String>();
-	public final List<String> removeObjectListenerTemplates = new ArrayList<String>();
+	public final List<String> getterTemplates;
+	public final List<String> setterTemplates;
+	public final List<String> addFieldListenerTemplates;
+	public final List<String> removeFieldListenerTemplates;
+	public final List<String> addObjectListenerTemplates;
+	public final List<String> removeObjectListenerTemplates;
 	
-	public final List<String> listenerInterfaceMethodREs = new ArrayList<String>();
+	public final List<String> listenerInterfaceMethodREs;
 	
-	public final List<String> classPrefixesIgnoredInAsGroup = new ArrayList<String>();
+	public final List<String> classPrefixesIgnoredInAsGroup;
 	
 	public ObjectReflectionData()
 	{
+		attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>();
+		getterTemplates = new ArrayList<String>();
+		setterTemplates = new ArrayList<String>();
+		addFieldListenerTemplates = new ArrayList<String>();
+		removeFieldListenerTemplates = new ArrayList<String>();
+		addObjectListenerTemplates = new ArrayList<String>();
+		removeObjectListenerTemplates = new ArrayList<String>();
+		listenerInterfaceMethodREs = new ArrayList<String>();
+		classPrefixesIgnoredInAsGroup = new ArrayList<String>();
+		
 		getterTemplates.add("get%Field%");
 		getterTemplates.add("is%Field%");
 		
@@ -45,6 +55,19 @@ public class ObjectReflectionData
 		classPrefixesIgnoredInAsGroup.add("java.");
 		classPrefixesIgnoredInAsGroup.add("javax.");
 		classPrefixesIgnoredInAsGroup.add("sun.");
+	}
+	
+	public ObjectReflectionData(ObjectReflectionData other)
+	{
+		attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>(other.attributeListenerConverters);
+		getterTemplates = new ArrayList<String>(other.getterTemplates);
+		setterTemplates = new ArrayList<String>(other.setterTemplates);
+		addFieldListenerTemplates = new ArrayList<String>(other.addFieldListenerTemplates);
+		removeFieldListenerTemplates = new ArrayList<String>(other.removeFieldListenerTemplates);
+		addObjectListenerTemplates = new ArrayList<String>(other.addObjectListenerTemplates);
+		removeObjectListenerTemplates = new ArrayList<String>(other.removeObjectListenerTemplates);
+		listenerInterfaceMethodREs = new ArrayList<String>(other.listenerInterfaceMethodREs);
+		classPrefixesIgnoredInAsGroup = new ArrayList<String>(other.classPrefixesIgnoredInAsGroup);
 	}
 	
 	public String[] getGetterNames(String fieldName)
@@ -114,4 +137,11 @@ public class ObjectReflectionData
 		}
 		return false;
 	}
+	
+	@Override
+	public ObjectReflectionData clone()
+	{
+		return new ObjectReflectionData(this);
+	}
+	
 }

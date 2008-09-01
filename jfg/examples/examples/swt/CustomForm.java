@@ -1,11 +1,20 @@
 package examples.swt;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import jfg.AbstractAttribute;
+import jfg.AbstractAttributeValueRange;
+import jfg.AbstractListenerAttribute;
+import jfg.AbstractReadOnlyAttribute;
+import jfg.AttributeListener;
+import jfg.AttributeValueRange;
 import jfg.gui.swt.JfgFormComposite;
 import jfg.gui.swt.JfgFormData;
-import jfg.reflect.ObjectReflectionGroup;
+import jfg.reflect.ObjectReflectionAttribute;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -17,9 +26,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import examples.swt.SimpleForm.TestClass.TestEnum;
+import examples.swt.CustomForm.TestClass.TestEnum;
 
-public class SimpleForm
+public class CustomForm
 {
 	static interface ChangeListener
 	{
@@ -86,7 +95,8 @@ public class SimpleForm
 			Bottom
 		}
 		
-		private int a;
+		private int a = 2;
+		private int b = 1;
 		private String name;
 		private boolean valid;
 		private TestEnum side;
@@ -101,6 +111,18 @@ public class SimpleForm
 		public void setA(int a)
 		{
 			this.a = a;
+			
+			notifyListeners();
+		}
+		
+		public int getB()
+		{
+			return b;
+		}
+		
+		public void setB(int b)
+		{
+			this.b = b;
 			
 			notifyListeners();
 		}
@@ -175,7 +197,9 @@ public class SimpleForm
 		
 		final TestClass obj = new TestClass();
 		
-		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, new JfgFormData());
+		JfgFormData data = new JfgFormData();
+		data.showReadOnly = true;
+		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //		// If you want to change borders:
 //		GridLayout layout = new GridLayout(2, false);
@@ -183,8 +207,128 @@ public class SimpleForm
 //		layout.marginWidth = 0;
 //		form.setLayout(layout);
 		
-		// Add elements to form
-		form.addContentsFrom(new ObjectReflectionGroup(obj));
+		// A read-only attribute
+		form.add(new AbstractReadOnlyAttribute() {
+			public String getName()
+			{
+				return "gui.a";
+			}
+			public Object getType()
+			{
+				return int.class;
+			}
+			public Object getValue()
+			{
+				return obj.getA();
+			}
+		});
+		
+		// A simple attribute
+		form.add(new AbstractAttribute() {
+			public String getName()
+			{
+				return "gui.name";
+			}
+			public Object getType()
+			{
+				return String.class;
+			}
+			public Object getValue()
+			{
+				return obj.getName();
+			}
+			public void setValue(Object value)
+			{
+				obj.setName((String) value);
+			}
+		});
+		
+		// An attribute with listener
+		form.add(new AbstractListenerAttribute() {
+			private Map<AttributeListener, ChangeListener> listeners = new HashMap<AttributeListener, ChangeListener>();
+			
+			public String getName()
+			{
+				return "value";
+			}
+			public Object getType()
+			{
+				return double.class;
+			}
+			public Object getValue()
+			{
+				return obj.getReal();
+			}
+			public void setValue(Object value)
+			{
+				obj.setReal((Double) value);
+			}
+			public void addListener(final AttributeListener alistener)
+			{
+				ChangeListener listener = new ChangeListener() {
+					public void onChange()
+					{
+						alistener.onChange();
+					}
+				};
+				if (obj.addListener(listener))
+					listeners.put(alistener, listener);
+			}
+			public void removeListener(AttributeListener alistener)
+			{
+				ChangeListener listener = listeners.remove(alistener);
+				if (listener != null)
+					obj.removeListener(listener);
+			}
+		});
+		
+		// An attribute with a list of options
+		// TODO: Accept add here instead of addCombo
+		form.addCombo(new AbstractAttribute() {
+			public String getName()
+			{
+				return "b";
+			}
+			public Object getType()
+			{
+				return int.class;
+			}
+			public Object getValue()
+			{
+				return obj.getB();
+			}
+			public void setValue(Object value)
+			{
+				obj.setB((Integer) value);
+			}
+			@Override
+			public AttributeValueRange getValueRange()
+			{
+				return new AbstractAttributeValueRange() {
+					private List<Object> values = new ArrayList<Object>();
+					{
+						values.add(1);
+						values.add(2);
+						values.add(3);
+					}
+					
+					@Override
+					public Collection<Object> getPossibleValues()
+					{
+						return values;
+					}
+					
+					@Override
+					public boolean canBeNull()
+					{
+						return false;
+					}
+				};
+			}
+		});
+		
+		// Adding a field by reflection
+		form.add(new ObjectReflectionAttribute(obj, "side"));
 		
 		Button set = new Button(shell, SWT.PUSH);
 		set.addListener(SWT.Selection, new Listener() {
@@ -226,7 +370,8 @@ public class SimpleForm
 	}
 	protected static void showObj(Text txt, TestClass obj)
 	{
-		txt.setText("a = " + obj.getA() + "\nname = " + obj.getName() + "\nvalid = " + obj.isValid() + "\nside = " + obj.getSide()
-				+ "\nreal = " + obj.getReal() + "\n  b = " + obj.getSub().getB() + "\n  cd = " + obj.getSub().getCd());
+		txt.setText("a = " + obj.getA() + "\nb = " + obj.getB() + "\nname = " + obj.getName() + "\nvalid = " + obj.isValid() + "\nside = "
+				+ obj.getSide() + "\nreal = " + obj.getReal() + "\n  b = " + obj.getSub().getB() + "\n  cd = " + obj.getSub().getCd());
 	}
+	
 }

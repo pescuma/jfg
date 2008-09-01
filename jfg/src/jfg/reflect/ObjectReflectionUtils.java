@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 import jfg.AttributeListener;
@@ -133,6 +134,23 @@ class ObjectReflectionUtils
 		}
 		
 		return ret;
+	}
+	
+	public static Field getPublicField(Object obj, String name)
+	{
+		try
+		{
+			Field tmp = obj.getClass().getDeclaredField(name);
+			if (Modifier.isPublic(tmp.getModifiers()))
+				return tmp;
+		}
+		catch (SecurityException e)
+		{
+		}
+		catch (NoSuchFieldException e)
+		{
+		}
+		return null;
 	}
 	
 	public static Object invoke(Object obj, Method m, Object... args)

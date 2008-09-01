@@ -42,7 +42,8 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 			@Override
 			protected void guiToAttribute()
 			{
-				attrib.setValue(convertToObject(text.getText(), attrib.getType()));
+				attrib.setValue(convertToObject(text.getText(), attrib.getType(), attrib.getValueRange() == null ? true
+						: attrib.getValueRange().canBeNull()));
 			}
 			
 			@Override
@@ -67,8 +68,10 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 			return value.toString();
 	}
 	
-	protected Object convertToObject(String value, Object type)
+	protected Object convertToObject(String value, Object type, boolean canBeNull)
 	{
+		if (value == null && !canBeNull)
+			return "";
 		return value;
 	}
 	

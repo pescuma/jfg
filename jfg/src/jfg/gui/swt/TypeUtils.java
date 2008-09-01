@@ -88,6 +88,8 @@ class TypeUtils
 	{
 		if (value == null || value.isEmpty() || value.equals(String.valueOf(new DecimalFormatSymbols().getDecimalSeparator())))
 			value = defVal;
+		if (value == null)
+			return null;
 		
 		if (type == byte.class || type == Byte.class)
 			return Byte.valueOf(value);

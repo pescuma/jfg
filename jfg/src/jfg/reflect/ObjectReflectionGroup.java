@@ -47,7 +47,7 @@ public class ObjectReflectionGroup implements AttributeGroup
 		else
 			this.name = name;
 		this.obj = obj;
-		this.data = data;
+		this.data = data.clone();
 	}
 	
 	public String getName()

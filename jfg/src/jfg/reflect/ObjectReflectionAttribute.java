@@ -16,7 +16,7 @@ import jfg.AttributeGroup;
 import jfg.AttributeListener;
 import jfg.AttributeValueRange;
 
-class ObjectReflectionAttribute implements Attribute
+public class ObjectReflectionAttribute implements Attribute
 {
 	private final AttributeGroup parent;
 	private final ObjectReflectionData data;
@@ -33,7 +33,28 @@ class ObjectReflectionAttribute implements Attribute
 	private Object listener;
 	private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
 	
-	public ObjectReflectionAttribute(AttributeGroup parent, Object obj, Field field, ObjectReflectionData data)
+	public ObjectReflectionAttribute(Object obj, Field field)
+	{
+		this(obj, field, new ObjectReflectionData());
+	}
+	
+	public ObjectReflectionAttribute(Object obj, Field field, ObjectReflectionData data)
+	{
+		this(new ObjectReflectionGroup(obj, data), obj, field, data.clone());
+	}
+	
+	public ObjectReflectionAttribute(Object obj, String fieldName)
+	{
+		this(obj, fieldName, new ObjectReflectionData());
+	}
+	
+	public ObjectReflectionAttribute(Object obj, String fieldName, ObjectReflectionData data)
+	{
+		this(new ObjectReflectionGroup(obj, data), obj, obj.getClass().getName() + "." + fieldName, fieldName, data.clone());
+	}
+	
+	/** Used by ObjectReflectionGroup */
+	ObjectReflectionAttribute(AttributeGroup parent, Object obj, Field field, ObjectReflectionData data)
 	{
 		this.parent = parent;
 		this.data = data;
@@ -51,6 +72,8 @@ class ObjectReflectionAttribute implements Attribute
 		
 		getter = getMethod(obj, data.getGetterNames(simpleName));
 		
+		assertValid();
+		
 		if (!Modifier.isFinal(field.getModifiers()))
 			setter = getMethod(obj, void.class, data.getSetterNames(simpleName), type);
 		else
@@ -65,17 +88,18 @@ class ObjectReflectionAttribute implements Attribute
 		setAccessible();
 	}
 	
-	public ObjectReflectionAttribute(AttributeGroup parent, Object obj, String fullName, String simpleName, ObjectReflectionData data)
+	/** Used by ObjectReflectionGroup */
+	ObjectReflectionAttribute(AttributeGroup parent, Object obj, String fullName, String simpleName, ObjectReflectionData data)
 	{
 		this.parent = parent;
 		this.data = data;
 		this.obj = obj;
-		field = null;
+		field = getPublicField(obj, simpleName);
 		name = fullName;
 		
 		getter = getMethod(obj, data.getGetterNames(simpleName));
-		if (getter == null || getter.getReturnType() == void.class)
-			throw new IllegalArgumentException();
+		
+		assertValid();
 		
 		type = getter.getReturnType();
 		
@@ -88,6 +112,12 @@ class ObjectReflectionAttribute implements Attribute
 			removeListener = null;
 		
 		setAccessible();
+	}
+	
+	private void assertValid()
+	{
+		if (field == null && (getter == null || getter.getReturnType() == void.class))
+			throw new IllegalArgumentException();
 	}
 	
 	private void setAccessible()
@@ -217,7 +247,7 @@ class ObjectReflectionAttribute implements Attribute
 	
 	public boolean canListen()
 	{
-		return (addListener != null && removeListener != null) || parent.canListen();
+		return (addListener != null && removeListener != null) || (parent != null && parent.canListen());
 	}
 	
 	private void notifyChange()
@@ -246,7 +276,7 @@ class ObjectReflectionAttribute implements Attribute
 				
 				invoke(obj, addListener, listener);
 			}
-			else
+			else if (parent != null)
 			{
 				listener = new AttributeListener() {
 					public void onChange()

@@ -27,10 +27,59 @@ public class JfgFormComposite extends Composite
 		this.data = data;
 	}
 	
+	/** Add all the attributes from the group, without adding the group itself */
 	public void addContentsFrom(AttributeGroup group)
 	{
 		initLayout();
 		buildAttributes(this, group, 0);
+	}
+	
+	public void add(Attribute attrib)
+	{
+		initLayout();
+		buildAttribute(this, attrib, 0);
+	}
+	
+	public void add(AttributeGroup group)
+	{
+		initLayout();
+		buildGroup(this, group, 0);
+	}
+	
+	public void addText(Attribute text)
+	{
+		initLayout();
+		addAttribute(this, new SWTTextBuilder(), text);
+	}
+	
+	public void addNumer(Attribute number)
+	{
+		initLayout();
+		addAttribute(this, new SWTNumberBuilder(), number);
+	}
+	
+	public void addReal(Attribute real)
+	{
+		initLayout();
+		addAttribute(this, new SWTRealBuilder(), real);
+	}
+	
+	public void addCheckbox(Attribute bool)
+	{
+		initLayout();
+		addAttribute(this, new SWTCheckboxBuilder(), bool);
+	}
+	
+	public void addCombo(Attribute enumer)
+	{
+		initLayout();
+		addAttribute(this, new SWTComboBuilder(), enumer);
+	}
+	
+	public void addCustom(SWTWidgetBuilder builder, Attribute custom)
+	{
+		initLayout();
+		addAttribute(this, builder, custom);
 	}
 	
 	@Override
@@ -70,6 +119,7 @@ public class JfgFormComposite extends Composite
 		SWTWidgetBuilder builder = getBuilderFor(attrib.getType());
 		if (builder == null)
 		{
+			// TODO: Support groups when attribute is read/write
 			if (!attrib.canWrite())
 				buildGroup(parent, attrib.asGroup(), currentLevel + 1);
 			return;
@@ -77,6 +127,11 @@ public class JfgFormComposite extends Composite
 		if (!builder.accept(attrib))
 			throw new IllegalArgumentException("Wrong configuration");
 		
+		addAttribute(parent, builder, attrib);
+	}
+	
+	private void addAttribute(Composite parent, SWTWidgetBuilder builder, Attribute attrib)
+	{
 		if (!data.showReadOnly && !attrib.canWrite())
 			return;
 		
