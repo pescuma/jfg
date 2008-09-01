@@ -18,6 +18,7 @@
 	<property name="libs.build" location="lib" />
 	<property name="src.src" location="../src" />
 	<property name="src.test" location="../test" />
+	<property name="src.examples" location="../examples" />
 	<property name="build.src" location="build/src" />
 	<property name="build.test" value="build/test" />
 	<property name="build.debug" location="build/debug" />
@@ -49,11 +50,17 @@
 	</target>
 
 	<target name="compile-debug" depends="init" description="compile the source with version data">
-		<!-- Create the build directory structure used by compile -->
 		<mkdir dir="${build.debug}" />
 
-		<!-- Compile the java code from ${src} into ${build} -->
 		<javac srcdir="${src.src}" destdir="${build.debug}" debug="true">
+			<classpath>
+				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+
+		<javac srcdir="${src.examples}" destdir="${build.debug}" debug="true">
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
@@ -264,8 +271,10 @@
 		<!-- Create the distribution directory -->
 		<mkdir dir="${dist.jar}" />
 
-		<!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+		<!-- Put everything in ${build} into the ${project}.jar file -->
 		<jar jarfile="${dist.jar}/${project}.jar" basedir="${build.src}" />
+
+		<zip zipfile="${dist.jar}/${project}-examples.zip" basedir="${src.examples}" />
 	</target>
 
 	<target name="dist" depends="compile, pack, test, crap4j, emma, findbugs, clean-build" description="generate the distribution">
