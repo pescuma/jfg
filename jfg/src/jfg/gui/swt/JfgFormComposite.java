@@ -76,6 +76,18 @@ public class JfgFormComposite extends Composite
 		addAttribute(this, new SWTComboBuilder(), enumer);
 	}
 	
+	public void addPassword(Attribute enumer)
+	{
+		initLayout();
+		addAttribute(this, new SWTPasswordBuilder(), enumer);
+	}
+	
+	public void addScale(Attribute enumer)
+	{
+		initLayout();
+		addAttribute(this, new SWTScaleBuilder(), enumer);
+	}
+	
 	public void addCustom(SWTWidgetBuilder builder, Attribute custom)
 	{
 		initLayout();
@@ -124,14 +136,15 @@ public class JfgFormComposite extends Composite
 				buildGroup(parent, attrib.asGroup(), currentLevel + 1);
 			return;
 		}
-		if (!builder.accept(attrib))
-			throw new IllegalArgumentException("Wrong configuration");
 		
 		addAttribute(parent, builder, attrib);
 	}
 	
 	private void addAttribute(Composite parent, SWTWidgetBuilder builder, Attribute attrib)
 	{
+		if (!builder.accept(attrib))
+			throw new IllegalArgumentException("Wrong configuration");
+		
 		if (!data.showReadOnly && !attrib.canWrite())
 			return;
 		

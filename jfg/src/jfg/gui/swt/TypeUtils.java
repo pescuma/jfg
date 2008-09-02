@@ -132,4 +132,26 @@ class TypeUtils
 	{
 		return ((Number) valueOf(value, type, "0")).doubleValue();
 	}
+	
+	public static Object valueOf(Number value, Object type)
+	{
+		if (value == null)
+			return null;
+		
+		if (type == byte.class || type == Byte.class)
+			return Byte.valueOf(value.byteValue());
+		else if (type == short.class || type == Short.class)
+			return Short.valueOf(value.shortValue());
+		else if (type == int.class || type == Integer.class)
+			return Integer.valueOf(value.intValue());
+		else if (type == long.class || type == Long.class)
+			return Long.valueOf(value.longValue());
+		else if (type == float.class || type == Float.class)
+			return Float.valueOf(value.floatValue());
+		else if (type == double.class || type == Double.class)
+			return Double.valueOf(value.doubleValue());
+		else
+			throw new IllegalArgumentException();
+	}
+	
 }

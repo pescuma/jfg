@@ -14,6 +14,7 @@ import jfg.AttributeListener;
 import jfg.AttributeValueRange;
 import jfg.gui.swt.JfgFormComposite;
 import jfg.gui.swt.JfgFormData;
+import jfg.gui.swt.SWTPasswordBuilder;
 import jfg.reflect.ObjectReflectionAttribute;
 
 import org.eclipse.swt.SWT;
@@ -97,7 +98,9 @@ public class CustomForm
 		
 		private int a = 2;
 		private int b = 1;
+		private int c = 10;
 		private String name;
+		private String password;
 		private boolean valid;
 		private TestEnum side;
 		private double real;
@@ -127,6 +130,18 @@ public class CustomForm
 			notifyListeners();
 		}
 		
+		public int getC()
+		{
+			return c;
+		}
+		
+		public void setC(int c)
+		{
+			this.c = c;
+			
+			notifyListeners();
+		}
+		
 		public String getName()
 		{
 			return name;
@@ -135,6 +150,18 @@ public class CustomForm
 		public void setName(String name)
 		{
 			this.name = name;
+			
+			notifyListeners();
+		}
+		
+		public String getPassword()
+		{
+			return password;
+		}
+		
+		public void setPassword(String password)
+		{
+			this.password = password;
 			
 			notifyListeners();
 		}
@@ -243,6 +270,37 @@ public class CustomForm
 			}
 		});
 		
+		// A password attribute
+		form.addPassword(new AbstractAttribute() {
+			public String getName()
+			{
+				return "gui.password";
+			}
+			public Object getType()
+			{
+				return String.class;
+			}
+			public Object getValue()
+			{
+				return obj.getPassword();
+			}
+			public void setValue(Object value)
+			{
+				obj.setPassword((String) value);
+			}
+			@Override
+			public AttributeValueRange getValueRange()
+			{
+				return new AbstractAttributeValueRange() {
+					@Override
+					public Object getMax()
+					{
+						return Integer.valueOf(8);
+					}
+				};
+			}
+		});
+		
 		// An attribute with listener
 		form.add(new AbstractListenerAttribute() {
 			private Map<AttributeListener, ChangeListener> listeners = new HashMap<AttributeListener, ChangeListener>();
@@ -327,6 +385,62 @@ public class CustomForm
 			}
 		});
 		
+		// An attribute with a list of options
+		// TODO: Accept add here instead of addScale
+		form.addScale(new AbstractListenerAttribute() {
+			private Map<AttributeListener, ChangeListener> listeners = new HashMap<AttributeListener, ChangeListener>();
+			
+			public String getName()
+			{
+				return "c";
+			}
+			public Object getType()
+			{
+				return int.class;
+			}
+			public Object getValue()
+			{
+				return obj.getC();
+			}
+			public void setValue(Object value)
+			{
+				obj.setC((Integer) value);
+			}
+			@Override
+			public AttributeValueRange getValueRange()
+			{
+				return new AbstractAttributeValueRange() {
+					@Override
+					public Object getMax()
+					{
+						return 15;
+					}
+					@Override
+					public Object getMin()
+					{
+						return 5;
+					}
+				};
+			}
+			public void addListener(final AttributeListener alistener)
+			{
+				ChangeListener listener = new ChangeListener() {
+					public void onChange()
+					{
+						alistener.onChange();
+					}
+				};
+				if (obj.addListener(listener))
+					listeners.put(alistener, listener);
+			}
+			public void removeListener(AttributeListener alistener)
+			{
+				ChangeListener listener = listeners.remove(alistener);
+				if (listener != null)
+					obj.removeListener(listener);
+			}
+		});
+		
 		// Adding a field by reflection
 		form.add(new ObjectReflectionAttribute(obj, "side"));
 		
@@ -341,6 +455,8 @@ public class CustomForm
 				obj.setReal(1234.56);
 				obj.getSub().setB(987);
 				obj.getSub().setCd("CD!!");
+				obj.setB(2);
+				obj.setC(10);
 			}
 		});
 		set.setText("Set");
@@ -359,7 +475,7 @@ public class CustomForm
 		showObj(txt, obj);
 		
 		shell.setText("Simple Form");
-		shell.setSize(300, 400);
+		shell.setSize(300, 500);
 		shell.open();
 		while (!shell.isDisposed())
 		{
@@ -370,8 +486,9 @@ public class CustomForm
 	}
 	protected static void showObj(Text txt, TestClass obj)
 	{
-		txt.setText("a = " + obj.getA() + "\nb = " + obj.getB() + "\nname = " + obj.getName() + "\nvalid = " + obj.isValid() + "\nside = "
-				+ obj.getSide() + "\nreal = " + obj.getReal() + "\n  b = " + obj.getSub().getB() + "\n  cd = " + obj.getSub().getCd());
+		txt.setText("a = " + obj.getA() + "\nb = " + obj.getB() + "\nc = " + obj.getC() + "\nname = " + obj.getName() + "\npassword = "
+				+ obj.getPassword() + "\nvalid = " + obj.isValid() + "\nside = " + obj.getSide() + "\nreal = " + obj.getReal() + "\n  b = "
+				+ obj.getSub().getB() + "\n  cd = " + obj.getSub().getCd());
 	}
 	
 }

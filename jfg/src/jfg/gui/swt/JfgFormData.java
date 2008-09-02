@@ -40,6 +40,8 @@ public class JfgFormData
 		builders.put(Boolean.class, new SWTCheckboxBuilder());
 		
 		builders.put(Enum.class, new SWTComboBuilder());
+		
+		builders.put("password", new SWTPasswordBuilder());
 	}
 	
 }

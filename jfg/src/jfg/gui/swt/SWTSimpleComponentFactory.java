@@ -5,6 +5,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
 
 public class SWTSimpleComponentFactory implements SWTComponentFactory
@@ -27,6 +28,11 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 	public Group createGroup(Composite parent, int style)
 	{
 		return new Group(parent, style);
+	}
+	
+	public Scale createScale(Composite parent, int style)
+	{
+		return new Scale(parent, style);
 	}
 	
 }

@@ -1,6 +1,7 @@
 package jfg.gui.swt;
 
 import jfg.Attribute;
+import jfg.AttributeValueRange;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -28,22 +29,42 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 			
 			public void init()
 			{
-				text = data.componentFactory.createText(parent, attrib.canWrite() ? 0 : SWT.READ_ONLY);
+				text = data.componentFactory.createText(parent, (attrib.canWrite() ? 0 : SWT.READ_ONLY) | getAdditionalTextStyle());
 				text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				text.addListener(SWT.Modify, getModifyListener());
 				text.addListener(SWT.Dispose, getDisposeListener());
 				addValidation(text, attrib.getType());
+				setTextLimit();
 				
 				addAttributeListener();
 				
 				copyToGUI();
 			}
 			
+			private void setTextLimit()
+			{
+				AttributeValueRange range = attrib.getValueRange();
+				if (range == null)
+					return;
+				
+				Object max = range.getMax();
+				if (max != null && (max instanceof Number))
+					text.setTextLimit(((Number) max).intValue());
+			}
+			
 			@Override
 			protected void guiToAttribute()
 			{
-				attrib.setValue(convertToObject(text.getText(), attrib.getType(), attrib.getValueRange() == null ? true
-						: attrib.getValueRange().canBeNull()));
+				attrib.setValue(convertToObject(text.getText(), attrib.getType(), canBeNull()));
+			}
+			
+			private boolean canBeNull()
+			{
+				AttributeValueRange range = attrib.getValueRange();
+				if (range == null)
+					return true;
+				
+				return range.canBeNull();
 			}
 			
 			@Override
@@ -54,6 +75,11 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 				text.setSelection(caretPosition);
 			}
 		};
+	}
+	
+	protected int getAdditionalTextStyle()
+	{
+		return 0;
 	}
 	
 	protected void addValidation(Text text, Object type)
