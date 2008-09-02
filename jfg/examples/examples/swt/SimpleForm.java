@@ -88,6 +88,7 @@ public class SimpleForm
 		
 		private int a;
 		private String name;
+		private String password;
 		private boolean valid;
 		private TestEnum side;
 		private double real;
@@ -113,6 +114,18 @@ public class SimpleForm
 		public void setName(String name)
 		{
 			this.name = name;
+			
+			notifyListeners();
+		}
+		
+		public String getPassword()
+		{
+			return password;
+		}
+		
+		public void setPassword(String password)
+		{
+			this.password = password;
 			
 			notifyListeners();
 		}
@@ -192,6 +205,7 @@ public class SimpleForm
 			{
 				obj.setA(1);
 				obj.setName("Name");
+				obj.setPassword("password");
 				obj.setValid(true);
 				obj.setSide(TestEnum.Top);
 				obj.setReal(1234.56);
@@ -215,7 +229,7 @@ public class SimpleForm
 		showObj(txt, obj);
 		
 		shell.setText("Simple Form");
-		shell.setSize(300, 400);
+		shell.setSize(300, 500);
 		shell.open();
 		while (!shell.isDisposed())
 		{
@@ -226,7 +240,8 @@ public class SimpleForm
 	}
 	protected static void showObj(Text txt, TestClass obj)
 	{
-		txt.setText("a = " + obj.getA() + "\nname = " + obj.getName() + "\nvalid = " + obj.isValid() + "\nside = " + obj.getSide()
-				+ "\nreal = " + obj.getReal() + "\n  b = " + obj.getSub().getB() + "\n  cd = " + obj.getSub().getCd());
+		txt.setText("a = " + obj.getA() + "\nname = " + obj.getName() + "\npassword = " + obj.getPassword() + "\nvalid = " + obj.isValid()
+				+ "\nside = " + obj.getSide() + "\nreal = " + obj.getReal() + "\n  b = " + obj.getSub().getB() + "\n  cd = "
+				+ obj.getSub().getCd());
 	}
 }

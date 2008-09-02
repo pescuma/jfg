@@ -14,7 +14,6 @@ import jfg.AttributeListener;
 import jfg.AttributeValueRange;
 import jfg.gui.swt.JfgFormComposite;
 import jfg.gui.swt.JfgFormData;
-import jfg.gui.swt.SWTPasswordBuilder;
 import jfg.reflect.ObjectReflectionAttribute;
 
 import org.eclipse.swt.SWT;
@@ -341,8 +340,8 @@ public class CustomForm
 		});
 		
 		// An attribute with a list of options
-		// TODO: Accept add here instead of addCombo
-		form.addCombo(new AbstractAttribute() {
+		// form.addCombo also works here
+		form.add(new AbstractAttribute() {
 			public String getName()
 			{
 				return "b";
@@ -386,8 +385,8 @@ public class CustomForm
 		});
 		
 		// An attribute with a list of options
-		// TODO: Accept add here instead of addScale
-		form.addScale(new AbstractListenerAttribute() {
+		// form.addScale also works here
+		form.add(new AbstractListenerAttribute() {
 			private Map<AttributeListener, ChangeListener> listeners = new HashMap<AttributeListener, ChangeListener>();
 			
 			public String getName()

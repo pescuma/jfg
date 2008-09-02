@@ -128,7 +128,7 @@ public class JfgFormComposite extends Composite
 	
 	private void buildAttribute(Composite parent, Attribute attrib, int currentLevel)
 	{
-		SWTWidgetBuilder builder = getBuilderFor(attrib.getType());
+		SWTWidgetBuilder builder = getBuilderFor(attrib);
 		if (builder == null)
 		{
 			// TODO: Support groups when attribute is read/write
@@ -164,22 +164,24 @@ public class JfgFormComposite extends Composite
 		attributes.add(swta);
 	}
 	
-	private SWTWidgetBuilder getBuilderFor(Object type)
+	private SWTWidgetBuilder getBuilderFor(Attribute attrib)
 	{
+		Object type = null;
+		for (SWTBuilderTypeSelector selector : data.builderTypeSelectors)
+		{
+			type = selector.getTypeFor(attrib);
+			if (type != null)
+				break;
+		}
+		if (type == null)
+			type = attrib.getType();
+		
 		SWTWidgetBuilder builder = data.builders.get(type);
 		if (builder != null)
 			return builder;
 		
-		if (type instanceof Class)
-		{
-			Class<?> cls = (Class<?>) type;
-			if (cls.isEnum())
-				return data.builders.get(Enum.class);
-		}
-		
 		return builder;
 	}
-	
 	private void buildGroup(Composite parent, AttributeGroup group, int currentLevel)
 	{
 		if (group == null)
