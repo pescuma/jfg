@@ -14,9 +14,7 @@ public class SWTNumberBuilder extends SWTTextBuilder
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
-		return type == byte.class || type == Byte.class || type == short.class || type == Short.class || type == int.class
-				|| type == Integer.class || type == long.class || type == Long.class || type == float.class || type == Float.class
-				|| type == double.class || type == Double.class;
+		return typeIsNumber(type) || typeIsReal(type);
 	}
 	
 	@Override

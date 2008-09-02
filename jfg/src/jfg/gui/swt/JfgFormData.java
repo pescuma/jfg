@@ -9,7 +9,7 @@ import jfg.Attribute;
 import jfg.gui.SimpleTextTranslator;
 import jfg.gui.TextTranslator;
 
-public class JfgFormData
+public final class JfgFormData
 {
 	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
 	
@@ -57,16 +57,21 @@ public class JfgFormData
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
 			{
-				String name = attrib.getName();
-				int index = name.lastIndexOf('.');
-				if (index >= 0 && index < name.length() - 1)
-					name = name.substring(index + 1);
+				String name = getSimpleName(attrib).toLowerCase();
 				
-				name = name.toLowerCase();
 				if (name.indexOf("password") >= 0 || name.indexOf("passwd") >= 0)
 					return "password";
 				
 				return null;
+			}
+			
+			private String getSimpleName(Attribute attrib)
+			{
+				String name = attrib.getName();
+				int index = name.lastIndexOf('.');
+				if (index >= 0 && index < name.length() - 1)
+					name = name.substring(index + 1);
+				return name;
 			}
 		});
 		

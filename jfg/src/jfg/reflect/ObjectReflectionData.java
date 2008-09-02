@@ -7,7 +7,7 @@ import java.util.Map;
 
 import jfg.AttributeListenerConverter;
 
-public class ObjectReflectionData implements Cloneable
+public final class ObjectReflectionData implements Cloneable
 {
 	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters;
 	

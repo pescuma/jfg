@@ -131,7 +131,7 @@ public class JfgFormComposite extends Composite
 		SWTWidgetBuilder builder = getBuilderFor(attrib);
 		if (builder == null)
 		{
-			// TODO: Support groups when attribute is read/write
+			// TODO Support groups when attribute is read/write
 			if (!attrib.canWrite())
 				buildGroup(parent, attrib.asGroup(), currentLevel + 1);
 			return;
@@ -166,22 +166,21 @@ public class JfgFormComposite extends Composite
 	
 	private SWTWidgetBuilder getBuilderFor(Attribute attrib)
 	{
+		return data.builders.get(getTypeOf(attrib));
+	}
+	
+	private Object getTypeOf(Attribute attrib)
+	{
 		Object type = null;
 		for (SWTBuilderTypeSelector selector : data.builderTypeSelectors)
 		{
 			type = selector.getTypeFor(attrib);
 			if (type != null)
-				break;
+				return type;
 		}
-		if (type == null)
-			type = attrib.getType();
-		
-		SWTWidgetBuilder builder = data.builders.get(type);
-		if (builder != null)
-			return builder;
-		
-		return builder;
+		return attrib.getType();
 	}
+	
 	private void buildGroup(Composite parent, AttributeGroup group, int currentLevel)
 	{
 		if (group == null)

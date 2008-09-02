@@ -167,4 +167,63 @@ public class TypeUtilsTest
 		assertEquals(10.9, asDouble(Double.valueOf(10.9)), 0.001f);
 		assertEquals(-10.9, asDouble(Double.valueOf(-10.9)), 0.001f);
 	}
+	
+	@Test
+	public void testValueOfNumber() throws Exception
+	{
+		assertEquals(null, valueOf(null, null));
+		
+		assertEquals(Byte.valueOf((byte) 10), valueOf(10, byte.class));
+		assertEquals(Byte.valueOf((byte) 10), valueOf(10, Byte.class));
+		assertEquals(Short.valueOf((short) 10), valueOf(10, short.class));
+		assertEquals(Short.valueOf((short) 10), valueOf(10, Short.class));
+		assertEquals(Integer.valueOf(10), valueOf(10, int.class));
+		assertEquals(Integer.valueOf(10), valueOf(10, Integer.class));
+		assertEquals(Long.valueOf(10), valueOf(10, long.class));
+		assertEquals(Long.valueOf(10), valueOf(10, Long.class));
+		assertEquals(Float.valueOf(10), valueOf(10, float.class));
+		assertEquals(Float.valueOf(10), valueOf(10, Float.class));
+		assertEquals(Double.valueOf(10), valueOf(10, double.class));
+		assertEquals(Double.valueOf(10), valueOf(10, Double.class));
+	}
+	
+	@Test
+	public void testTypeIsNumber() throws Exception
+	{
+		assertTrue(typeIsNumber(byte.class));
+		assertTrue(typeIsNumber(Byte.class));
+		assertTrue(typeIsNumber(short.class));
+		assertTrue(typeIsNumber(Short.class));
+		assertTrue(typeIsNumber(int.class));
+		assertTrue(typeIsNumber(Integer.class));
+		assertTrue(typeIsNumber(long.class));
+		assertTrue(typeIsNumber(Long.class));
+		assertFalse(typeIsNumber(float.class));
+		assertFalse(typeIsNumber(Float.class));
+		assertFalse(typeIsNumber(double.class));
+		assertFalse(typeIsNumber(Double.class));
+		assertFalse(typeIsNumber(String.class));
+		assertFalse(typeIsNumber(Object.class));
+		assertFalse(typeIsNumber("aaa"));
+	}
+	
+	@Test
+	public void testTypeIsReal() throws Exception
+	{
+		assertFalse(typeIsReal(byte.class));
+		assertFalse(typeIsReal(Byte.class));
+		assertFalse(typeIsReal(short.class));
+		assertFalse(typeIsReal(Short.class));
+		assertFalse(typeIsReal(int.class));
+		assertFalse(typeIsReal(Integer.class));
+		assertFalse(typeIsReal(long.class));
+		assertFalse(typeIsReal(Long.class));
+		assertTrue(typeIsReal(float.class));
+		assertTrue(typeIsReal(Float.class));
+		assertTrue(typeIsReal(double.class));
+		assertTrue(typeIsReal(Double.class));
+		assertFalse(typeIsReal(String.class));
+		assertFalse(typeIsReal(Object.class));
+		assertFalse(typeIsReal("aaa"));
+	}
 }

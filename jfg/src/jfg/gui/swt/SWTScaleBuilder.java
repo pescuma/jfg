@@ -1,6 +1,7 @@
 package jfg.gui.swt;
 
 import static java.lang.Math.*;
+import static jfg.gui.swt.TypeUtils.*;
 import jfg.Attribute;
 import jfg.AttributeValueRange;
 
@@ -19,16 +20,6 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 		
 		Object type = attrib.getType();
 		return typeIsNumber(type) || typeIsReal(type);
-	}
-	private boolean typeIsNumber(Object type)
-	{
-		return type == byte.class || type == Byte.class || type == short.class || type == Short.class || type == int.class
-				|| type == Integer.class || type == long.class || type == Long.class;
-	}
-	
-	private boolean typeIsReal(Object type)
-	{
-		return type == float.class || type == Float.class || type == double.class || type == Double.class;
 	}
 	
 	public boolean wantNameLabel()

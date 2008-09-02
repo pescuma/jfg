@@ -154,4 +154,14 @@ class TypeUtils
 			throw new IllegalArgumentException();
 	}
 	
+	public static boolean typeIsNumber(Object type)
+	{
+		return type == byte.class || type == Byte.class || type == short.class || type == Short.class || type == int.class
+				|| type == Integer.class || type == long.class || type == Long.class;
+	}
+	
+	public static boolean typeIsReal(Object type)
+	{
+		return type == float.class || type == Float.class || type == double.class || type == Double.class;
+	}
 }
