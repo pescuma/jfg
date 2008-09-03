@@ -11,9 +11,9 @@ import jfg.gui.TextTranslator;
 
 public final class JfgFormData
 {
-	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
-	
 	public Map<Object, SWTWidgetBuilder> builders = new HashMap<Object, SWTWidgetBuilder>();
+	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
+	public Map<String, String> fieldTypes = new HashMap<String, String>();
 	
 	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory();
 	
@@ -53,6 +53,13 @@ public final class JfgFormData
 		builders.put("combo", new SWTComboBuilder());
 		builders.put("password", new SWTPasswordBuilder());
 		builders.put("scale", new SWTScaleBuilder());
+		
+		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
+			public Object getTypeFor(Attribute attrib)
+			{
+				return fieldTypes.get(attrib.getName());
+			}
+		});
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
