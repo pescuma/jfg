@@ -25,6 +25,7 @@
 	<property name="build.test" value="build/test" />
 	<property name="build.perf" value="build/perf" />
 	<property name="build.debug" location="build/debug" />
+	<property name="build.warning" location="build/warning" />
 	<property name="build.crap4j" location="build/crap4j" />
 	<property name="build.emma" location="build/emma" />
 	<property name="dist.jar" location="dist/lib" />
@@ -45,9 +46,24 @@
 
 		<!-- Compile the java code from ${src} into ${build} -->
 		<javac srcdir="${src.src}" destdir="${build.src}">
-			<compilerarg value="-Xlint"/>
 			<classpath>
 				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="compile-warning" depends="init">
+		<mkdir dir="${build.warning}" />
+
+		<javac srcdir="${src.src}" destdir="${build.warning}">
+			<compilerarg compiler="org.eclipse.jdt.core.JDTCompilerAdapter" line="-warn:+unused -warn:+hiding" />
+			<classpath>
+				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.build}">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
@@ -312,7 +328,7 @@
 		<zip zipfile="${dist.jar}/${project}-examples.zip" basedir="${src.examples}" />
 	</target>
 
-	<target name="dist" depends="compile, pack, test, crap4j, emma, findbugs, japex, clean-build" description="generate the distribution">
+	<target name="dist" depends="compile, pack, test, crap4j, emma, findbugs, japex, compile-warning, clean-build" description="generate the distribution">
 	</target>
 
 	<target name="clean-build">

@@ -28,6 +28,7 @@ public class ObjectReflectionGroup implements AttributeGroup
 	public ObjectReflectionGroup(Object obj)
 	{
 		this(null, obj, new ObjectReflectionData());
+		int x;
 	}
 	
 	public ObjectReflectionGroup(String name, Object obj)
