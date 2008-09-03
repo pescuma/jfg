@@ -78,11 +78,8 @@ public class ObjectReflectionGroup implements AttributeGroup
 		
 		Class<?> cls = obj.getClass();
 		
-		int x = 0;
-		
 		addAttributesFrom(cls);
 	}
-	
 	private void addAttributesFrom(Class<?> cls)
 	{
 		if (cls == Object.class)

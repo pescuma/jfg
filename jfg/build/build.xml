@@ -45,6 +45,7 @@
 
 		<!-- Compile the java code from ${src} into ${build} -->
 		<javac srcdir="${src.src}" destdir="${build.src}">
+			<compilerarg value="-Xlint"/>
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
