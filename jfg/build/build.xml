@@ -325,7 +325,7 @@
 		<zip zipfile="${dist.jar}/${project}-examples.zip" basedir="${src.examples}" />
 	</target>
 
-	<target name="dist" depends="clean-dist, compile, pack, test, crap4j, emma, findbugs, japex, compile-warning, clean-build" description="generate the distribution">
+	<target name="dist" depends="clean-dist, compile, pack, test, crap4j, emma, findbugs, japex, clean-build" description="generate the distribution">
 	</target>
 
 	<target name="clean-build">
