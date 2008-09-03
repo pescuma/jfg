@@ -154,7 +154,7 @@
 			</srces>
 
 			<testClasses>
-				<fileset location="${build.test}" />
+				<pathelement location="${build.test}" />
 			</testClasses>
 
 			<libClasspath>
