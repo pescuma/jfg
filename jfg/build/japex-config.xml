@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<testSuite name="ObjectReflecionGroup Performace tests" xmlns="http://www.sun.com/japex/testSuite">
+
+	<param name="japex.classPath" value="../lib/*.jar"/>
+    <param name="japex.classPath" value="build/debug"/>
+    <param name="japex.classPath" value="build/perf"/>
+    
+    <param name="japex.warmupIterations" value="20"/>
+    <param name="japex.runIterations" value="2000"/>
+    <param name="japex.resultUnit" value="ms"/>
+
+    <driver name="ObjectReflecionGroup">
+        <param name="japex.driverClass" value="jfg.reflect.ReflectionGroupPerformanceTest"/>
+        <param name="description" value="ObjectReflecionGroup Driver"/>
+    </driver>
+    
+    <testCase name="TestSub">
+    	<param name="class" value="jfg.reflect.TestSub"/>
+    </testCase>
+    <testCase name="TestClass">
+    	<param name="class" value="jfg.reflect.TestClass"/>
+    </testCase>
+
+</testSuite>

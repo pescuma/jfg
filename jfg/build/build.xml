@@ -15,12 +15,15 @@
 	<!-- set global properties for this build -->
 	<property name="project" value="jfg" />
 	<property name="libs.src" location="../lib" />
+	<property name="libs.perf" location="../lib-perf" />
 	<property name="libs.build" location="lib" />
 	<property name="src.src" location="../src" />
 	<property name="src.test" location="../test" />
+	<property name="src.perf" location="../perf" />
 	<property name="src.examples" location="../examples" />
 	<property name="build.src" location="build/src" />
 	<property name="build.test" value="build/test" />
+	<property name="build.perf" value="build/perf" />
 	<property name="build.debug" location="build/debug" />
 	<property name="build.crap4j" location="build/crap4j" />
 	<property name="build.emma" location="build/emma" />
@@ -29,6 +32,7 @@
 	<property name="dist.crap4j" location="dist/crap4j" />
 	<property name="dist.emma" location="dist/emma" />
 	<property name="dist.findbugs" location="dist/findbugs" />
+	<property name="dist.japex" location="dist/japex" />
 
 	<target name="init">
 		<!-- Create the time stamp -->
@@ -85,6 +89,22 @@
 		</javac>
 	</target>
 
+	<target name="compile-perf" depends="compile-debug">
+		<mkdir dir="${build.perf}" />
+
+		<javac srcdir="${src.perf}" destdir="${build.perf}" debug="true">
+			<classpath>
+				<pathelement location="${build.debug}" />
+				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.perf}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
 	<target name="test" depends="compile-tests">
 		<mkdir dir="${dist.junit}" />
 
@@ -134,7 +154,7 @@
 			</srces>
 
 			<testClasses>
-				<pathelement location="${build.test}" />
+				<fileset location="${build.test}" />
 			</testClasses>
 
 			<libClasspath>
@@ -235,14 +255,6 @@
 			</classpath>
 		</taskdef>
 
-		<taskdef name="convertXmlToText" classname="edu.umd.cs.findbugs.anttask.ConvertXmlToTextTask">
-			<classpath>
-				<fileset dir="${FINDBUGS_HOME}">
-					<include name="**/*.jar" />
-				</fileset>
-			</classpath>
-		</taskdef>
-
 		<findbugs home="${FINDBUGS_HOME}" output="xml:withMessages" outputFile="${dist.findbugs}/findbugs.xml" effort="max" projectName="${project}">
 			<auxClasspath>
 				<pathelement location="${build.debug}" />
@@ -267,6 +279,28 @@
 
 	</target>
 
+	<target name="japex" depends="compile-perf">
+		<mkdir dir="${dist.japex}" />
+
+		<java dir="." fork="true" classname="com.sun.japex.Japex">
+			<classpath>
+				<fileset dir="${libs.src}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.perf}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.build}">
+					<include name="*.jar" />
+				</fileset>
+				<pathelement location="${build.debug}" />
+				<pathelement location="${build.perf}" />
+			</classpath>
+			<jvmarg value="-Djapex.reportsDirectory=${dist.japex}" />
+			<arg line="japex-config.xml" />
+		</java>
+	</target>
+
 	<target name="pack" depends="compile">
 		<!-- Create the distribution directory -->
 		<mkdir dir="${dist.jar}" />
@@ -277,7 +311,7 @@
 		<zip zipfile="${dist.jar}/${project}-examples.zip" basedir="${src.examples}" />
 	</target>
 
-	<target name="dist" depends="compile, pack, test, crap4j, emma, findbugs, clean-build" description="generate the distribution">
+	<target name="dist" depends="compile, pack, test, crap4j, emma, findbugs, japex, clean-build" description="generate the distribution">
 	</target>
 
 	<target name="clean-build">
