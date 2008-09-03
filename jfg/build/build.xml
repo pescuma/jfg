@@ -57,16 +57,13 @@
 	<target name="compile-warning" depends="init">
 		<mkdir dir="${build.warning}" />
 
-		<javac srcdir="${src.src}" destdir="${build.warning}">
-			<compilerarg compiler="org.eclipse.jdt.core.JDTCompilerAdapter" line="-warn:+unused -warn:+hiding" />
+		<javac srcdir="${src.src}" destdir="${build.warning}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" source="1.5" target="1.5">
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
 				</fileset>
-				<fileset dir="${libs.build}">
-					<include name="*.jar" />
-				</fileset>
 			</classpath>
+			<compilerarg line="-warn:+unused -warn:+hiding" />
 		</javac>
 	</target>
 
