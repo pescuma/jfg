@@ -145,8 +145,9 @@ public class JfgFormComposite extends Composite
 		if (!builder.accept(attrib))
 			throw new IllegalArgumentException("Wrong configuration");
 		
-		if (!data.showReadOnly && !attrib.canWrite())
-			return;
+		for (SWTAttributeFilter filter : data.attributeFilters)
+			if (filter.hideAttribute(attrib))
+				return;
 		
 		if (builder.wantNameLabel())
 		{

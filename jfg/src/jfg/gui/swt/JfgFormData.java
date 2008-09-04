@@ -2,8 +2,10 @@ package jfg.gui.swt;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jfg.Attribute;
 import jfg.gui.SimpleTextTranslator;
@@ -13,7 +15,10 @@ public final class JfgFormData
 {
 	public Map<Object, SWTWidgetBuilder> builders = new HashMap<Object, SWTWidgetBuilder>();
 	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
+	public List<SWTAttributeFilter> attributeFilters = new ArrayList<SWTAttributeFilter>();
+	
 	public Map<String, String> fieldTypes = new HashMap<String, String>();
+	public Set<String> fieldsToHide = new HashSet<String>();
 	
 	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory();
 	
@@ -123,6 +128,21 @@ public final class JfgFormData
 				return Enum.class;
 			}
 		});
+		
+		attributeFilters.add(new SWTAttributeFilter() {
+			public boolean hideAttribute(Attribute attrib)
+			{
+				if (!showReadOnly && !attrib.canWrite())
+					return true;
+				return false;
+			}
+		});
+		
+		attributeFilters.add(new SWTAttributeFilter() {
+			public boolean hideAttribute(Attribute attrib)
+			{
+				return fieldsToHide.contains(attrib.getName());
+			}
+		});
 	}
-	
 }
