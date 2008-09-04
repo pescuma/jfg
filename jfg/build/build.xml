@@ -35,7 +35,7 @@
 	<property name="dist.findbugs" location="dist/findbugs" />
 	<property name="dist.japex" location="dist/japex" />
 
-	<target name="init">
+	<target name="init" depends="clean">
 		<!-- Create the time stamp -->
 		<tstamp />
 	</target>
@@ -325,7 +325,8 @@
 		<zip zipfile="${dist.jar}/${project}-examples.zip" basedir="${src.examples}" />
 	</target>
 
-	<target name="dist" depends="clean-dist, compile, pack, test, crap4j, emma, findbugs, japex, clean-build" description="generate the distribution">
+	<target name="dist" depends="clean, compile, pack, test, crap4j, emma, findbugs, japex, compile-warning" description="generate the distribution">
+		<antcall target="clean-build" />
 	</target>
 
 	<target name="clean-build">
