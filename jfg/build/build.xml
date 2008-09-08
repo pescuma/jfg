@@ -206,7 +206,9 @@
 		</path>
 
 		<emma>
-			<instr instrpathref="emma.classpath" destdir="${build.emma}" metadatafile="${build.emma}/metadata.emma" merge="true" />
+			<instr instrpathref="emma.classpath" destdir="${build.emma}" metadatafile="${build.emma}/metadata.emma" merge="true">
+				<filter excludes="examples.*" />
+			</instr>
 		</emma>
 
 		<junit printsummary="yes" fork="yes" haltonerror="false" haltonfailure="false">
