@@ -19,7 +19,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 		AttributeValueRange range = attrib.getValueRange();
 		if (range == null)
 			return false;
-		Collection<Object> values = range.getPossibleValues();
+		Collection<?> values = range.getPossibleValues();
 		return values != null && values.size() > 0;
 	}
 	
@@ -61,7 +61,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				if (canBeNull())
 					combo.add(data.textTranslator.translate("<None>"));
 				
-				for (Iterator<Object> it = getPossibleValues().iterator(); it.hasNext();)
+				for (Iterator<?> it = getPossibleValues().iterator(); it.hasNext();)
 				{
 					Object object = it.next();
 					combo.add(convertToString(object, attrib.getType()));
@@ -85,7 +85,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 					i++;
 				}
 				
-				for (Iterator<Object> it = getPossibleValues().iterator(); it.hasNext();)
+				for (Iterator<?> it = getPossibleValues().iterator(); it.hasNext();)
 				{
 					Object object = it.next();
 					if (i == index)
@@ -116,7 +116,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 					i++;
 				}
 				
-				for (Iterator<Object> it = getPossibleValues().iterator(); it.hasNext();)
+				for (Iterator<?> it = getPossibleValues().iterator(); it.hasNext();)
 				{
 					Object object = it.next();
 					if (object == value)
@@ -142,7 +142,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				return value.toString();
 			}
 			
-			private Collection<Object> getPossibleValues()
+			private Collection<?> getPossibleValues()
 			{
 				return attrib.getValueRange().getPossibleValues();
 			}

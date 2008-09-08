@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,6 +13,9 @@ import jfg.AttributeGroup;
 import jfg.AttributeListener;
 import jfg.AttributeListenerConverter;
 import jfg.AttributeValueRange;
+import jfg.model.ann.CompareWith;
+import jfg.model.ann.NotNull;
+import jfg.model.ann.Range;
 
 import org.junit.Test;
 
@@ -999,7 +1003,7 @@ public class ReflectionGroupTest
 		Collection<Object> attributes = group.getAttributes();
 		assertEquals(1, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<?> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -1021,7 +1025,7 @@ public class ReflectionGroupTest
 		assertNull(range.getMax());
 		assertNull(range.getMin());
 		
-		Collection<Object> values = range.getPossibleValues();
+		Collection<?> values = range.getPossibleValues();
 		assertNotNull(values);
 		assertEquals(3, values.size());
 		
@@ -1029,5 +1033,75 @@ public class ReflectionGroupTest
 		assertEquals(TestEnum.EnumValue1, it.next());
 		assertEquals(TestEnum.EnumValue2, it.next());
 		assertEquals(TestEnum.EnumValue3, it.next());
+	}
+	
+	private static class TestComparator implements Comparator<String>
+	{
+		public int compare(String o1, String o2)
+		{
+			return 0;
+		}
+	}
+	
+	private static class TestClassWithAnnotations
+	{
+		@NotNull
+		public int aa;
+		
+		@Range(min = 1, maxf = 5)
+		public long bb;
+		
+		@CompareWith(TestComparator.class)
+		public String cc;
+	}
+	
+	@Test
+	public void testWithAnnotations()
+	{
+		TestClassWithAnnotations tc = new TestClassWithAnnotations();
+		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		assertEquals("TestClassWithAnnotations", group.getName());
+		
+		Collection<Object> attributes = group.getAttributes();
+		assertEquals(3, attributes.size());
+		
+		Iterator<Object> it = attributes.iterator();
+		
+		// aa
+		Object obj = it.next();
+		assertFieldAttribute(obj, true, false, false, true);
+		
+		Attribute attr = (Attribute) obj;
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithAnnotations.aa", attr.getName());
+		AttributeValueRange range = attr.getValueRange();
+		assertFalse(range.canBeNull());
+		assertNull(range.getMin());
+		assertNull(range.getMax());
+		assertNull(range.getPossibleValues());
+		assertNull(range.getComparator());
+		
+		// bb
+		obj = it.next();
+		assertFieldAttribute(obj, true, false, false, true);
+		attr = (Attribute) obj;
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithAnnotations.bb", attr.getName());
+		range = attr.getValueRange();
+		assertTrue(range.canBeNull());
+		assertEquals(Long.valueOf(1), range.getMin());
+		assertEquals(Long.valueOf(5), range.getMax());
+		assertNull(range.getPossibleValues());
+		assertNull(range.getComparator());
+		
+		// cc
+		obj = it.next();
+		assertFieldAttribute(obj, true, false, false, true);
+		attr = (Attribute) obj;
+		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithAnnotations.cc", attr.getName());
+		range = attr.getValueRange();
+		assertTrue(range.canBeNull());
+		assertNull(range.getMin());
+		assertNull(range.getMax());
+		assertNull(range.getPossibleValues());
+		assertEquals(TestComparator.class, range.getComparator().getClass());
 	}
 }

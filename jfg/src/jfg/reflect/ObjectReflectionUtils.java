@@ -1,10 +1,10 @@
 package jfg.reflect;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 import jfg.AttributeListener;
@@ -136,13 +136,11 @@ class ObjectReflectionUtils
 		return ret;
 	}
 	
-	public static Field getPublicField(Object obj, String name)
+	public static Field getField(Object obj, String name)
 	{
 		try
 		{
-			Field tmp = obj.getClass().getDeclaredField(name);
-			if (Modifier.isPublic(tmp.getModifiers()))
-				return tmp;
+			return obj.getClass().getDeclaredField(name);
 		}
 		catch (SecurityException e)
 		{
@@ -226,6 +224,27 @@ class ObjectReflectionUtils
 		if (returnType == String.class)
 			return "";
 		return null;
+	}
+	
+	public static Object valueOf(Number value, Object type)
+	{
+		if (value == null)
+			return null;
+		
+		if (type == byte.class || type == Byte.class)
+			return Byte.valueOf(value.byteValue());
+		else if (type == short.class || type == Short.class)
+			return Short.valueOf(value.shortValue());
+		else if (type == int.class || type == Integer.class)
+			return Integer.valueOf(value.intValue());
+		else if (type == long.class || type == Long.class)
+			return Long.valueOf(value.longValue());
+		else if (type == float.class || type == Float.class)
+			return Float.valueOf(value.floatValue());
+		else if (type == double.class || type == Double.class)
+			return Double.valueOf(value.doubleValue());
+		else
+			throw new IllegalArgumentException();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -314,5 +333,34 @@ class ObjectReflectionUtils
 		{
 			return proxy.getClass().getName() + '@' + Integer.toHexString(proxy.hashCode());
 		}
+	}
+	
+	public static <T> T newInstance(Class<T> cls)
+	{
+		try
+		{
+			Constructor<T> constructor = cls.getDeclaredConstructor();
+			constructor.setAccessible(true);
+			return constructor.newInstance();
+		}
+		catch (InvocationTargetException e)
+		{
+		}
+		catch (SecurityException e)
+		{
+		}
+		catch (NoSuchMethodException e)
+		{
+		}
+		catch (IllegalArgumentException e)
+		{
+		}
+		catch (InstantiationException e)
+		{
+		}
+		catch (IllegalAccessException e)
+		{
+		}
+		return null;
 	}
 }

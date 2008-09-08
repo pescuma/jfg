@@ -2,6 +2,7 @@ package jfg.reflect;
 
 import static jfg.reflect.ObjectReflectionUtils.*;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -15,6 +16,9 @@ import jfg.Attribute;
 import jfg.AttributeGroup;
 import jfg.AttributeListener;
 import jfg.AttributeValueRange;
+import jfg.model.ann.CompareWith;
+import jfg.model.ann.NotNull;
+import jfg.model.ann.Range;
 
 public class ObjectReflectionAttribute implements Attribute
 {
@@ -28,7 +32,7 @@ public class ObjectReflectionAttribute implements Attribute
 	private final Method removeListener;
 	private final String name;
 	private final Class<?> type;
-	private AttributeValueRange range;
+	private final AttributeValueRange attributeValueRange;
 	
 	private Object listener;
 	private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
@@ -85,17 +89,25 @@ public class ObjectReflectionAttribute implements Attribute
 		else
 			removeListener = null;
 		
+		attributeValueRange = getRangeData(field);
+		
 		setAccessible();
 	}
 	
 	/** Used by ObjectReflectionGroup */
 	ObjectReflectionAttribute(AttributeGroup parent, Object obj, String fullName, String simpleName, ObjectReflectionData data)
 	{
+		Field aField = getField(obj, simpleName);
+		
 		this.parent = parent;
 		this.data = data;
 		this.obj = obj;
-		field = getPublicField(obj, simpleName);
 		name = fullName;
+		
+		if (aField != null && Modifier.isPublic(aField.getModifiers()))
+			field = aField;
+		else
+			field = null;
 		
 		getter = getMethod(obj, data.getGetterNames(simpleName));
 		
@@ -111,7 +123,115 @@ public class ObjectReflectionAttribute implements Attribute
 		else
 			removeListener = null;
 		
+		attributeValueRange = getRangeData(aField);
+		
 		setAccessible();
+	}
+	
+	private static class RangeData
+	{
+		long min = Long.MIN_VALUE;
+		double minf = Double.NEGATIVE_INFINITY;
+		long max = Long.MAX_VALUE;
+		double maxf = Double.POSITIVE_INFINITY;
+		boolean canBeNull = true;
+		Class<? extends Comparator<?>> comparator = null;
+	}
+	
+	private void addRangeFrom(AnnotatedElement element, RangeData range)
+	{
+		if (element == null)
+			return;
+		
+		if (element.getAnnotation(NotNull.class) != null)
+			range.canBeNull = false;
+		
+		Range r = element.getAnnotation(Range.class);
+		if (r != null)
+		{
+			range.min = Math.max(range.min, r.min());
+			range.minf = Math.max(range.minf, r.minf());
+			range.max = Math.min(range.max, r.max());
+			range.maxf = Math.min(range.maxf, r.maxf());
+		}
+		
+		CompareWith comp = element.getAnnotation(CompareWith.class);
+		if (comp != null && range.comparator == null)
+			range.comparator = comp.value();
+	}
+	
+	private AttributeValueRange getRangeData(Field aField)
+	{
+		final RangeData range = new RangeData();
+		
+		addRangeFrom(aField, range);
+		addRangeFrom(getter, range);
+		addRangeFrom(setter, range);
+		
+		boolean hasNotNull = !range.canBeNull;
+		boolean hasMin = (range.min > Long.MIN_VALUE || !Double.isInfinite(range.minf));
+		boolean hasMax = (range.max > Long.MAX_VALUE || !Double.isInfinite(range.maxf));
+		boolean hasValues = type.isEnum();
+		boolean hasComparator = (range.comparator != null);
+		if (!hasNotNull && !hasMin && !hasMax && !hasValues && !hasComparator)
+			return null;
+		
+		final Object min;
+		if (range.min > Long.MIN_VALUE)
+			min = ObjectReflectionUtils.valueOf(Long.valueOf(range.min), type);
+		else if (!Double.isInfinite(range.minf))
+			min = ObjectReflectionUtils.valueOf(Double.valueOf(range.minf), type);
+		else
+			min = null;
+		
+		final Object max;
+		if (range.max < Long.MAX_VALUE)
+			max = ObjectReflectionUtils.valueOf(Long.valueOf(range.max), type);
+		else if (!Double.isInfinite(range.maxf))
+			max = ObjectReflectionUtils.valueOf(Double.valueOf(range.maxf), type);
+		else
+			max = null;
+		
+		final Collection<Object> values;
+		if (hasValues)
+		{
+			values = new ArrayList<Object>();
+			Collections.addAll(values, type.getEnumConstants());
+		}
+		else
+			values = null;
+		
+		return new AttributeValueRange() {
+			
+			public boolean canBeNull()
+			{
+				return range.canBeNull;
+			}
+			
+			public Comparator<?> getComparator()
+			{
+				if (range.comparator != null)
+				{
+					return newInstance(range.comparator);
+				}
+				return null;
+			}
+			
+			public Object getMax()
+			{
+				return max;
+			}
+			
+			public Object getMin()
+			{
+				return min;
+			}
+			
+			public Collection<Object> getPossibleValues()
+			{
+				return values;
+			}
+		};
 	}
 	
 	private void assertValid()
@@ -146,49 +266,7 @@ public class ObjectReflectionAttribute implements Attribute
 	
 	public AttributeValueRange getValueRange()
 	{
-		if (!type.isEnum())
-			return null;
-		
-		if (range == null)
-		{
-			range = new AttributeValueRange() {
-				
-				public boolean canBeNull()
-				{
-					return true;
-				}
-				
-				public Comparator<Object> getComparator()
-				{
-					return null;
-				}
-				
-				public Object getMax()
-				{
-					return null;
-				}
-				
-				public Object getMin()
-				{
-					return null;
-				}
-				
-				private Collection<Object> values;
-				
-				public Collection<Object> getPossibleValues()
-				{
-					if (values == null)
-					{
-						values = new ArrayList<Object>();
-						Collections.addAll(values, type.getEnumConstants());
-					}
-					
-					return values;
-				}
-			};
-		}
-		
-		return range;
+		return attributeValueRange;
 	}
 	
 	public AttributeGroup asGroup()

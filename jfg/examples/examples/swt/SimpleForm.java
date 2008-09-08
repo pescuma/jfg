@@ -5,6 +5,7 @@ import java.util.List;
 
 import jfg.gui.swt.JfgFormComposite;
 import jfg.gui.swt.JfgFormData;
+import jfg.model.ann.Range;
 import jfg.reflect.ObjectReflectionGroup;
 
 import org.eclipse.swt.SWT;
@@ -49,6 +50,7 @@ public class SimpleForm
 	
 	static class TestSub extends ObjectWithListener
 	{
+		@Range(min = 1, max = 5)
 		private int b;
 		private String cd;
 		

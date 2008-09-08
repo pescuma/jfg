@@ -30,4 +30,23 @@ public class ObjectReflectionUtilsTest
 		assertEquals(null, getDefaultValue(Object.class));
 		assertEquals(null, getDefaultValue(ObjectReflectionUtils.class));
 	}
+	
+	@Test
+	public void testValue() throws Exception
+	{
+		assertEquals(null, valueOf(null, null));
+		
+		assertEquals(Byte.valueOf((byte) 10), valueOf(10, byte.class));
+		assertEquals(Byte.valueOf((byte) 10), valueOf(10, Byte.class));
+		assertEquals(Short.valueOf((short) 10), valueOf(10, short.class));
+		assertEquals(Short.valueOf((short) 10), valueOf(10, Short.class));
+		assertEquals(Integer.valueOf(10), valueOf(10, int.class));
+		assertEquals(Integer.valueOf(10), valueOf(10, Integer.class));
+		assertEquals(Long.valueOf(10), valueOf(10, long.class));
+		assertEquals(Long.valueOf(10), valueOf(10, Long.class));
+		assertEquals(Float.valueOf(10), valueOf(10, float.class));
+		assertEquals(Float.valueOf(10), valueOf(10, Float.class));
+		assertEquals(Double.valueOf(10), valueOf(10, double.class));
+		assertEquals(Double.valueOf(10), valueOf(10, Double.class));
+	}
 }

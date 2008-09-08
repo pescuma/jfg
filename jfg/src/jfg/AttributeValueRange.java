@@ -5,11 +5,11 @@ import java.util.Comparator;
 
 public interface AttributeValueRange
 {
-	Comparator<Object> getComparator();
+	Comparator<?> getComparator();
 	Object getMax();
 	Object getMin();
 	
-	Collection<Object> getPossibleValues();
+	Collection<?> getPossibleValues();
 	
 	boolean canBeNull();
 	

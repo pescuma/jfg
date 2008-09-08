@@ -62,8 +62,7 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 						throw new IllegalArgumentException();
 					
 					scale.setMaximum(diff);
-					if (diff > 5)
-						scale.setPageIncrement(diff / 5);
+					scale.setPageIncrement(max(1, diff / 5));
 				}
 				else
 				{
