@@ -325,6 +325,8 @@
 		<jar jarfile="${dist.jar}/${project}.jar" basedir="${build.src}" />
 
 		<zip zipfile="${dist.jar}/${project}-examples.zip" basedir="${src.examples}" />
+
+		<zip zipfile="${dist.jar}/${project}-src.zip" basedir="${src.src}" />
 	</target>
 
 	<target name="dist" depends="clean, compile, pack, test, crap4j, emma, findbugs, japex, compile-warning" description="generate the distribution">
