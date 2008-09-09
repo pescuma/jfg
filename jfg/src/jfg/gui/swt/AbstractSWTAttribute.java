@@ -16,12 +16,18 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 	protected boolean ignoreToGUI;
 	protected boolean ignoreToAttribute;
 	protected AttributeListener attributeListener;
+	private SWTCopyManager manager;
 	
 	public AbstractSWTAttribute(Composite parent, Attribute attrib, JfgFormData data)
 	{
 		this.attrib = attrib;
 		this.data = data;
 		this.parent = parent;
+	}
+	
+	public void init(SWTCopyManager aManager)
+	{
+		manager = aManager;
 	}
 	
 	protected void addAttributeListener()
@@ -34,12 +40,17 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 					if (ignoreToGUI)
 						return;
 					
-					copyToGUI();
+					onModelChange();
 				}
 			};
 			
 			attrib.addListener(attributeListener);
 		}
+	}
+	
+	protected void onModelChange()
+	{
+		manager.modelChanged(AbstractSWTAttribute.this);
 	}
 	
 	protected Listener getModifyListener()
@@ -53,9 +64,17 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 				if (ignoreToAttribute)
 					return;
 				
-				copyToAttribute();
+				onGuiChange();
 			}
 		};
+	}
+	
+	protected void onGuiChange()
+	{
+		if (data.markFieldsWhithUncommitedChanges)
+			markField();
+		
+		manager.guiChanged(AbstractSWTAttribute.this);
 	}
 	
 	protected Listener getDisposeListener()
@@ -69,7 +88,7 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 		};
 	}
 	
-	public void copyToAttribute()
+	public void copyToModel()
 	{
 		if (!attrib.canWrite())
 			return;
@@ -77,6 +96,9 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 		ignoreToGUI = true;
 		
 		guiToAttribute();
+		
+		if (data.markFieldsWhithUncommitedChanges)
+			unmarkField();
 		
 		ignoreToGUI = false;
 	}
@@ -89,8 +111,20 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 		
 		attibuteToGUI();
 		
+		if (data.markFieldsWhithUncommitedChanges)
+			unmarkField();
+		
 		ignoreToAttribute = false;
 	}
 	
 	protected abstract void attibuteToGUI();
+	
+	protected void markField()
+	{
+	}
+	
+	protected void unmarkField()
+	{
+	}
+	
 }

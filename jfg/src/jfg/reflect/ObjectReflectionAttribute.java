@@ -44,7 +44,7 @@ public class ObjectReflectionAttribute implements Attribute
 	
 	public ObjectReflectionAttribute(Object obj, Field field, ObjectReflectionData data)
 	{
-		this(new ObjectReflectionGroup(obj, data), obj, field, data.clone());
+		this(new ObjectReflectionGroup(obj, data), obj, field, data);
 	}
 	
 	public ObjectReflectionAttribute(Object obj, String fieldName)
@@ -54,7 +54,7 @@ public class ObjectReflectionAttribute implements Attribute
 	
 	public ObjectReflectionAttribute(Object obj, String fieldName, ObjectReflectionData data)
 	{
-		this(new ObjectReflectionGroup(obj, data), obj, obj.getClass().getName() + "." + fieldName, fieldName, data.clone());
+		this(new ObjectReflectionGroup(obj, data), obj, obj.getClass().getName() + "." + fieldName, fieldName, data);
 	}
 	
 	/** Used by ObjectReflectionGroup */
@@ -163,6 +163,9 @@ public class ObjectReflectionAttribute implements Attribute
 	private AttributeValueRange getRangeData(Field aField)
 	{
 		final RangeData range = new RangeData();
+		
+		if (type.isPrimitive())
+			range.canBeNull = false;
 		
 		addRangeFrom(aField, range);
 		addRangeFrom(getter, range);
@@ -357,8 +360,15 @@ public class ObjectReflectionAttribute implements Attribute
 			else if (parent != null)
 			{
 				listener = new AttributeListener() {
+					Object oldValue = getValue();
+					
 					public void onChange()
 					{
+						Object newValue = getValue();
+						if ((oldValue == newValue) || (oldValue != null && newValue != null && oldValue.equals(newValue)))
+							return;
+						oldValue = newValue;
+						
 						notifyChange();
 					}
 				};
@@ -368,7 +378,6 @@ public class ObjectReflectionAttribute implements Attribute
 		
 		listeners.add(attributeListener);
 	}
-	
 	public void removeListener(AttributeListener attributeListener)
 	{
 		if (!canListen())

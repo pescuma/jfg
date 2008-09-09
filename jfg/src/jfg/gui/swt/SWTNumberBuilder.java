@@ -14,7 +14,7 @@ public class SWTNumberBuilder extends SWTTextBuilder
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
-		return typeIsNumber(type) || typeIsReal(type);
+		return typeIsNumber(type) || typeIsReal(type) || "number".equals(type);
 	}
 	
 	@Override
@@ -86,5 +86,13 @@ public class SWTNumberBuilder extends SWTTextBuilder
 			return false;
 		}
 		return true;
+	}
+	
+	@Override
+	protected Object getType(Object type)
+	{
+		if ("number".equals(type))
+			return long.class;
+		return type;
 	}
 }

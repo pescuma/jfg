@@ -4,6 +4,8 @@ import static jfg.gui.swt.SWTHelper.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import jfg.Attribute;
 import jfg.AttributeGroup;
@@ -12,19 +14,61 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
 
 public class JfgFormComposite extends Composite
 {
 	private final JfgFormData data;
 	private final Collection<SWTAttribute> attributes = new ArrayList<SWTAttribute>();
 	
+	private final Set<SWTAttribute> changedAttributes = new HashSet<SWTAttribute>();
+	private final Runnable copyTimer = new Runnable() {
+		public void run()
+		{
+			getDisplay().timerExec(-1, copyTimer);
+			for (SWTAttribute attrib : changedAttributes)
+				attrib.copyToModel();
+			changedAttributes.clear();
+		}
+	};
+	private final SWTCopyManager copyManager = new SWTCopyManager() {
+		public void guiChanged(SWTAttribute attrib)
+		{
+			if (data.timeToUpdateModelWhenGuiChanges < 0)
+				return;
+			else if (data.timeToUpdateModelWhenGuiChanges == 0)
+				attrib.copyToModel();
+			else
+			{
+				getDisplay().timerExec(-1, copyTimer);
+				changedAttributes.add(attrib);
+				getDisplay().timerExec(data.timeToUpdateModelWhenGuiChanges, copyTimer);
+			}
+		}
+		
+		public void modelChanged(SWTAttribute attrib)
+		{
+			if (data.updateGuiWhenModelChanges)
+				attrib.copyToGUI();
+		}
+	};
+	
 	public JfgFormComposite(Composite parent, int style, JfgFormData data)
 	{
 		super(parent, style);
 		this.data = data;
+		
+		addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event)
+			{
+				if (JfgFormComposite.this.data.timeToUpdateModelWhenGuiChanges > 0)
+					copyTimer.run();
+			}
+		});
 	}
 	
 	/** Add all the attributes from the group, without adding the group itself */
@@ -152,6 +196,7 @@ public class JfgFormComposite extends Composite
 		if (builder.wantNameLabel())
 		{
 			Label name = new Label(parent, SWT.NONE);
+			name.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			name.setText(data.textTranslator.fieldName(attrib.getName()) + ":");
 		}
 		
@@ -161,7 +206,8 @@ public class JfgFormComposite extends Composite
 			numColumns--;
 		
 		SWTAttribute swta = builder.build((numColumns > 1 ? createHorizontalComposite(parent, numColumns) : parent), attrib, data);
-		swta.init();
+		swta.init(copyManager);
+		swta.copyToGUI();
 		attributes.add(swta);
 	}
 	
@@ -197,5 +243,17 @@ public class JfgFormComposite extends Composite
 		frame.setText(data.textTranslator.groupName(group.getName()));
 		
 		buildAttributes(frame, group, currentLevel);
+	}
+	
+	public void copyToGUI()
+	{
+		for (SWTAttribute attrib : attributes)
+			attrib.copyToGUI();
+	}
+	
+	public void copyToModel()
+	{
+		for (SWTAttribute attrib : attributes)
+			attrib.copyToModel();
 	}
 }

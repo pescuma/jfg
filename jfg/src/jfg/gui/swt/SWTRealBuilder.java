@@ -18,7 +18,7 @@ public class SWTRealBuilder extends SWTTextBuilder
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
-		return typeIsReal(type);
+		return typeIsReal(type) || "real".equals(type);
 	}
 	
 	@Override
@@ -102,5 +102,13 @@ public class SWTRealBuilder extends SWTTextBuilder
 			return false;
 		}
 		return true;
+	}
+	
+	@Override
+	protected Object getType(Object type)
+	{
+		if ("real".equals(type))
+			return float.class;
+		return type;
 	}
 }

@@ -3,6 +3,7 @@ package jfg.gui.swt;
 import jfg.Attribute;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -14,7 +15,7 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
-		return type == Boolean.class || type == boolean.class;
+		return type == Boolean.class || type == boolean.class || "checkbox".equals(type);
 	}
 	
 	public boolean wantNameLabel()
@@ -27,10 +28,14 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 		return new AbstractSWTAttribute(parent, attrib, data) {
 			
 			private Button chk;
+			private Color background;
 			
-			public void init()
+			@Override
+			public void init(SWTCopyManager aManager)
 			{
-				chk = data.componentFactory.createCheckbox(parent, 0);
+				super.init(aManager);
+				
+				chk = data.componentFactory.createCheckbox(parent, SWT.NONE);
 				chk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				chk.setText(data.textTranslator.fieldName(attrib.getName()));
 				chk.addListener(SWT.Selection, getModifyListener());
@@ -49,7 +54,7 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 				
 				addAttributeListener();
 				
-				copyToGUI();
+				background = chk.getBackground();
 			}
 			
 			@Override
@@ -63,6 +68,19 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 			{
 				chk.setSelection((Boolean) attrib.getValue());
 			}
+			
+			@Override
+			protected void markField()
+			{
+				chk.setBackground(data.createBackgroundColor(chk, background));
+			}
+			
+			@Override
+			protected void unmarkField()
+			{
+				chk.setBackground(background);
+			}
+			
 		};
 	}
 	

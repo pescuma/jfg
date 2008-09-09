@@ -82,22 +82,20 @@ public class ReadOnlyForm
 		Shell shell = new Shell(display);
 		shell.setLayout(new GridLayout(1, true));
 		
-		final TestClass obj = new TestClass();
+		// Create the object
+		TestClass obj = new TestClass();
 		
+		// Create the form
 		JfgFormData data = new JfgFormData();
 		data.showReadOnly = true;
 		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-//		// If you want to change borders:
-//		GridLayout layout = new GridLayout(2, false);
-//		layout.marginHeight = 0;
-//		layout.marginWidth = 0;
-//		form.setLayout(layout);
 		
+		// Add elements to form
 		form.addContentsFrom(new ObjectReflectionGroup(obj));
 		
 		shell.setText("Read-Only Form");
-		shell.setSize(300, 300);
+		shell.pack();
 		shell.open();
 		while (!shell.isDisposed())
 		{

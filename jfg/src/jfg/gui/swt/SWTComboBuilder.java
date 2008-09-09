@@ -7,6 +7,7 @@ import jfg.Attribute;
 import jfg.AttributeValueRange;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -34,26 +35,32 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 			
 			private Combo combo;
 			private Text text;
+			private Color background;
 			
-			public void init()
+			@Override
+			public void init(SWTCopyManager aManager)
 			{
+				super.init(aManager);
+				
 				if (attrib.canWrite())
 				{
 					combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
 					fill();
 					combo.addListener(SWT.Modify, getModifyListener());
 					combo.addListener(SWT.Dispose, getDisposeListener());
+					
+					background = combo.getBackground();
 				}
 				else
 				{
 					text = data.componentFactory.createText(parent, SWT.READ_ONLY);
 					text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					text.addListener(SWT.Dispose, getDisposeListener());
+					
+					background = text.getBackground();
 				}
 				
 				addAttributeListener();
-				
-				copyToGUI();
 			}
 			
 			private void fill()
@@ -150,6 +157,32 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 			private boolean canBeNull()
 			{
 				return attrib.getValueRange().canBeNull();
+			}
+			
+			@Override
+			protected void markField()
+			{
+				if (attrib.canWrite())
+				{
+					combo.setBackground(data.createBackgroundColor(combo, background));
+				}
+				else
+				{
+					text.setBackground(data.createBackgroundColor(text, background));
+				}
+			}
+			
+			@Override
+			protected void unmarkField()
+			{
+				if (attrib.canWrite())
+				{
+					combo.setBackground(background);
+				}
+				else
+				{
+					text.setBackground(background);
+				}
 			}
 			
 		};

@@ -1,5 +1,7 @@
 package jfg.gui.swt;
 
+import static java.lang.Math.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,8 +13,15 @@ import jfg.Attribute;
 import jfg.gui.SimpleTextTranslator;
 import jfg.gui.TextTranslator;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Widget;
+
 public final class JfgFormData
 {
+	public static final int SYNC_GUI = 1;
+	public static final int SYNC_GUI_FAST = 2;
+	public static final int DIALOG = 3;
+	
 	public Map<Object, SWTWidgetBuilder> builders = new HashMap<Object, SWTWidgetBuilder>();
 	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
 	public List<SWTAttributeFilter> attributeFilters = new ArrayList<SWTAttributeFilter>();
@@ -28,7 +37,19 @@ public final class JfgFormData
 	
 	public boolean showReadOnly = false;
 	
+	public boolean updateGuiWhenModelChanges = true;
+	
+	/** In ms. Use -1 to never, 0 to update when inside the event handler, >0 to time and group change events */
+	public int timeToUpdateModelWhenGuiChanges = 1000;
+	
+	public boolean markFieldsWhithUncommitedChanges = true;
+	
 	public JfgFormData()
+	{
+		this(-1);
+	}
+	
+	public JfgFormData(int style)
 	{
 		builders.put(String.class, new SWTTextBuilder());
 		
@@ -144,5 +165,37 @@ public final class JfgFormData
 				return fieldsToHide.contains(attrib.getName());
 			}
 		});
+		
+		switch (style)
+		{
+			case SYNC_GUI:
+				updateGuiWhenModelChanges = true;
+				timeToUpdateModelWhenGuiChanges = 1000;
+				markFieldsWhithUncommitedChanges = true;
+				break;
+			case SYNC_GUI_FAST:
+				updateGuiWhenModelChanges = true;
+				timeToUpdateModelWhenGuiChanges = 0;
+				markFieldsWhithUncommitedChanges = false;
+				break;
+			case DIALOG:
+				updateGuiWhenModelChanges = false;
+				timeToUpdateModelWhenGuiChanges = -1;
+				markFieldsWhithUncommitedChanges = false;
+				break;
+		}
+	}
+	
+	public Color createBackgroundColor(Widget ctrl, Color background)
+	{
+		int r = background.getRed();
+		int g = background.getGreen();
+		int b = background.getBlue();
+		if (b > 125)
+			b -= 40;
+		else
+			b += 40;
+		b = max(0, min(255, b));
+		return new Color(ctrl.getDisplay(), r, g, b);
 	}
 }

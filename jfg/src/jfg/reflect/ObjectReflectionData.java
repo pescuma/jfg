@@ -7,7 +7,7 @@ import java.util.Map;
 
 import jfg.AttributeListenerConverter;
 
-public final class ObjectReflectionData implements Cloneable
+public class ObjectReflectionData
 {
 	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters;
 	
@@ -136,12 +136,6 @@ public final class ObjectReflectionData implements Cloneable
 				return true;
 		}
 		return false;
-	}
-	
-	@Override
-	public ObjectReflectionData clone()
-	{
-		return new ObjectReflectionData(this);
 	}
 	
 }
