@@ -1,7 +1,6 @@
 package jfg.gui.swt;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import jfg.Attribute;
 import jfg.AttributeValueRange;
@@ -20,6 +19,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 		AttributeValueRange range = attrib.getValueRange();
 		if (range == null)
 			return false;
+		
 		Collection<?> values = range.getPossibleValues();
 		return values != null && values.size() > 0;
 	}
@@ -68,11 +68,8 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				if (canBeNull())
 					combo.add(data.textTranslator.translate("<None>"));
 				
-				for (Iterator<?> it = getPossibleValues().iterator(); it.hasNext();)
-				{
-					Object object = it.next();
+				for (Object object : getPossibleValues())
 					combo.add(convertToString(object, attrib.getType()));
-				}
 			}
 			
 			@Override
@@ -92,9 +89,8 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 					i++;
 				}
 				
-				for (Iterator<?> it = getPossibleValues().iterator(); it.hasNext();)
+				for (Object object : getPossibleValues())
 				{
-					Object object = it.next();
 					if (i == index)
 						return object;
 					i++;
@@ -123,9 +119,8 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 					i++;
 				}
 				
-				for (Iterator<?> it = getPossibleValues().iterator(); it.hasNext();)
+				for (Object object : getPossibleValues())
 				{
-					Object object = it.next();
 					if (object == value)
 						return i;
 					i++;
