@@ -63,7 +63,7 @@
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
-			<compilerarg line="-warn:+unused -warn:+hiding" />
+			<compilerarg line="-warn:+hiding -warn:+conditionAssign -warn:+uselessTypeCheck" />
 		</javac>
 	</target>
 

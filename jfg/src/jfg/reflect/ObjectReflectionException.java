@@ -4,6 +4,8 @@ import jfg.AttributeException;
 
 public class ObjectReflectionException extends AttributeException
 {
+	private static final long serialVersionUID = 4374613611117201575L;
+	
 	public ObjectReflectionException()
 	{
 		super();

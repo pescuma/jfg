@@ -2,6 +2,8 @@ package jfg;
 
 public class AttributeException extends RuntimeException
 {
+	private static final long serialVersionUID = -951646508652903922L;
+	
 	public AttributeException()
 	{
 		super();
