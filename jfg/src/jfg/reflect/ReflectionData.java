@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import jfg.AttributeListenerConverter;
 
@@ -28,6 +29,8 @@ public class ReflectionData
 	public boolean usePublic = true;
 	public boolean useProtected = false;
 	public boolean useFriend = false;
+	
+	private Pattern[] getterREs;
 	
 	public ReflectionData()
 	{
@@ -106,6 +109,23 @@ public class ReflectionData
 	public String[] getSetterNames(String fieldName)
 	{
 		return buildTemplates(setterTemplates, fieldName);
+	}
+	
+	public Pattern[] getGetterREs()
+	{
+		if (getterREs == null)
+		{
+			getterREs = new Pattern[getterTemplates.size()];
+			for (int i = 0; i < getterREs.length; i++)
+			{
+				String templ = getterTemplates.get(i);
+				templ = templ.replaceAll("%Field%", "([A-Z_][a-zA-Z0-9_])");
+				templ = templ.replaceAll("%field%", "([a-z_][a-zA-Z0-9_])");
+				getterREs[i] = Pattern.compile("^" + templ + "$");
+			}
+		}
+		
+		return getterREs;
 	}
 	
 	public String[] getAddFieldListenerNames(String fieldName)

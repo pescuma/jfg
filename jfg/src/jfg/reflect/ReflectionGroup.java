@@ -127,14 +127,7 @@ public class ReflectionGroup implements AttributeGroup
 			attributes.add(new ReflectionAttribute(this, obj, field, data));
 		}
 		
-		Pattern[] getterREs = new Pattern[data.getterTemplates.size()];
-		for (int i = 0; i < getterREs.length; i++)
-		{
-			String templ = data.getterTemplates.get(i);
-			templ = templ.replaceAll("%Field%", "([A-Z_][a-zA-Z0-9_])");
-			templ = templ.replaceAll("%field%", "([a-z_][a-zA-Z0-9_])");
-			getterREs[i] = Pattern.compile("^" + templ + "$");
-		}
+		Pattern[] getterREs = data.getGetterREs();
 		
 		for (Method method : cls.getDeclaredMethods())
 		{
