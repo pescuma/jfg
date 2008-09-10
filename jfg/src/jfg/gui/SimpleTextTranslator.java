@@ -23,7 +23,7 @@ public class SimpleTextTranslator implements TextTranslator
 		if (index >= 0)
 			text = text.substring(index + 1);
 		
-		text = text.replaceAll("_", " - ");
+		text = text.replace("_", " - ");
 		text = text.replaceAll("([A-Z]+)", " $1");
 		text = text.replaceAll("([A-Z]+)([A-Z][^ A-Z])", "$1 $2");
 		text = text.replaceAll("^( -)+", "");

@@ -83,24 +83,6 @@ public class ReflectionData
 		};
 	}
 	
-	public ReflectionData(ReflectionData other)
-	{
-		attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>(other.attributeListenerConverters);
-		getterTemplates = new ArrayList<String>(other.getterTemplates);
-		setterTemplates = new ArrayList<String>(other.setterTemplates);
-		addFieldListenerTemplates = new ArrayList<String>(other.addFieldListenerTemplates);
-		removeFieldListenerTemplates = new ArrayList<String>(other.removeFieldListenerTemplates);
-		addObjectListenerTemplates = new ArrayList<String>(other.addObjectListenerTemplates);
-		removeObjectListenerTemplates = new ArrayList<String>(other.removeObjectListenerTemplates);
-		listenerInterfaceMethodREs = new ArrayList<String>(other.listenerInterfaceMethodREs);
-		classPrefixesIgnoredInAsGroup = new ArrayList<String>(other.classPrefixesIgnoredInAsGroup);
-		
-		memberFilter = other.memberFilter;
-		usePublic = other.usePublic;
-		useProtected = other.useProtected;
-		useFriend = other.useFriend;
-	}
-	
 	public String[] getGetterNames(String fieldName)
 	{
 		return buildTemplates(getterTemplates, fieldName);
@@ -119,8 +101,8 @@ public class ReflectionData
 			for (int i = 0; i < getterREs.length; i++)
 			{
 				String templ = getterTemplates.get(i);
-				templ = templ.replaceAll("%Field%", "([A-Z_][a-zA-Z0-9_])");
-				templ = templ.replaceAll("%field%", "([a-z_][a-zA-Z0-9_])");
+				templ = templ.replace("%Field%", "([A-Z_][a-zA-Z0-9_])");
+				templ = templ.replace("%field%", "([a-z_][a-zA-Z0-9_])");
 				getterREs[i] = Pattern.compile("^" + templ + "$");
 			}
 		}
@@ -159,8 +141,8 @@ public class ReflectionData
 		for (int i = 0; i < ret.length; i++)
 		{
 			String templ = templates.get(i);
-			templ = templ.replaceAll("%Field%", firstUp(fieldName));
-			templ = templ.replaceAll("%field%", firstLower(fieldName));
+			templ = templ.replace("%Field%", firstUp(fieldName));
+			templ = templ.replace("%field%", firstLower(fieldName));
 			ret[i] = templ;
 		}
 		return ret;
