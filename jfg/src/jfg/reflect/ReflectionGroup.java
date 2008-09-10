@@ -1,23 +1,27 @@
 package jfg.reflect;
 
-import static jfg.reflect.ObjectReflectionUtils.*;
+import static jfg.reflect.ReflectionUtils.*;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import jfg.Attribute;
 import jfg.AttributeGroup;
 import jfg.AttributeListener;
 
-public class ObjectReflectionGroup implements AttributeGroup
+public class ReflectionGroup implements AttributeGroup
 {
 	private final String name;
 	private final Object obj;
-	private final ObjectReflectionData data;
+	private final boolean useStatic;
+	private final ReflectionData data;
 	private ArrayList<Object> attributes;
 	private Method addListener;
 	private Method removeListener;
@@ -25,36 +29,63 @@ public class ObjectReflectionGroup implements AttributeGroup
 	private Object listener;
 	private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
 	
-	public ObjectReflectionGroup(Object obj)
+	private final MemberFilter memberFilter = new MemberFilter() {
+		public boolean accept(Member member)
+		{
+			if (useStatic != Modifier.isStatic(member.getModifiers()))
+				return false;
+			
+			return data.memberFilter.accept(member);
+		}
+	};
+	
+	public ReflectionGroup(Object obj)
 	{
-		this(null, obj, new ObjectReflectionData());
+		this(null, obj, new ReflectionData());
 	}
 	
-	public ObjectReflectionGroup(String name, Object obj)
+	public ReflectionGroup(String name, Object obj)
 	{
-		this(name, obj, new ObjectReflectionData());
+		this(name, obj, new ReflectionData());
 	}
 	
-	public ObjectReflectionGroup(Object obj, ObjectReflectionData data)
+	public ReflectionGroup(Object obj, ReflectionData data)
 	{
 		this(null, obj, data);
 	}
 	
-	public ObjectReflectionGroup(String name, Object obj, ObjectReflectionData data)
+	public ReflectionGroup(String name, Object obj, ReflectionData data)
 	{
-		if (name == null)
-			this.name = obj.getClass().getSimpleName();
-		else
-			this.name = name;
 		this.obj = obj;
 		this.data = data;
+		useStatic = (obj instanceof Class<?>);
+		
+		if (name == null)
+			this.name = getObjClass().getSimpleName();
+		else
+			this.name = name;
+	}
+	
+	private Class<?> getObjClass()
+	{
+		if (useStatic)
+			return (Class<?>) obj;
+		else
+			return obj.getClass();
+	}
+	
+	private Object getObjInstance()
+	{
+		if (useStatic)
+			return null;
+		else
+			return obj;
 	}
 	
 	public String getName()
 	{
 		return name;
 	}
-	
 	public Collection<Object> getAttributes()
 	{
 		if (attributes == null)
@@ -67,19 +98,19 @@ public class ObjectReflectionGroup implements AttributeGroup
 	{
 		attributes = new ArrayList<Object>();
 		
-		addListener = getListenerMethod(obj, data.getAddObjectListenerNames(), data.getRemoveObjectListenerNames(), data);
+		addListener = getListenerMethod(memberFilter, getObjClass(), data.getAddObjectListenerNames(), data.getRemoveObjectListenerNames(),
+				data);
 		if (addListener != null)
-			removeListener = getMethod(obj, data.getRemoveObjectListenerNames(), addListener.getParameterTypes());
+			removeListener = getMethod(memberFilter, getObjClass(), data.getRemoveObjectListenerNames(), addListener.getParameterTypes());
 		
 		if (addListener != null)
 			addListener.setAccessible(true);
 		if (removeListener != null)
 			removeListener.setAccessible(true);
 		
-		Class<?> cls = obj.getClass();
-		
-		addAttributesFrom(cls);
+		addAttributesFrom(getObjClass());
 	}
+	
 	private void addAttributesFrom(Class<?> cls)
 	{
 		if (cls == Object.class)
@@ -89,20 +120,25 @@ public class ObjectReflectionGroup implements AttributeGroup
 		
 		for (Field field : cls.getDeclaredFields())
 		{
-			int modifiers = field.getModifiers();
-			if (Modifier.isStatic(modifiers))
+			Method getter = getMethod(memberFilter, cls, data.getGetterNames(field.getName()));
+			if (!memberFilter.accept(field) && getter == null)
 				continue;
 			
-			if (Modifier.isPublic(modifiers) || getMethod(obj, data.getGetterNames(field.getName())) != null)
-				attributes.add(new ObjectReflectionAttribute(this, obj, field, data));
+			attributes.add(new ReflectionAttribute(this, obj, field, data));
+		}
+		
+		Pattern[] getterREs = new Pattern[data.getterTemplates.size()];
+		for (int i = 0; i < getterREs.length; i++)
+		{
+			String templ = data.getterTemplates.get(i);
+			templ = templ.replaceAll("%Field%", "([A-Z_][a-zA-Z0-9_])");
+			templ = templ.replaceAll("%field%", "([a-z_][a-zA-Z0-9_])");
+			getterREs[i] = Pattern.compile("^" + templ + "$");
 		}
 		
 		for (Method method : cls.getDeclaredMethods())
 		{
-			int modifiers = method.getModifiers();
-			if (Modifier.isStatic(modifiers))
-				continue;
-			if (!Modifier.isPublic(modifiers))
+			if (!memberFilter.accept(method))
 				continue;
 			
 			Class<?>[] parameterTypes = method.getParameterTypes();
@@ -112,21 +148,28 @@ public class ObjectReflectionGroup implements AttributeGroup
 			if (method.getReturnType() == void.class)
 				continue;
 			
-			String attrName = method.getName();
-			if (attrName.equals("getClass"))
-				continue;
-			else if (attrName.startsWith("get"))
-				attrName = firstLower(attrName.substring(3));
-			else if (attrName.startsWith("is"))
-				attrName = firstLower(attrName.substring(2));
-			else
+			String methodName = method.getName();
+			if (methodName.equals("getClass"))
 				continue;
 			
-			String fullName = cls.getName() + "." + attrName;
-			if (hasAttribute(fullName))
+			String attrName = null;
+			for (int i = 0; i < getterREs.length; i++)
+			{
+				Matcher matcher = getterREs[i].matcher(methodName);
+				if (!matcher.matches())
+					continue;
+				
+				attrName = firstLower(matcher.group(1));
+				break;
+			}
+			if (attrName == null)
 				continue;
 			
-			attributes.add(new ObjectReflectionAttribute(this, obj, fullName, attrName, data));
+			ReflectionAttribute attrib = new ReflectionAttribute(this, obj, attrName, data);
+			if (hasAttribute(attrib.getName()))
+				continue;
+			
+			attributes.add(attrib);
 		}
 	}
 	
@@ -168,7 +211,7 @@ public class ObjectReflectionGroup implements AttributeGroup
 	public void addListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ObjectReflectionException("Can't add listener");
+			throw new ReflectionException("Can't add listener");
 		
 		if (listener == null)
 		{
@@ -181,7 +224,7 @@ public class ObjectReflectionGroup implements AttributeGroup
 				}
 			}, data);
 			
-			invoke(obj, addListener, listener);
+			invoke(getObjInstance(), addListener, listener);
 		}
 		
 		listeners.add(attributeListener);
@@ -190,13 +233,13 @@ public class ObjectReflectionGroup implements AttributeGroup
 	public void removeListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ObjectReflectionException("Can't add listener");
+			throw new ReflectionException("Can't add listener");
 		
 		listeners.remove(attributeListener);
 		
 		if (listeners.size() <= 0)
 		{
-			invoke(obj, removeListener, listener);
+			invoke(getObjInstance(), removeListener, listener);
 			listener = null;
 		}
 	}

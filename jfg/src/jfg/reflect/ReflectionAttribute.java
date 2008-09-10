@@ -1,9 +1,10 @@
 package jfg.reflect;
 
-import static jfg.reflect.ObjectReflectionUtils.*;
+import static jfg.reflect.ReflectionUtils.*;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -20,12 +21,13 @@ import jfg.model.ann.CompareWith;
 import jfg.model.ann.NotNull;
 import jfg.model.ann.Range;
 
-public class ObjectReflectionAttribute implements Attribute
+public class ReflectionAttribute implements Attribute
 {
 	private final AttributeGroup parent;
-	private final ObjectReflectionData data;
+	private final ReflectionData data;
 	private final Object obj;
 	private final Field field;
+	private final boolean useStatic;
 	private final Method setter;
 	private final Method getter;
 	private final Method addListener;
@@ -37,95 +39,95 @@ public class ObjectReflectionAttribute implements Attribute
 	private Object listener;
 	private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
 	
-	public ObjectReflectionAttribute(Object obj, Field field)
+	private final MemberFilter memberFilter = new MemberFilter() {
+		public boolean accept(Member member)
+		{
+			if (useStatic != Modifier.isStatic(member.getModifiers()))
+				return false;
+			
+			return data.memberFilter.accept(member);
+		}
+	};
+	
+	public ReflectionAttribute(Object obj, Field field)
 	{
-		this(obj, field, new ObjectReflectionData());
+		this(obj, field, new ReflectionData());
 	}
 	
-	public ObjectReflectionAttribute(Object obj, Field field, ObjectReflectionData data)
+	public ReflectionAttribute(Object obj, Field field, ReflectionData data)
 	{
-		this(new ObjectReflectionGroup(obj, data), obj, field, data);
+		this(new ReflectionGroup(obj, data), obj, field, data);
 	}
 	
-	public ObjectReflectionAttribute(Object obj, String fieldName)
+	ReflectionAttribute(AttributeGroup parent, Object obj, Field field, ReflectionData data)
 	{
-		this(obj, fieldName, new ObjectReflectionData());
+		this(parent, obj, field.getName(), data);
 	}
 	
-	public ObjectReflectionAttribute(Object obj, String fieldName, ObjectReflectionData data)
+	public ReflectionAttribute(Object obj, String fieldName)
 	{
-		this(new ObjectReflectionGroup(obj, data), obj, obj.getClass().getName() + "." + fieldName, fieldName, data);
+		this(obj, fieldName, new ReflectionData());
 	}
 	
-	/** Used by ObjectReflectionGroup */
-	ObjectReflectionAttribute(AttributeGroup parent, Object obj, Field field, ObjectReflectionData data)
+	public ReflectionAttribute(Object obj, String fieldName, ReflectionData data)
+	{
+		this(new ReflectionGroup(obj, data), obj, fieldName, data);
+	}
+	
+	ReflectionAttribute(AttributeGroup parent, Object obj, String simpleName, ReflectionData data)
 	{
 		this.parent = parent;
-		this.data = data;
 		this.obj = obj;
+		this.data = data;
+		useStatic = (obj instanceof Class<?>);
 		
-		if (Modifier.isPublic(field.getModifiers()))
-			this.field = field;
-		else
-			this.field = null;
-		
-		String simpleName = field.getName();
-		name = field.getDeclaringClass().getName() + "." + simpleName;
-		
-		type = field.getType();
-		
-		getter = getMethod(obj, data.getGetterNames(simpleName));
+		field = getField(memberFilter, getObjClass(), simpleName);
+		getter = getMethod(memberFilter, getObjClass(), data.getGetterNames(simpleName));
 		
 		assertValid();
 		
-		if (!Modifier.isFinal(field.getModifiers()))
-			setter = getMethod(obj, void.class, data.getSetterNames(simpleName), type);
-		else
-			setter = null;
+		type = (field != null ? field.getType() : getter.getReturnType());
 		
-		addListener = getListenerMethod(obj, data.getAddFieldListenerNames(simpleName), data.getRemoveFieldListenerNames(simpleName), data);
+		name = createFullName(simpleName);
+		
+		setter = getMethod(memberFilter, getObjClass(), void.class, data.getSetterNames(simpleName), type);
+		
+		addListener = getListenerMethod(memberFilter, getObjClass(), data.getAddFieldListenerNames(simpleName),
+				data.getRemoveFieldListenerNames(simpleName), data);
 		if (addListener != null)
-			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(simpleName), addListener.getParameterTypes());
+			removeListener = getMethod(memberFilter, getObjClass(), data.getRemoveFieldListenerNames(simpleName),
+					addListener.getParameterTypes());
 		else
 			removeListener = null;
 		
-		attributeValueRange = getRangeData(field);
+		attributeValueRange = getRangeData(simpleName);
 		
 		setAccessible();
 	}
 	
-	/** Used by ObjectReflectionGroup */
-	ObjectReflectionAttribute(AttributeGroup parent, Object obj, String fullName, String simpleName, ObjectReflectionData data)
+	private String createFullName(String simpleName)
 	{
-		Field aField = getField(obj, simpleName);
-		
-		this.parent = parent;
-		this.data = data;
-		this.obj = obj;
-		name = fullName;
-		
-		if (aField != null && Modifier.isPublic(aField.getModifiers()))
-			field = aField;
+		if (field != null)
+			return field.getDeclaringClass().getName() + "." + simpleName;
+		if (getter != null)
+			return getter.getDeclaringClass().getName() + "." + simpleName;
+		throw new IllegalStateException();
+	}
+	
+	private Class<?> getObjClass()
+	{
+		if (useStatic)
+			return (Class<?>) obj;
 		else
-			field = null;
-		
-		getter = getMethod(obj, data.getGetterNames(simpleName));
-		
-		assertValid();
-		
-		type = getter.getReturnType();
-		
-		setter = getMethod(obj, void.class, data.getSetterNames(simpleName), type);
-		
-		addListener = getListenerMethod(obj, data.getAddFieldListenerNames(simpleName), data.getRemoveFieldListenerNames(simpleName), data);
-		if (addListener != null)
-			removeListener = getMethod(obj, data.getRemoveFieldListenerNames(simpleName), addListener.getParameterTypes());
+			return obj.getClass();
+	}
+	
+	private Object getObjInstance()
+	{
+		if (useStatic)
+			return null;
 		else
-			removeListener = null;
-		
-		attributeValueRange = getRangeData(aField);
-		
-		setAccessible();
+			return obj;
 	}
 	
 	private static class RangeData
@@ -136,40 +138,45 @@ public class ObjectReflectionAttribute implements Attribute
 		double maxf = Double.POSITIVE_INFINITY;
 		boolean canBeNull = true;
 		Class<? extends Comparator<?>> comparator = null;
-	}
-	
-	private void addRangeFrom(AnnotatedElement element, RangeData range)
-	{
-		if (element == null)
-			return;
 		
-		if (element.getAnnotation(NotNull.class) != null)
-			range.canBeNull = false;
-		
-		Range r = element.getAnnotation(Range.class);
-		if (r != null)
+		void addFrom(AnnotatedElement element)
 		{
-			range.min = Math.max(range.min, r.min());
-			range.minf = Math.max(range.minf, r.minf());
-			range.max = Math.min(range.max, r.max());
-			range.maxf = Math.min(range.maxf, r.maxf());
+			if (element == null)
+				return;
+			
+			if (element.getAnnotation(NotNull.class) != null)
+				canBeNull = false;
+			
+			Range r = element.getAnnotation(Range.class);
+			if (r != null)
+			{
+				min = Math.max(min, r.min());
+				minf = Math.max(minf, r.minf());
+				max = Math.min(max, r.max());
+				maxf = Math.min(maxf, r.maxf());
+			}
+			
+			CompareWith comp = element.getAnnotation(CompareWith.class);
+			if (comp != null && comparator == null)
+				comparator = comp.value();
 		}
-		
-		CompareWith comp = element.getAnnotation(CompareWith.class);
-		if (comp != null && range.comparator == null)
-			range.comparator = comp.value();
 	}
 	
-	private AttributeValueRange getRangeData(Field aField)
+	private AttributeValueRange getRangeData(String simpleName)
 	{
 		final RangeData range = new RangeData();
 		
 		if (type.isPrimitive())
 			range.canBeNull = false;
 		
-		addRangeFrom(aField, range);
-		addRangeFrom(getter, range);
-		addRangeFrom(setter, range);
+		range.addFrom(getField(new MemberFilter() {
+			public boolean accept(Member member)
+			{
+				return useStatic == Modifier.isStatic(member.getModifiers());
+			}
+		}, getObjClass(), simpleName));
+		range.addFrom(getter);
+		range.addFrom(setter);
 		
 		boolean hasNotNull = !range.canBeNull;
 		boolean hasMin = (range.min > Long.MIN_VALUE || !Double.isInfinite(range.minf));
@@ -181,17 +188,17 @@ public class ObjectReflectionAttribute implements Attribute
 		
 		final Object min;
 		if (range.min > Long.MIN_VALUE)
-			min = ObjectReflectionUtils.valueOf(Long.valueOf(range.min), type);
+			min = ReflectionUtils.valueOf(Long.valueOf(range.min), type);
 		else if (!Double.isInfinite(range.minf))
-			min = ObjectReflectionUtils.valueOf(Double.valueOf(range.minf), type);
+			min = ReflectionUtils.valueOf(Double.valueOf(range.minf), type);
 		else
 			min = null;
 		
 		final Object max;
 		if (range.max < Long.MAX_VALUE)
-			max = ObjectReflectionUtils.valueOf(Long.valueOf(range.max), type);
+			max = ReflectionUtils.valueOf(Long.valueOf(range.max), type);
 		else if (!Double.isInfinite(range.maxf))
-			max = ObjectReflectionUtils.valueOf(Double.valueOf(range.maxf), type);
+			max = ReflectionUtils.valueOf(Double.valueOf(range.maxf), type);
 		else
 			max = null;
 		
@@ -214,9 +221,8 @@ public class ObjectReflectionAttribute implements Attribute
 			public Comparator<?> getComparator()
 			{
 				if (range.comparator != null)
-				{
 					return newInstance(range.comparator);
-				}
+				
 				return null;
 			}
 			
@@ -236,10 +242,11 @@ public class ObjectReflectionAttribute implements Attribute
 			}
 		};
 	}
-	
 	private void assertValid()
 	{
 		if (field == null && (getter == null || getter.getReturnType() == void.class))
+			throw new IllegalArgumentException();
+		if (field != null && getter != null && field.getType() != getter.getReturnType())
 			throw new IllegalArgumentException();
 	}
 	
@@ -283,7 +290,7 @@ public class ObjectReflectionAttribute implements Attribute
 		if (value == null)
 			return null;
 		
-		return new ObjectReflectionGroup(getName(), value, data);
+		return new ReflectionGroup(getName(), value, data);
 	}
 	
 	public boolean canWrite()
@@ -295,11 +302,11 @@ public class ObjectReflectionAttribute implements Attribute
 	{
 		if (getter != null)
 		{
-			return invoke(obj, getter);
+			return invoke(getObjInstance(), getter);
 		}
 		else if (field != null)
 		{
-			return get(obj, field);
+			return get(getObjInstance(), field);
 		}
 		else
 		{
@@ -310,15 +317,15 @@ public class ObjectReflectionAttribute implements Attribute
 	public void setValue(Object value)
 	{
 		if (!canWrite())
-			throw new ObjectReflectionException("Field is ready-only");
+			throw new ReflectionException("Field is ready-only");
 		
 		if (setter != null)
 		{
-			invoke(obj, setter, value);
+			invoke(getObjInstance(), setter, value);
 		}
 		else if (field != null)
 		{
-			set(obj, field, value);
+			set(getObjInstance(), field, value);
 		}
 		else
 		{
@@ -342,7 +349,7 @@ public class ObjectReflectionAttribute implements Attribute
 	public void addListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ObjectReflectionException("Can't add listener");
+			throw new ReflectionException("Can't add listener");
 		
 		if (listener == null)
 		{
@@ -355,7 +362,7 @@ public class ObjectReflectionAttribute implements Attribute
 					}
 				}, data);
 				
-				invoke(obj, addListener, listener);
+				invoke(getObjInstance(), addListener, listener);
 			}
 			else if (parent != null)
 			{
@@ -372,23 +379,25 @@ public class ObjectReflectionAttribute implements Attribute
 						notifyChange();
 					}
 				};
+				
 				parent.addListener((AttributeListener) listener);
 			}
 		}
 		
 		listeners.add(attributeListener);
 	}
+	
 	public void removeListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ObjectReflectionException("Can't add listener");
+			throw new ReflectionException("Can't add listener");
 		
 		listeners.remove(attributeListener);
 		
 		if (listeners.size() <= 0)
 		{
 			if (removeListener != null)
-				invoke(obj, removeListener, listener);
+				invoke(getObjInstance(), removeListener, listener);
 			else
 				parent.removeListener((AttributeListener) listener);
 			
@@ -399,7 +408,7 @@ public class ObjectReflectionAttribute implements Attribute
 	@Override
 	public String toString()
 	{
-		return "ObjectReflectionAttribute[" + name + "]";
+		return "ObjectReflectionAttribute[" + name + "]@" + Integer.toHexString(hashCode());
 	}
 	
 }

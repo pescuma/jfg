@@ -1,11 +1,11 @@
 package jfg.reflect;
 
-import static jfg.reflect.ObjectReflectionUtils.*;
+import static jfg.reflect.ReflectionUtils.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-public class ObjectReflectionUtilsTest
+public class ReflectionUtilsTest
 {
 	@Test
 	public void testGetDefaultValue()
@@ -28,7 +28,7 @@ public class ObjectReflectionUtilsTest
 		assertEquals(Character.valueOf('\0'), getDefaultValue(Character.class));
 		assertEquals("", getDefaultValue(String.class));
 		assertEquals(null, getDefaultValue(Object.class));
-		assertEquals(null, getDefaultValue(ObjectReflectionUtils.class));
+		assertEquals(null, getDefaultValue(ReflectionUtils.class));
 	}
 	
 	@Test

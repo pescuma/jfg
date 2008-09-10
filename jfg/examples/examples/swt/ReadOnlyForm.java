@@ -2,7 +2,7 @@ package examples.swt;
 
 import jfg.gui.swt.JfgFormComposite;
 import jfg.gui.swt.JfgFormData;
-import jfg.reflect.ObjectReflectionGroup;
+import jfg.reflect.ReflectionGroup;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -92,7 +92,7 @@ public class ReadOnlyForm
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		// Add elements to form
-		form.addContentsFrom(new ObjectReflectionGroup(obj));
+		form.addContentsFrom(new ReflectionGroup(obj));
 		
 		shell.setText("Read-Only Form");
 		shell.pack();

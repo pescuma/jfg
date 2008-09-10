@@ -10,45 +10,54 @@ import java.lang.reflect.Proxy;
 import jfg.AttributeListener;
 import jfg.AttributeListenerConverter;
 
-class ObjectReflectionUtils
+class ReflectionUtils
 {
-	public static Method getMethod(Object obj, Class<?> returnType, String[] methodNames, Class<?>... paramTypes)
+	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, Class<?> returnType, String[] methodNames,
+			Class<?>... paramTypes)
 	{
 		for (String methodName : methodNames)
 		{
-			Method method = getMethod(obj, returnType, methodName, paramTypes);
+			Method method = getMethod(memberFilter, cls, returnType, methodName, paramTypes);
 			if (method != null)
 				return method;
 		}
 		return null;
 	}
 	
-	public static Method getMethod(Object obj, Class<?> returnType, String methodName, Class<?>... paramTypes)
+	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, Class<?> returnType, String methodName, Class<?>... paramTypes)
 	{
-		Method method = getMethod(obj, methodName, paramTypes);
+		Method method = getMethod(memberFilter, cls, methodName, paramTypes);
 		if (method != null && method.getReturnType() == returnType)
 			return method;
 		else
 			return null;
 	}
 	
-	public static Method getMethod(Object obj, String[] methodNames, Class<?>... paramTypes)
+	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, String[] methodNames, Class<?>... paramTypes)
 	{
 		for (String methodName : methodNames)
 		{
-			Method method = getMethod(obj, methodName, paramTypes);
+			Method method = getMethod(memberFilter, cls, methodName, paramTypes);
 			if (method != null)
 				return method;
 		}
 		return null;
 	}
 	
-	public static Method getMethod(Object obj, String methodName, Class<?>... paramTypes)
+	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, String methodName, Class<?>... paramTypes)
 	{
-		Class<?> cls = obj.getClass();
+		if (cls != Object.class)
+		{
+			Method ret = getMethod(memberFilter, cls.getSuperclass(), methodName, paramTypes);
+			if (ret != null)
+				return ret;
+		}
+		
 		try
 		{
-			return cls.getMethod(methodName, paramTypes);
+			Method method = cls.getDeclaredMethod(methodName, paramTypes);
+			if (memberFilter.accept(method))
+				return method;
 		}
 		catch (SecurityException e)
 		{
@@ -56,13 +65,18 @@ class ObjectReflectionUtils
 		catch (NoSuchMethodException e)
 		{
 		}
+		
 		return null;
 	}
 	
-	public static Method getListenerMethod(Object obj, String[] addMethodNames, String[] removeMethodNames, ObjectReflectionData data)
+	public static Method getListenerMethod(MemberFilter memberFilter, Class<?> cls, String[] addMethodNames, String[] removeMethodNames,
+			ReflectionData data)
 	{
-		for (Method m : obj.getClass().getMethods())
+		for (Method m : cls.getMethods())
 		{
+			if (!memberFilter.accept(m))
+				continue;
+			
 			if (!contains(addMethodNames, m.getName()))
 				continue;
 			
@@ -72,7 +86,7 @@ class ObjectReflectionUtils
 			
 			Class<?> interfaceClass = parameters[0];
 			
-			if (getMethod(obj, removeMethodNames, interfaceClass) == null)
+			if (getMethod(memberFilter, cls, removeMethodNames, interfaceClass) == null)
 				continue;
 			
 			if (data.attributeListenerConverters.get(interfaceClass) != null)
@@ -98,7 +112,7 @@ class ObjectReflectionUtils
 		return false;
 	}
 	
-	public static Method getListenerInterfaceMethod(Class<?> interfaceClass, ObjectReflectionData data)
+	public static Method getListenerInterfaceMethod(Class<?> interfaceClass, ReflectionData data)
 	{
 		Method[] methods = interfaceClass.getMethods();
 		if (methods.length == 1)
@@ -136,11 +150,13 @@ class ObjectReflectionUtils
 		return ret;
 	}
 	
-	public static Field getField(Object obj, String name)
+	public static Field getField(MemberFilter memberFilter, Class<?> cls, String name)
 	{
 		try
 		{
-			return obj.getClass().getDeclaredField(name);
+			Field field = cls.getDeclaredField(name);
+			if (memberFilter.accept(field))
+				return field;
 		}
 		catch (SecurityException e)
 		{
@@ -148,6 +164,10 @@ class ObjectReflectionUtils
 		catch (NoSuchFieldException e)
 		{
 		}
+		
+		if (cls != Object.class)
+			return getField(memberFilter, cls.getSuperclass(), name);
+		
 		return null;
 	}
 	
@@ -159,15 +179,15 @@ class ObjectReflectionUtils
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new ObjectReflectionException(e);
+			throw new ReflectionException(e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new ObjectReflectionException(e);
+			throw new ReflectionException(e);
 		}
 		catch (InvocationTargetException e)
 		{
-			throw new ObjectReflectionException(e);
+			throw new ReflectionException(e);
 		}
 	}
 	
@@ -179,11 +199,11 @@ class ObjectReflectionUtils
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new ObjectReflectionException(e);
+			throw new ReflectionException(e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new ObjectReflectionException(e);
+			throw new ReflectionException(e);
 		}
 	}
 	
@@ -195,11 +215,11 @@ class ObjectReflectionUtils
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new ObjectReflectionException(e);
+			throw new ReflectionException(e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new ObjectReflectionException(e);
+			throw new ReflectionException(e);
 		}
 	}
 	
@@ -248,7 +268,7 @@ class ObjectReflectionUtils
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> T wrapListener(Class<T> interfaceClass, AttributeListener attributeListener, ObjectReflectionData data)
+	public static <T> T wrapListener(Class<T> interfaceClass, AttributeListener attributeListener, ReflectionData data)
 	{
 		AttributeListenerConverter<T> converter = (AttributeListenerConverter<T>) data.attributeListenerConverters.get(interfaceClass);
 		if (converter != null)

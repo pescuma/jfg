@@ -2,7 +2,7 @@ package examples.swt;
 
 import jfg.gui.swt.JfgFormComposite;
 import jfg.gui.swt.JfgFormData;
-import jfg.reflect.ObjectReflectionGroup;
+import jfg.reflect.ReflectionGroup;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -37,7 +37,7 @@ public class SimpleForm
 //		form.setLayout(layout);
 		
 		// Add elements to form
-		form.addContentsFrom(new ObjectReflectionGroup(obj));
+		form.addContentsFrom(new ReflectionGroup(obj));
 		
 		// Add a button to set some values to the object
 		Button set = new Button(shell, SWT.PUSH);

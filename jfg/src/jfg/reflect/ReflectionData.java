@@ -1,5 +1,7 @@
 package jfg.reflect;
 
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +9,7 @@ import java.util.Map;
 
 import jfg.AttributeListenerConverter;
 
-public class ObjectReflectionData
+public class ReflectionData
 {
 	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters;
 	
@@ -22,7 +24,12 @@ public class ObjectReflectionData
 	
 	public final List<String> classPrefixesIgnoredInAsGroup;
 	
-	public ObjectReflectionData()
+	public MemberFilter memberFilter;
+	public boolean usePublic = true;
+	public boolean useProtected = false;
+	public boolean useFriend = false;
+	
+	public ReflectionData()
 	{
 		attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>();
 		getterTemplates = new ArrayList<String>();
@@ -55,9 +62,25 @@ public class ObjectReflectionData
 		classPrefixesIgnoredInAsGroup.add("java.");
 		classPrefixesIgnoredInAsGroup.add("javax.");
 		classPrefixesIgnoredInAsGroup.add("sun.");
+		
+		memberFilter = new MemberFilter() {
+			public boolean accept(Member member)
+			{
+				int modifiers = member.getModifiers();
+				
+				if (usePublic && Modifier.isPublic(modifiers))
+					return true;
+				if (useProtected && Modifier.isProtected(modifiers))
+					return true;
+				if (useFriend && !Modifier.isPublic(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPrivate(modifiers))
+					return true;
+				
+				return false;
+			}
+		};
 	}
 	
-	public ObjectReflectionData(ObjectReflectionData other)
+	public ReflectionData(ReflectionData other)
 	{
 		attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>(other.attributeListenerConverters);
 		getterTemplates = new ArrayList<String>(other.getterTemplates);
@@ -68,6 +91,11 @@ public class ObjectReflectionData
 		removeObjectListenerTemplates = new ArrayList<String>(other.removeObjectListenerTemplates);
 		listenerInterfaceMethodREs = new ArrayList<String>(other.listenerInterfaceMethodREs);
 		classPrefixesIgnoredInAsGroup = new ArrayList<String>(other.classPrefixesIgnoredInAsGroup);
+		
+		memberFilter = other.memberFilter;
+		usePublic = other.usePublic;
+		useProtected = other.useProtected;
+		useFriend = other.useFriend;
 	}
 	
 	public String[] getGetterNames(String fieldName)

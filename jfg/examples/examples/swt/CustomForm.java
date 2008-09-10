@@ -14,7 +14,7 @@ import jfg.AttributeListener;
 import jfg.AttributeValueRange;
 import jfg.gui.swt.JfgFormComposite;
 import jfg.gui.swt.JfgFormData;
-import jfg.reflect.ObjectReflectionAttribute;
+import jfg.reflect.ReflectionAttribute;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -235,7 +235,7 @@ public class CustomForm
 		});
 		
 		// Adding a field by reflection
-		form.add(new ObjectReflectionAttribute(obj, "side"));
+		form.add(new ReflectionAttribute(obj, "side"));
 		
 		// Add a button to set some values to the object
 		Button set = new Button(shell, SWT.PUSH);

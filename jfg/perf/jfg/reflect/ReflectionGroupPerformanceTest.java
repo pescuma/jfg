@@ -1,6 +1,6 @@
 package jfg.reflect;
 
-import jfg.reflect.ObjectReflectionGroup;
+import jfg.reflect.ReflectionGroup;
 
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
@@ -32,7 +32,7 @@ public class ReflectionGroupPerformanceTest extends JapexDriverBase
 	@Override
 	public void run(TestCase testCase)
 	{
-		ObjectReflectionGroup group = new ObjectReflectionGroup(object);
+		ReflectionGroup group = new ReflectionGroup(object);
 		group.getAttributes();
 	}
 }

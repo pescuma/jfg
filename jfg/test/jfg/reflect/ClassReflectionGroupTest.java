@@ -19,7 +19,7 @@ import jfg.model.ann.Range;
 
 import org.junit.Test;
 
-public class ReflectionGroupTest
+public class ClassReflectionGroupTest
 {
 	private static class TestClassNoData
 	{
@@ -28,24 +28,23 @@ public class ReflectionGroupTest
 	@Test
 	public void testNoData()
 	{
-		ObjectReflectionGroup group = new ObjectReflectionGroup(new TestClassNoData());
+		ReflectionGroup group = new ReflectionGroup(TestClassNoData.class);
 		assertEquals("TestClassNoData", group.getName());
 		assertEquals(0, group.getAttributes().size());
 	}
 	
 	private static class TestClassWithPublicFields
 	{
-		public int aa;
-		public long bb;
-		public String cc;
-		protected int dd;
+		public static int aa;
+		public static long bb;
+		public static String cc;
+		protected static int dd;
 	}
 	
 	@Test
 	public void testWithPublicFields()
 	{
-		TestClassWithPublicFields tc = new TestClassWithPublicFields();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithPublicFields.class);
 		assertEquals("TestClassWithPublicFields", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -58,9 +57,9 @@ public class ReflectionGroupTest
 		assertSimpleFieldAttribute(obj, int.class);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFields.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFields.aa", attr.getName());
 		assertEquals(Integer.valueOf(0), attr.getValue());
-		tc.aa = 1;
+		TestClassWithPublicFields.aa = 1;
 		assertEquals(Integer.valueOf(1), attr.getValue());
 		attr.setValue(Integer.valueOf(2));
 		assertEquals(Integer.valueOf(2), attr.getValue());
@@ -69,9 +68,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, long.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFields.bb", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFields.bb", attr.getName());
 		assertEquals(Long.valueOf(0), attr.getValue());
-		tc.bb = 1;
+		TestClassWithPublicFields.bb = 1;
 		assertEquals(Long.valueOf(1), attr.getValue());
 		attr.setValue(Long.valueOf(2));
 		assertEquals(Long.valueOf(2), attr.getValue());
@@ -80,16 +79,16 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, String.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFields.cc", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFields.cc", attr.getName());
 		assertEquals(null, attr.getValue());
-		tc.cc = "x";
+		TestClassWithPublicFields.cc = "x";
 		assertEquals("x", attr.getValue());
 		attr.setValue("y");
 		assertEquals("y", attr.getValue());
 		
 	}
 	
-	private void assertSimpleFieldAttribute(Object obj, Class<?> cls)
+	private static void assertSimpleFieldAttribute(Object obj, Class<?> cls)
 	{
 		assertFieldAttribute(obj, true, false, false, cls.isPrimitive());
 		Attribute attr = (Attribute) obj;
@@ -106,7 +105,7 @@ public class ReflectionGroupTest
 		}
 	}
 	
-	private void assertFieldAttribute(Object obj, boolean canWrite, boolean canListen, boolean asGroup, boolean hasRange)
+	private static void assertFieldAttribute(Object obj, boolean canWrite, boolean canListen, boolean asGroup, boolean hasRange)
 	{
 		assertTrue(obj instanceof Attribute);
 		
@@ -157,39 +156,37 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithPublicFieldsAndGettersSetters
 	{
-		public static float xx;
+		public float xx;
 		
-		public int aa;
-		protected long bb;
-		public String cc;
-		protected int dd;
+		public static int aa;
+		protected static long bb;
+		public static String cc;
+		protected static int dd;
 		
-		public int getAa()
+		public static int getAa()
 		{
 			return 100 + aa;
 		}
-		public void setAa(int aa)
+		public static void setAa(int aa)
 		{
-			this.aa = 10 + aa;
+			TestClassWithPublicFieldsAndGettersSetters.aa = 10 + aa;
 		}
 		
-		public long getBb()
+		public static long getBb()
 		{
 			return 100 + bb;
 		}
 		
-		public void setCc(String cc)
+		public static void setCc(String cc)
 		{
-			this.cc = "-" + cc;
+			TestClassWithPublicFieldsAndGettersSetters.cc = "-" + cc;
 		}
-		
 	}
 	
 	@Test
 	public void testWithPublicFieldsAndGettersSetters()
 	{
-		TestClassWithPublicFieldsAndGettersSetters tc = new TestClassWithPublicFieldsAndGettersSetters();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithPublicFieldsAndGettersSetters.class);
 		assertEquals("TestClassWithPublicFieldsAndGettersSetters", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -201,9 +198,9 @@ public class ReflectionGroupTest
 		Object obj = it.next();
 		assertSimpleFieldAttribute(obj, int.class);
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.aa", attr.getName());
 		assertEquals(Integer.valueOf(100), attr.getValue());
-		tc.aa = 1;
+		TestClassWithPublicFieldsAndGettersSetters.aa = 1;
 		assertEquals(Integer.valueOf(101), attr.getValue());
 		attr.setValue(Integer.valueOf(2));
 		assertEquals(Integer.valueOf(112), attr.getValue());
@@ -212,7 +209,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertFieldAttribute(obj, false, false, false, true);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.bb", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.bb", attr.getName());
 		assertEquals(long.class, attr.getType());
 		AttributeValueRange range = attr.getValueRange();
 		assertFalse(range.canBeNull());
@@ -221,14 +218,14 @@ public class ReflectionGroupTest
 		assertNull(range.getMin());
 		assertNull(range.getPossibleValues());
 		assertEquals(Long.valueOf(100), attr.getValue());
-		tc.bb = 1;
+		TestClassWithPublicFieldsAndGettersSetters.bb = 1;
 		assertEquals(Long.valueOf(101), attr.getValue());
 		try
 		{
 			attr.setValue(Long.valueOf(2));
 			fail();
 		}
-		catch (ObjectReflectionException e)
+		catch (ReflectionException e)
 		{
 			
 		}
@@ -238,9 +235,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, String.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.cc", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.cc", attr.getName());
 		assertEquals(null, attr.getValue());
-		tc.cc = "x";
+		TestClassWithPublicFieldsAndGettersSetters.cc = "x";
 		assertEquals("x", attr.getValue());
 		attr.setValue("y");
 		assertEquals("-y", attr.getValue());
@@ -248,51 +245,50 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithOnlyMethods
 	{
-		private static int xx;
-		private int aa;
-		private long bb;
-		private String cc;
+		private int xx;
+		private static int aa;
+		private static long bb;
+		private static String cc;
 		
-		public static int getXx()
+		public int getXx()
 		{
 			return xx;
 		}
-		public static void setXx(int x)
+		public void setXx(int x)
 		{
 			xx = x;
 		}
 		
-		public int getAa()
+		public static int getAa()
 		{
 			return aa;
 		}
-		public void setAa(int aa)
+		public static void setAa(int aa)
 		{
-			this.aa = aa;
+			TestClassWithOnlyMethods.aa = aa;
 		}
-		public long getBb()
+		public static long getBb()
 		{
 			return bb;
 		}
-		public void setBb(long bb)
+		public static void setBb(long bb)
 		{
-			this.bb = bb;
+			TestClassWithOnlyMethods.bb = bb;
 		}
-		public String getCc()
+		public static String getCc()
 		{
 			return cc;
 		}
-		public void setCc(String cc)
+		public static void setCc(String cc)
 		{
-			this.cc = cc;
+			TestClassWithOnlyMethods.cc = cc;
 		}
 	}
 	
 	@Test
 	public void testWithOnlyMethods()
 	{
-		TestClassWithOnlyMethods tc = new TestClassWithOnlyMethods();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithOnlyMethods.class);
 		assertEquals("TestClassWithOnlyMethods", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -305,9 +301,9 @@ public class ReflectionGroupTest
 		assertSimpleFieldAttribute(obj, int.class);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOnlyMethods.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithOnlyMethods.aa", attr.getName());
 		assertEquals(Integer.valueOf(0), attr.getValue());
-		tc.setAa(1);
+		TestClassWithOnlyMethods.setAa(1);
 		assertEquals(Integer.valueOf(1), attr.getValue());
 		attr.setValue(Integer.valueOf(2));
 		assertEquals(Integer.valueOf(2), attr.getValue());
@@ -316,9 +312,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, long.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOnlyMethods.bb", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithOnlyMethods.bb", attr.getName());
 		assertEquals(Long.valueOf(0), attr.getValue());
-		tc.setBb(1);
+		TestClassWithOnlyMethods.setBb(1);
 		assertEquals(Long.valueOf(1), attr.getValue());
 		attr.setValue(Long.valueOf(2));
 		assertEquals(Long.valueOf(2), attr.getValue());
@@ -327,9 +323,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, String.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOnlyMethods.cc", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithOnlyMethods.cc", attr.getName());
 		assertEquals(null, attr.getValue());
-		tc.setCc("x");
+		TestClassWithOnlyMethods.setCc("x");
 		assertEquals("x", attr.getValue());
 		attr.setValue("y");
 		assertEquals("y", attr.getValue());
@@ -337,47 +333,46 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithEverything
 	{
-		public int aa;
-		private long bb;
-		private String cc;
+		public static int aa;
+		private static long bb;
+		private static String cc;
 		
-		public int getAa()
+		public static int getAa()
 		{
 			return 100 + aa;
 		}
-		public void setAa(int aa)
+		public static void setAa(int aa)
 		{
-			this.aa = 10 + aa;
+			TestClassWithEverything.aa = 10 + aa;
 		}
-		public long getBb()
+		public static long getBb()
 		{
 			return bb;
 		}
-		public void setBb(long bb)
+		public static void setBb(long bb)
 		{
-			this.bb = bb;
+			TestClassWithEverything.bb = bb;
 		}
-		public String getCc()
+		public static String getCc()
 		{
 			return cc;
 		}
-		public void setCc(String cc)
+		public static void setCc(String cc)
 		{
-			this.cc = cc;
+			TestClassWithEverything.cc = cc;
 		}
 	}
 	
 	@Test
 	public void testWithEverything()
 	{
-		TestClassWithEverything tc = new TestClassWithEverything();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithEverything.class);
 		assertEquals("TestClassWithEverything", group.getName());
 		
-		testWithEverything(tc, group);
+		testWithEverything(group);
 	}
 	
-	private void testWithEverything(TestClassWithEverything tc, AttributeGroup group)
+	private static void testWithEverything(AttributeGroup group)
 	{
 		Collection<Object> attributes = group.getAttributes();
 		assertEquals(3, attributes.size());
@@ -388,9 +383,9 @@ public class ReflectionGroupTest
 		Object obj = it.next();
 		assertSimpleFieldAttribute(obj, int.class);
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.aa", attr.getName());
 		assertEquals(Integer.valueOf(100), attr.getValue());
-		tc.aa = 1;
+		TestClassWithEverything.aa = 1;
 		assertEquals(Integer.valueOf(101), attr.getValue());
 		attr.setValue(Integer.valueOf(2));
 		assertEquals(Integer.valueOf(112), attr.getValue());
@@ -399,9 +394,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, long.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.bb", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.bb", attr.getName());
 		assertEquals(Long.valueOf(0), attr.getValue());
-		tc.setBb(1);
+		TestClassWithEverything.setBb(1);
 		assertEquals(Long.valueOf(1), attr.getValue());
 		attr.setValue(Long.valueOf(2));
 		assertEquals(Long.valueOf(2), attr.getValue());
@@ -410,9 +405,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, String.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.cc", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.cc", attr.getName());
 		assertEquals(null, attr.getValue());
-		tc.setCc("x");
+		TestClassWithEverything.setCc("x");
 		assertEquals("x", attr.getValue());
 		attr.setValue("y");
 		assertEquals("y", attr.getValue());
@@ -420,24 +415,27 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithExtends extends TestClassWithEverything
 	{
-		public int dd;
-		private long ee;
+		public static int dd;
+		private static long ee;
 		
-		public long getEe()
+		public static long getEe()
 		{
 			return ee;
 		}
-		public void setEe(long ee)
+		public static void setEe(long ee)
 		{
-			this.ee = ee;
+			TestClassWithExtends.ee = ee;
 		}
 	}
 	
 	@Test
 	public void testWithExtends()
 	{
-		TestClassWithExtends tc = new TestClassWithExtends();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		TestClassWithEverything.aa = 0;
+		TestClassWithEverything.bb = 0;
+		TestClassWithEverything.cc = null;
+		
+		ReflectionGroup group = new ReflectionGroup(TestClassWithExtends.class);
 		assertEquals("TestClassWithExtends", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -449,9 +447,9 @@ public class ReflectionGroupTest
 		Object obj = it.next();
 		assertSimpleFieldAttribute(obj, int.class);
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.aa", attr.getName());
 		assertEquals(Integer.valueOf(100), attr.getValue());
-		tc.aa = 1;
+		TestClassWithExtends.aa = 1;
 		assertEquals(Integer.valueOf(101), attr.getValue());
 		attr.setValue(Integer.valueOf(2));
 		assertEquals(Integer.valueOf(112), attr.getValue());
@@ -460,9 +458,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, long.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.bb", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.bb", attr.getName());
 		assertEquals(Long.valueOf(0), attr.getValue());
-		tc.setBb(1);
+		TestClassWithExtends.setBb(1);
 		assertEquals(Long.valueOf(1), attr.getValue());
 		attr.setValue(Long.valueOf(2));
 		assertEquals(Long.valueOf(2), attr.getValue());
@@ -471,9 +469,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, String.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEverything.cc", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.cc", attr.getName());
 		assertEquals(null, attr.getValue());
-		tc.setCc("x");
+		TestClassWithExtends.setCc("x");
 		assertEquals("x", attr.getValue());
 		attr.setValue("y");
 		assertEquals("y", attr.getValue());
@@ -482,9 +480,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, int.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithExtends.dd", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithExtends.dd", attr.getName());
 		assertEquals(Integer.valueOf(0), attr.getValue());
-		tc.dd = 1;
+		TestClassWithExtends.dd = 1;
 		assertEquals(Integer.valueOf(1), attr.getValue());
 		attr.setValue(Integer.valueOf(2));
 		assertEquals(Integer.valueOf(2), attr.getValue());
@@ -493,9 +491,9 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, long.class);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithExtends.ee", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithExtends.ee", attr.getName());
 		assertEquals(Long.valueOf(0), attr.getValue());
-		tc.setEe(1);
+		TestClassWithExtends.setEe(1);
 		assertEquals(Long.valueOf(1), attr.getValue());
 		attr.setValue(Long.valueOf(2));
 		assertEquals(Long.valueOf(2), attr.getValue());
@@ -504,32 +502,32 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithFieldListener
 	{
-		private long aa;
-		private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
+		private static long aa;
+		private static final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
 		
-		public long getAa()
+		public static long getAa()
 		{
 			return aa;
 		}
-		public void setAa(long aa)
+		public static void setAa(long aa)
 		{
-			this.aa = aa;
+			TestClassWithFieldListener.aa = aa;
 			
 			notifyOnChange();
 		}
 		
-		private void notifyOnChange()
+		private static void notifyOnChange()
 		{
 			for (AttributeListener listener : listeners)
 			{
 				listener.onChange();
 			}
 		}
-		public void addAaListener(AttributeListener listener)
+		public static void addAaListener(AttributeListener listener)
 		{
 			listeners.add(listener);
 		}
-		public void removeAaListener(AttributeListener listener)
+		public static void removeAaListener(AttributeListener listener)
 		{
 			listeners.remove(listener);
 		}
@@ -538,8 +536,7 @@ public class ReflectionGroupTest
 	@Test
 	public void testWithFieldListener()
 	{
-		TestClassWithFieldListener tc = new TestClassWithFieldListener();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithFieldListener.class);
 		assertEquals("TestClassWithFieldListener", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -552,7 +549,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithFieldListener.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithFieldListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -569,13 +566,13 @@ public class ReflectionGroupTest
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithFieldListener.setAa(1);
 		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithFieldListener.setAa(1);
 		assertEquals(0, called[0]);
 	}
 	
@@ -587,32 +584,32 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithStrangeFieldListener
 	{
-		private long aa;
-		private final List<StrangeListener> listeners = new ArrayList<StrangeListener>();
+		private static long aa;
+		private static final List<StrangeListener> listeners = new ArrayList<StrangeListener>();
 		
-		public long getAa()
+		public static long getAa()
 		{
 			return aa;
 		}
-		public void setAa(long aa)
+		public static void setAa(long aa)
 		{
-			this.aa = aa;
+			TestClassWithStrangeFieldListener.aa = aa;
 			
 			notifyOnChange();
 		}
 		
-		private void notifyOnChange()
+		private static void notifyOnChange()
 		{
 			for (StrangeListener listener : listeners)
 			{
 				listener.mudou();
 			}
 		}
-		public void addAaListener(StrangeListener listener)
+		public static void addAaListener(StrangeListener listener)
 		{
 			listeners.add(listener);
 		}
-		public void removeAaListener(StrangeListener listener)
+		public static void removeAaListener(StrangeListener listener)
 		{
 			listeners.remove(listener);
 		}
@@ -621,8 +618,7 @@ public class ReflectionGroupTest
 	@Test
 	public void testWithStrangeFieldListener()
 	{
-		TestClassWithStrangeFieldListener tc = new TestClassWithStrangeFieldListener();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithStrangeFieldListener.class);
 		assertEquals("TestClassWithStrangeFieldListener", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -635,7 +631,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithStrangeFieldListener.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithStrangeFieldListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -652,25 +648,25 @@ public class ReflectionGroupTest
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithStrangeFieldListener.setAa(1);
 		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithStrangeFieldListener.setAa(1);
 		assertEquals(0, called[0]);
 		
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithStrangeFieldListener.setAa(1);
 		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithStrangeFieldListener.setAa(1);
 		assertEquals(0, called[0]);
 	}
 	
@@ -683,21 +679,21 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithWrongFieldListener
 	{
-		private long aa;
-		private final List<WrongListener> listeners = new ArrayList<WrongListener>();
+		private static long aa;
+		private static final List<WrongListener> listeners = new ArrayList<WrongListener>();
 		
-		public long getAa()
+		public static long getAa()
 		{
 			return aa;
 		}
-		public void setAa(long aa)
+		public static void setAa(long aa)
 		{
-			this.aa = aa;
+			TestClassWithWrongFieldListener.aa = aa;
 			
 			notifyOnChange();
 		}
 		
-		private void notifyOnChange()
+		private static void notifyOnChange()
 		{
 			for (WrongListener listener : listeners)
 			{
@@ -705,11 +701,11 @@ public class ReflectionGroupTest
 			}
 		}
 		
-		public void addAaListener(WrongListener listener)
+		public static void addAaListener(WrongListener listener)
 		{
 			listeners.add(listener);
 		}
-		public void removeAaListener(WrongListener listener)
+		public static void removeAaListener(WrongListener listener)
 		{
 			listeners.remove(listener);
 		}
@@ -718,11 +714,9 @@ public class ReflectionGroupTest
 	@Test
 	public void testWithWrongFieldListener()
 	{
-		TestClassWithWrongFieldListener tc = new TestClassWithWrongFieldListener();
-		
 		// First without knowing how to create listener
 		
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithWrongFieldListener.class);
 		assertEquals("TestClassWithWrongFieldListener", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -735,7 +729,7 @@ public class ReflectionGroupTest
 		
 		// Now with the converter
 		
-		ObjectReflectionData data = new ObjectReflectionData();
+		ReflectionData data = new ReflectionData();
 		data.attributeListenerConverters.put(WrongListener.class, new AttributeListenerConverter<WrongListener>() {
 			public WrongListener wrapListener(final AttributeListener listener)
 			{
@@ -757,7 +751,7 @@ public class ReflectionGroupTest
 				};
 			}
 		});
-		group = new ObjectReflectionGroup(tc, data);
+		group = new ReflectionGroup(TestClassWithWrongFieldListener.class, data);
 		assertEquals("TestClassWithWrongFieldListener", group.getName());
 		
 		attributes = group.getAttributes();
@@ -769,7 +763,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithWrongFieldListener.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithWrongFieldListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -786,25 +780,25 @@ public class ReflectionGroupTest
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithWrongFieldListener.setAa(1);
 		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithWrongFieldListener.setAa(1);
 		assertEquals(0, called[0]);
 		
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithWrongFieldListener.setAa(1);
 		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithWrongFieldListener.setAa(1);
 		assertEquals(0, called[0]);
 	}
 	
@@ -815,44 +809,44 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithGroupListener
 	{
-		private long aa;
-		private long bb;
-		private final List<GroupListener> listeners = new ArrayList<GroupListener>();
+		private static long aa;
+		private static long bb;
+		private static final List<GroupListener> listeners = new ArrayList<GroupListener>();
 		
-		public long getAa()
+		public static long getAa()
 		{
 			return aa;
 		}
-		public void setAa(long aa)
+		public static void setAa(long aa)
 		{
-			this.aa = aa;
+			TestClassWithGroupListener.aa = aa;
 			
 			notifyOnChange(1);
 		}
 		
-		public long getBb()
+		public static long getBb()
 		{
 			return bb;
 		}
-		public void setBb(long bb)
+		public static void setBb(long bb)
 		{
-			this.bb = bb;
+			TestClassWithGroupListener.bb = bb;
 			
 			notifyOnChange(2);
 		}
 		
-		private void notifyOnChange(int field)
+		private static void notifyOnChange(int field)
 		{
 			for (GroupListener listener : listeners)
 			{
 				listener.changed(field);
 			}
 		}
-		public void addListener(GroupListener listener)
+		public static void addListener(GroupListener listener)
 		{
 			listeners.add(listener);
 		}
-		public void removeListener(GroupListener listener)
+		public static void removeListener(GroupListener listener)
 		{
 			listeners.remove(listener);
 		}
@@ -861,8 +855,7 @@ public class ReflectionGroupTest
 	@Test
 	public void testWithGroupListener()
 	{
-		TestClassWithGroupListener tc = new TestClassWithGroupListener();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithGroupListener.class);
 		assertEquals("TestClassWithGroupListener", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -875,7 +868,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithGroupListener.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithGroupListener.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -892,13 +885,13 @@ public class ReflectionGroupTest
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithGroupListener.setAa(1);
 		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithGroupListener.setAa(1);
 		assertEquals(0, called[0]);
 		
 		// bb
@@ -906,7 +899,7 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithGroupListener.bb", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithGroupListener.bb", attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -915,38 +908,37 @@ public class ReflectionGroupTest
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setBb(1);
+		TestClassWithGroupListener.setBb(1);
 		assertEquals(1, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setBb(1);
+		TestClassWithGroupListener.setBb(1);
 		assertEquals(0, called[0]);
 		
 		attr.addListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithGroupListener.setAa(1);
 		assertEquals(0, called[0]);
 		
 		attr.removeListener(listener);
 		
 		called[0] = 0;
-		tc.setAa(1);
+		TestClassWithGroupListener.setAa(1);
 		assertEquals(0, called[0]);
 	}
 	
 	private static class TestClassWithOther
 	{
-		public TestClassWithEverything aa;
+		public static ObjectReflectionGroupTest.TestClassWithEverything aa;
 	}
 	
 	@Test
 	public void testAsGroup()
 	{
-		TestClassWithOther tc = new TestClassWithOther();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithOther.class);
 		assertEquals("TestClassWithOther", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -959,20 +951,20 @@ public class ReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithOther.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithOther.aa", attr.getName());
 		assertEquals(true, attr.canWrite());
-		assertEquals(TestClassWithEverything.class, attr.getType());
+		assertEquals(ObjectReflectionGroupTest.TestClassWithEverything.class, attr.getType());
 		assertEquals(false, attr.canListen());
 		
 		AttributeGroup ag = attr.asGroup();
 		assertNull(ag);
 		
-		tc.aa = new TestClassWithEverything();
+		TestClassWithOther.aa = new ObjectReflectionGroupTest.TestClassWithEverything();
 		
 		ag = attr.asGroup();
 		assertNotNull(ag);
 		
-		testWithEverything(tc.aa, ag);
+		ObjectReflectionGroupTest.testWithEverything(TestClassWithOther.aa, ag);
 	}
 	
 	private static enum TestEnum
@@ -984,14 +976,13 @@ public class ReflectionGroupTest
 	
 	private static class TestClassWithEnum
 	{
-		public TestEnum aa;
+		public static TestEnum aa;
 	}
 	
 	@Test
 	public void testWithPublicEnum()
 	{
-		TestClassWithEnum tc = new TestClassWithEnum();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithEnum.class);
 		assertEquals("TestClassWithEnum", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -1004,10 +995,10 @@ public class ReflectionGroupTest
 		assertFieldAttribute(obj, true, false, false, true);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithEnum.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithEnum.aa", attr.getName());
 		assertEquals(TestEnum.class, attr.getType());
 		assertEquals(null, attr.getValue());
-		tc.aa = TestEnum.EnumValue2;
+		TestClassWithEnum.aa = TestEnum.EnumValue2;
 		assertEquals(TestEnum.EnumValue2, attr.getValue());
 		attr.setValue(TestEnum.EnumValue1);
 		assertEquals(TestEnum.EnumValue1, attr.getValue());
@@ -1040,20 +1031,19 @@ public class ReflectionGroupTest
 	private static class TestClassWithAnnotations
 	{
 		@NotNull
-		public int aa;
+		public static int aa;
 		
 		@Range(min = 1, maxf = 5)
-		public long bb;
+		public static long bb;
 		
 		@CompareWith(TestComparator.class)
-		public String cc;
+		public static String cc;
 	}
 	
 	@Test
 	public void testWithAnnotations()
 	{
-		TestClassWithAnnotations tc = new TestClassWithAnnotations();
-		ObjectReflectionGroup group = new ObjectReflectionGroup(tc);
+		ReflectionGroup group = new ReflectionGroup(TestClassWithAnnotations.class);
 		assertEquals("TestClassWithAnnotations", group.getName());
 		
 		Collection<Object> attributes = group.getAttributes();
@@ -1066,7 +1056,7 @@ public class ReflectionGroupTest
 		assertFieldAttribute(obj, true, false, false, true);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithAnnotations.aa", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithAnnotations.aa", attr.getName());
 		AttributeValueRange range = attr.getValueRange();
 		assertFalse(range.canBeNull());
 		assertNull(range.getMin());
@@ -1078,7 +1068,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertFieldAttribute(obj, true, false, false, true);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithAnnotations.bb", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithAnnotations.bb", attr.getName());
 		range = attr.getValueRange();
 		assertFalse(range.canBeNull());
 		assertEquals(Long.valueOf(1), range.getMin());
@@ -1090,7 +1080,7 @@ public class ReflectionGroupTest
 		obj = it.next();
 		assertFieldAttribute(obj, true, false, false, true);
 		attr = (Attribute) obj;
-		assertEquals("jfg.reflect.ReflectionGroupTest$TestClassWithAnnotations.cc", attr.getName());
+		assertEquals("jfg.reflect.ClassReflectionGroupTest$TestClassWithAnnotations.cc", attr.getName());
 		range = attr.getValueRange();
 		assertTrue(range.canBeNull());
 		assertNull(range.getMin());
@@ -1098,4 +1088,5 @@ public class ReflectionGroupTest
 		assertNull(range.getPossibleValues());
 		assertEquals(TestComparator.class, range.getComparator().getClass());
 	}
+	
 }
