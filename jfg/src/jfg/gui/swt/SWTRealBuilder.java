@@ -34,11 +34,14 @@ public class SWTRealBuilder extends SWTTextBuilder
 				String txt = text.getText();
 				txt = txt.substring(0, e.start) + append + txt.substring(e.end);
 				
-				if (!isValidNumber(txt, e.start))
+				if (!isValidNumber(txt))
 				{
 					e.doit = false;
 					return;
 				}
+				
+				if ("-".equals(txt))
+					return;
 				
 				try
 				{
@@ -76,10 +79,12 @@ public class SWTRealBuilder extends SWTTextBuilder
 	@Override
 	protected Object convertToObject(String value, Object type, boolean canBeNull)
 	{
+		if ("-".equals(value))
+			value = null;
 		return valueOf(value, type, canBeNull ? null : "0");
 	}
 	
-	static boolean isValidNumber(String append, int start)
+	static boolean isValidNumber(String append)
 	{
 		char sep = new DecimalFormatSymbols().getDecimalSeparator();
 		boolean hasSeparator = false;
@@ -87,7 +92,7 @@ public class SWTRealBuilder extends SWTTextBuilder
 		{
 			char c = append.charAt(i);
 			
-			if (i == 0 && start == 0 && c == '-')
+			if (i == 0 && c == '-')
 				continue;
 			
 			if (c == sep && !hasSeparator)

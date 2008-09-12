@@ -17,29 +17,23 @@ public class SWTRealBuilderTest
 	@Test
 	public void testIsValidNumber()
 	{
-		assertEquals(true, isValidNumber("000", 0));
-		assertEquals(true, isValidNumber("123123", 0));
-		assertEquals(true, isValidNumber("-6587", 0));
-		assertEquals(true, isValidNumber("", 0));
-		assertEquals(true, isValidNumber("000", 1));
-		assertEquals(true, isValidNumber("123123", 1));
-		assertEquals(true, isValidNumber("", 1));
-		assertEquals(true, isValidNumber("123123,", 1));
-		assertEquals(true, isValidNumber("1231,23", 1));
-		assertEquals(true, isValidNumber("12,3123", 1));
-		assertEquals(true, isValidNumber(",123123", 1));
-		assertEquals(true, isValidNumber(",", 1));
+		assertEquals(true, isValidNumber("000"));
+		assertEquals(true, isValidNumber("123123"));
+		assertEquals(true, isValidNumber("-6587"));
+		assertEquals(true, isValidNumber(""));
+		assertEquals(true, isValidNumber("000"));
+		assertEquals(true, isValidNumber("123123"));
+		assertEquals(true, isValidNumber(""));
+		assertEquals(true, isValidNumber("123123,"));
+		assertEquals(true, isValidNumber("1231,23"));
+		assertEquals(true, isValidNumber("12,3123"));
+		assertEquals(true, isValidNumber(",123123"));
+		assertEquals(true, isValidNumber(","));
 		
-		assertEquals(false, isValidNumber("658a", 0));
-		assertEquals(false, isValidNumber("65a87", 0));
-		assertEquals(false, isValidNumber("a6587", 0));
-		assertEquals(false, isValidNumber("a-6587", 0));
-		assertEquals(false, isValidNumber("-a6587", 0));
-		assertEquals(false, isValidNumber("-6587", 1));
-		assertEquals(false, isValidNumber("658a", 1));
-		assertEquals(false, isValidNumber("65a87", 1));
-		assertEquals(false, isValidNumber("a6587", 1));
-		assertEquals(false, isValidNumber("a-6587", 1));
-		assertEquals(false, isValidNumber("-a6587", 1));
+		assertEquals(false, isValidNumber("658a"));
+		assertEquals(false, isValidNumber("65a87"));
+		assertEquals(false, isValidNumber("a6587"));
+		assertEquals(false, isValidNumber("a-6587"));
+		assertEquals(false, isValidNumber("-a6587"));
 	}
 }
