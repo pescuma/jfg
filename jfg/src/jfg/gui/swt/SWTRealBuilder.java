@@ -79,9 +79,14 @@ public class SWTRealBuilder extends SWTTextBuilder
 	@Override
 	protected Object convertToObject(String value, Object type, boolean canBeNull)
 	{
-		if ("-".equals(value))
-			value = null;
-		return valueOf(value, type, canBeNull ? null : "0");
+		try
+		{
+			return valueOf(value, type, canBeNull ? null : "0");
+		}
+		catch (NumberFormatException e)
+		{
+			return valueOf(null, type, canBeNull ? null : "0");
+		}
 	}
 	
 	static boolean isValidNumber(String append)

@@ -36,6 +36,9 @@ public class SWTNumberBuilder extends SWTTextBuilder
 				String txt = text.getText();
 				txt = txt.substring(0, e.start) + append + txt.substring(e.end);
 				
+				if ("-".equals(txt))
+					return;
+				
 				try
 				{
 					parseLong(txt, type);
@@ -68,7 +71,14 @@ public class SWTNumberBuilder extends SWTTextBuilder
 	@Override
 	protected Object convertToObject(String value, Object type, boolean canBeNull)
 	{
-		return valueOf(value, type, canBeNull ? null : "0");
+		try
+		{
+			return valueOf(value, type, canBeNull ? null : "0");
+		}
+		catch (NumberFormatException e)
+		{
+			return valueOf(null, type, canBeNull ? null : "0");
+		}
 	}
 	
 	static boolean isValidNumber(String append, int start)
