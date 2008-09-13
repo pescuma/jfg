@@ -179,15 +179,15 @@ class ReflectionUtils
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new ReflectionException(e);
+			throw new ReflectionAttributeException(e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new ReflectionException(e);
+			throw new ReflectionAttributeException(e);
 		}
 		catch (InvocationTargetException e)
 		{
-			throw new ReflectionException(e);
+			throw new ReflectionAttributeException(e);
 		}
 	}
 	
@@ -199,11 +199,11 @@ class ReflectionUtils
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new ReflectionException(e);
+			throw new ReflectionAttributeException(e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new ReflectionException(e);
+			throw new ReflectionAttributeException(e);
 		}
 	}
 	
@@ -215,11 +215,11 @@ class ReflectionUtils
 		}
 		catch (IllegalArgumentException e)
 		{
-			throw new ReflectionException(e);
+			throw new ReflectionAttributeException(e);
 		}
 		catch (IllegalAccessException e)
 		{
-			throw new ReflectionException(e);
+			throw new ReflectionAttributeException(e);
 		}
 	}
 	

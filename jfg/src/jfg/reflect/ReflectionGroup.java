@@ -86,6 +86,7 @@ public class ReflectionGroup implements AttributeGroup
 	{
 		return name;
 	}
+	
 	public Collection<Object> getAttributes()
 	{
 		if (attributes == null)
@@ -204,7 +205,7 @@ public class ReflectionGroup implements AttributeGroup
 	public void addListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ReflectionException("Can't add listener");
+			throw new ReflectionAttributeException("Can't add listener");
 		
 		if (listener == null)
 		{
@@ -226,7 +227,7 @@ public class ReflectionGroup implements AttributeGroup
 	public void removeListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ReflectionException("Can't add listener");
+			throw new ReflectionAttributeException("Can't add listener");
 		
 		listeners.remove(attributeListener);
 		

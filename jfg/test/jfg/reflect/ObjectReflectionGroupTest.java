@@ -227,7 +227,7 @@ public class ObjectReflectionGroupTest
 			attr.setValue(Long.valueOf(2));
 			fail();
 		}
-		catch (ReflectionException e)
+		catch (ReflectionAttributeException e)
 		{
 			
 		}

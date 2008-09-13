@@ -44,8 +44,6 @@ public class IndependentSWTCopyManager extends AbstractSWTCopyManager
 	
 	final void update(SWTAttribute attrib)
 	{
-		int x = 0;
-		
 		Runnable copyTimer = attributeTimers.get(attrib);
 		if (copyTimer == null)
 			return;

@@ -242,6 +242,7 @@ public class ReflectionAttribute implements Attribute
 			}
 		};
 	}
+	
 	private void assertValid()
 	{
 		if (field == null && (getter == null || getter.getReturnType() == void.class))
@@ -317,7 +318,7 @@ public class ReflectionAttribute implements Attribute
 	public void setValue(Object value)
 	{
 		if (!canWrite())
-			throw new ReflectionException("Field is ready-only");
+			throw new ReflectionAttributeException("Field is ready-only");
 		
 		if (setter != null)
 		{
@@ -349,7 +350,7 @@ public class ReflectionAttribute implements Attribute
 	public void addListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ReflectionException("Can't add listener");
+			throw new ReflectionAttributeException("Can't add listener");
 		
 		if (listener == null)
 		{
@@ -390,7 +391,7 @@ public class ReflectionAttribute implements Attribute
 	public void removeListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
-			throw new ReflectionException("Can't add listener");
+			throw new ReflectionAttributeException("Can't add listener");
 		
 		listeners.remove(attributeListener);
 		
