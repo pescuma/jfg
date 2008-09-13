@@ -4,8 +4,6 @@ import static jfg.gui.swt.SWTHelper.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import jfg.Attribute;
 import jfg.AttributeGroup;
@@ -14,61 +12,29 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
-import org.eclipse.swt.widgets.Listener;
 
 public class JfgFormComposite extends Composite
 {
 	private final JfgFormData data;
 	private final Collection<SWTAttribute> attributes = new ArrayList<SWTAttribute>();
-	
-	private final Set<SWTAttribute> changedAttributes = new HashSet<SWTAttribute>();
-	private final Runnable copyTimer = new Runnable() {
-		public void run()
-		{
-			getDisplay().timerExec(-1, copyTimer);
-			for (SWTAttribute attrib : changedAttributes)
-				attrib.copyToModel();
-			changedAttributes.clear();
-		}
-	};
-	private final SWTCopyManager copyManager = new SWTCopyManager() {
-		public void guiChanged(SWTAttribute attrib)
-		{
-			if (data.timeToUpdateModelWhenGuiChanges < 0)
-				return;
-			else if (data.timeToUpdateModelWhenGuiChanges == 0)
-				attrib.copyToModel();
-			else
-			{
-				getDisplay().timerExec(-1, copyTimer);
-				changedAttributes.add(attrib);
-				getDisplay().timerExec(data.timeToUpdateModelWhenGuiChanges, copyTimer);
-			}
-		}
-		
-		public void modelChanged(SWTAttribute attrib)
-		{
-			if (data.updateGuiWhenModelChanges)
-				attrib.copyToGUI();
-		}
-	};
+	private final SWTCopyManager copyManager;
 	
 	public JfgFormComposite(Composite parent, int style, JfgFormData data)
 	{
 		super(parent, style);
 		this.data = data;
 		
-		addListener(SWT.Dispose, new Listener() {
-			public void handleEvent(Event event)
-			{
-				if (JfgFormComposite.this.data.timeToUpdateModelWhenGuiChanges > 0)
-					copyTimer.run();
-			}
-		});
+		if (data.timeToUpdateModelWhenGuiChanges < 0)
+			copyManager = new DontUpdateSWTCopyManager(this, data);
+		else if (data.timeToUpdateModelWhenGuiChanges == 0)
+			copyManager = new FastSWTCopyManager(this, data);
+		else if (data.updateModelInBatch)
+			copyManager = new BatchSWTCopyManager(this, data);
+		else
+			copyManager = new IndependentSWTCopyManager(this, data);
 	}
 	
 	/** Add all the attributes from the group, without adding the group itself */

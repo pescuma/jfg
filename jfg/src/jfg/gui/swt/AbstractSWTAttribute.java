@@ -50,7 +50,7 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 	
 	protected void onModelChange()
 	{
-		manager.modelChanged(AbstractSWTAttribute.this);
+		manager.modelChanged(this);
 	}
 	
 	protected Listener getModifyListener()
@@ -74,7 +74,7 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 		if (data.markFieldsWhithUncommitedChanges)
 			markField();
 		
-		manager.guiChanged(AbstractSWTAttribute.this);
+		manager.guiChanged(this);
 	}
 	
 	protected Listener getDisposeListener()

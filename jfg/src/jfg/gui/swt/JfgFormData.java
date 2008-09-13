@@ -19,8 +19,9 @@ import org.eclipse.swt.widgets.Widget;
 public final class JfgFormData
 {
 	public static final int SYNC_GUI = 1;
-	public static final int SYNC_GUI_FAST = 2;
-	public static final int DIALOG = 3;
+	public static final int SYNC_GUI_BATCH = 2;
+	public static final int SYNC_GUI_FAST = 3;
+	public static final int DIALOG = 4;
 	
 	public Map<Object, SWTWidgetBuilder> builders = new HashMap<Object, SWTWidgetBuilder>();
 	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
@@ -41,6 +42,8 @@ public final class JfgFormData
 	
 	/** In ms. Use -1 to never, 0 to update when inside the event handler, >0 to time and group change events */
 	public int timeToUpdateModelWhenGuiChanges = 1000;
+	
+	public boolean updateModelInBatch = true;
 	
 	public boolean markFieldsWhithUncommitedChanges = true;
 	
@@ -170,7 +173,14 @@ public final class JfgFormData
 		{
 			case SYNC_GUI:
 				updateGuiWhenModelChanges = true;
+				timeToUpdateModelWhenGuiChanges = 300;
+				updateModelInBatch = false;
+				markFieldsWhithUncommitedChanges = false;
+				break;
+			case SYNC_GUI_BATCH:
+				updateGuiWhenModelChanges = true;
 				timeToUpdateModelWhenGuiChanges = 1000;
+				updateModelInBatch = true;
 				markFieldsWhithUncommitedChanges = true;
 				break;
 			case SYNC_GUI_FAST:
