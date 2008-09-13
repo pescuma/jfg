@@ -298,23 +298,39 @@
 	<target name="japex" depends="compile-perf">
 		<mkdir dir="${dist.japex}" />
 
-		<java dir="." fork="true" classname="com.sun.japex.Japex">
+		<taskdef resource="net/sf/antcontrib/antlib.xml">
 			<classpath>
-				<fileset dir="${libs.src}">
-					<include name="*.jar" />
-				</fileset>
-				<fileset dir="${libs.perf}">
-					<include name="*.jar" />
-				</fileset>
-				<fileset dir="${libs.build}">
-					<include name="*.jar" />
-				</fileset>
-				<pathelement location="${build.debug}" />
-				<pathelement location="${build.perf}" />
+				<pathelement location="${libs.build}/ant-contrib-1.0b3.jar" />
 			</classpath>
-			<jvmarg value="-Djapex.reportsDirectory=${dist.japex}" />
-			<arg line="japex-config.xml" />
-		</java>
+		</taskdef>
+
+		<for param="file">
+			<path>
+				<fileset dir="." includes="japex-*.xml" />
+			</path>
+
+			<sequential>
+				<propertyregex override="yes" property="japex-report" input="@{file}" regexp=".*[/\\]([^\.]*)\.xml" replace="\1" />
+
+				<java dir="." fork="true" classname="com.sun.japex.Japex">
+					<classpath>
+						<fileset dir="${libs.src}">
+							<include name="*.jar" />
+						</fileset>
+						<fileset dir="${libs.perf}">
+							<include name="*.jar" />
+						</fileset>
+						<fileset dir="${libs.build}">
+							<include name="*.jar" />
+						</fileset>
+						<pathelement location="${build.debug}" />
+						<pathelement location="${build.perf}" />
+					</classpath>
+					<jvmarg value="-Djapex.reportsDirectory=${dist.japex}/${japex-report}" />
+					<arg line="${japex-report}.xml" />
+				</java>
+			</sequential>
+		</for>
 	</target>
 
 	<target name="pack" depends="compile">
