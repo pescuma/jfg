@@ -18,8 +18,6 @@ public class MapAttribute implements Attribute
 	
 	public MapAttribute(Map<?, ?> map, Object key, Class<?> type)
 	{
-		int x = 0;
-		
 		this.map = map;
 		this.key = key;
 		externalType = type;
