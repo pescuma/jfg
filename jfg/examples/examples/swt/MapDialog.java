@@ -31,6 +31,12 @@ public class MapDialog
 		map.put("Number", Integer.valueOf(0));
 		map.put("Checkbox", Boolean.TRUE);
 		
+		Map<String, Object> map2 = new LinkedHashMap<String, Object>();
+		map2.put("Text 2", "abcd");
+		map2.put("Real 2", Float.valueOf(1));
+		map2.put("Checkbox 2", Boolean.FALSE);
+		map.put("Inner Map", map2);
+		
 		// Create the form
 		final JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, new JfgFormData(JfgFormData.DIALOG));
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -60,7 +66,19 @@ public class MapDialog
 		display.dispose();
 		
 		// Show the object
+		printMap(map, "");
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static void printMap(Map<String, Object> map, String prefix)
+	{
 		for (Entry<String, Object> entry : map.entrySet())
-			System.out.println(entry.getKey() + " = " + entry.getValue());
+		{
+			Object value = entry.getValue();
+			if (value instanceof Map)
+				printMap((Map<String, Object>) value, prefix + "\t");
+			else
+				System.out.println(prefix + entry.getKey() + " = " + value);
+		}
 	}
 }

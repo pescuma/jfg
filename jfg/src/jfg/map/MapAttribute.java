@@ -2,6 +2,7 @@ package jfg.map;
 
 import java.util.Map;
 
+import jfg.AbstractAttributeValueRange;
 import jfg.Attribute;
 import jfg.AttributeGroup;
 import jfg.AttributeListener;
@@ -12,22 +13,38 @@ public class MapAttribute implements Attribute
 	private final Map<?, ?> map;
 	private final Object key;
 	private final Class<?> type;
+	private final Class<?> externalType;
+	private final AttributeValueRange attributeValueRange;
 	
 	public MapAttribute(Map<?, ?> map, Object key, Class<?> type)
 	{
 		this.map = map;
 		this.key = key;
+		externalType = type;
 		
-		if (type != null)
+		Object value = map.get(key);
+		
+		if (value != null && Map.class.isInstance(value))
+			this.type = Map.class;
+		
+		else if (type != null)
 			this.type = type;
+		
+		else if (value == null)
+			this.type = String.class;
+		
 		else
-		{
-			Object value = map.get(key);
-			if (value == null)
-				this.type = String.class;
-			else
-				this.type = value.getClass();
-		}
+			this.type = value.getClass();
+		
+		if (value == null)
+			attributeValueRange = null;
+		else
+			attributeValueRange = new AbstractAttributeValueRange() {
+				public boolean canBeNull()
+				{
+					return false;
+				}
+			};
 	}
 	
 	public String getName()
@@ -44,12 +61,12 @@ public class MapAttribute implements Attribute
 	
 	public AttributeValueRange getValueRange()
 	{
-		return null;
+		return attributeValueRange;
 	}
 	
 	public boolean canWrite()
 	{
-		return true;
+		return (type != Map.class);
 	}
 	
 	public Object getValue()
@@ -60,6 +77,8 @@ public class MapAttribute implements Attribute
 	@SuppressWarnings("unchecked")
 	public void setValue(Object obj)
 	{
+		if (!canWrite())
+			throw new MapAttributeException("Can't write");
 		if (obj != null && !type.isInstance(obj))
 			throw new ClassCastException("Object should be of type " + type.getName());
 		
@@ -68,8 +87,14 @@ public class MapAttribute implements Attribute
 	
 	public AttributeGroup asGroup()
 	{
-		// TODO Handle inner maps as groups
-		return null;
+		if (type != Map.class)
+			return null;
+		
+		Map<?, ?> value = (Map<?, ?>) getValue();
+		if (value == null)
+			return null;
+		
+		return new MapGroup(getName(), value, externalType);
 	}
 	
 	public boolean canListen()
@@ -86,5 +111,4 @@ public class MapAttribute implements Attribute
 	{
 		throw new MapAttributeException("Can't remove listener");
 	}
-	
 }

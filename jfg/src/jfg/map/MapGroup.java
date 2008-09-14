@@ -24,6 +24,11 @@ public class MapGroup implements AttributeGroup
 		this("Map", map, valueClass);
 	}
 	
+	public MapGroup(String name, Map<?, ?> map)
+	{
+		this(name, map, null);
+	}
+	
 	public MapGroup(String name, Map<?, ?> map, Class<?> valueClass)
 	{
 		this.name = name;
