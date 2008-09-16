@@ -4,6 +4,7 @@ import static java.lang.Math.*;
 import static jfg.gui.swt.TypeUtils.*;
 import jfg.Attribute;
 import jfg.AttributeValueRange;
+import jfg.gui.GuiWidget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -23,14 +24,9 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 		return typeIsNumber(type) || typeIsReal(type) || "scale".equals(type);
 	}
 	
-	public boolean wantNameLabel()
+	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
 	{
-		return true;
-	}
-	
-	public SWTAttribute build(final Composite parent, final Attribute attrib, final JfgFormData data)
-	{
-		return new AbstractSWTAttribute(parent, attrib, data) {
+		return new AbstractLabeledSWTWidget(aParent, attrib, data) {
 			
 			private Scale scale;
 			private Color background;
@@ -44,10 +40,8 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 			}
 			
 			@Override
-			public void init(SWTCopyManager aManager)
+			protected void createWidget(Composite parent)
 			{
-				super.init(aManager);
-				
 				scale = data.componentFactory.createScale(parent, SWT.NONE);
 				scale.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				scale.addListener(SWT.Selection, getModifyListener());
@@ -94,10 +88,9 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 				}
 			}
 			
-			@Override
-			protected void guiToAttribute()
+			public Object getValue()
 			{
-				attrib.setValue(convertToObject(scale.getSelection()));
+				return convertToObject(scale.getSelection());
 			}
 			
 			private Object convertToObject(int selection)
@@ -132,10 +125,9 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 				}
 			}
 			
-			@Override
-			protected void attibuteToGUI()
+			public void setValue(Object value)
 			{
-				scale.setSelection(convertToInt(attrib.getValue()));
+				scale.setSelection(convertToInt(value));
 			}
 			
 			private int convertToInt(Object value)
@@ -184,6 +176,13 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 				scale.setBackground(background);
 			}
 			
+			@Override
+			public void setEnabled(boolean enabled)
+			{
+				super.setEnabled(enabled);
+				
+				scale.setEnabled(enabled);
+			}
 		};
 	}
 	

@@ -105,4 +105,9 @@ public class SWTNumberBuilder extends SWTTextBuilder
 			return long.class;
 		return type;
 	}
+	
+	@Override
+	protected void setTextLimit(Attribute attrib, Text text)
+	{
+	}
 }

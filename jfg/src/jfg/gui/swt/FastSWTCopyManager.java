@@ -1,5 +1,7 @@
 package jfg.gui.swt;
 
+import jfg.gui.GuiWidget;
+
 public class FastSWTCopyManager extends AbstractSWTCopyManager
 {
 	public FastSWTCopyManager(JfgFormComposite composite, JfgFormData data)
@@ -7,8 +9,8 @@ public class FastSWTCopyManager extends AbstractSWTCopyManager
 		super(composite, data);
 	}
 	
-	public void guiChanged(SWTAttribute attrib)
+	public void guiChanged(GuiWidget widget)
 	{
-		attrib.copyToModel();
+		widget.copyToModel();
 	}
 }

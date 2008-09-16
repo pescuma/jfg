@@ -18,10 +18,12 @@ import org.eclipse.swt.widgets.Widget;
 
 public final class JfgFormData
 {
+	// Some presets
 	public static final int SYNC_GUI = 1;
 	public static final int SYNC_GUI_BATCH = 2;
 	public static final int SYNC_GUI_FAST = 3;
-	public static final int DIALOG = 4;
+	public static final int SYNC_GUI_NO_DELAY = 4;
+	public static final int DIALOG = 16;
 	
 	public Map<Object, SWTWidgetBuilder> builders = new HashMap<Object, SWTWidgetBuilder>();
 	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
@@ -40,12 +42,21 @@ public final class JfgFormData
 	
 	public boolean updateGuiWhenModelChanges = true;
 	
-	/** In ms. Use -1 to never, 0 to update when inside the event handler, >0 to time and group change events */
-	public int timeToUpdateModelWhenGuiChanges = 1000;
+	enum GuiUpdateStrategy
+	{
+		Never,
+		UpdateOnGuiChange,
+		BufferUpdatesForTimeout,
+		UpdateAfterFieldStoppedChanging,
+		UpdateAfterAllFieldsStoppedChanging,
+	}
 	
-	public boolean updateModelInBatch = true;
+	/** In ms */
+	public int guiUpdateTimeout = 1000;
 	
 	public boolean markFieldsWhithUncommitedChanges = true;
+	
+	public GuiUpdateStrategy guiUpdateStrategy = GuiUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;
 	
 	public JfgFormData()
 	{
@@ -172,25 +183,31 @@ public final class JfgFormData
 		switch (style)
 		{
 			case SYNC_GUI:
+				guiUpdateTimeout = 1000;
+				guiUpdateStrategy = GuiUpdateStrategy.UpdateAfterFieldStoppedChanging;
 				updateGuiWhenModelChanges = true;
-				timeToUpdateModelWhenGuiChanges = 300;
-				updateModelInBatch = false;
-				markFieldsWhithUncommitedChanges = false;
+				markFieldsWhithUncommitedChanges = true;
 				break;
 			case SYNC_GUI_BATCH:
+				guiUpdateStrategy = GuiUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;
+				guiUpdateTimeout = 1000;
 				updateGuiWhenModelChanges = true;
-				timeToUpdateModelWhenGuiChanges = 1000;
-				updateModelInBatch = true;
 				markFieldsWhithUncommitedChanges = true;
 				break;
 			case SYNC_GUI_FAST:
+				guiUpdateStrategy = GuiUpdateStrategy.BufferUpdatesForTimeout;
+				guiUpdateTimeout = 300;
 				updateGuiWhenModelChanges = true;
-				timeToUpdateModelWhenGuiChanges = 0;
+				markFieldsWhithUncommitedChanges = false;
+				break;
+			case SYNC_GUI_NO_DELAY:
+				guiUpdateStrategy = GuiUpdateStrategy.UpdateOnGuiChange;
+				updateGuiWhenModelChanges = true;
 				markFieldsWhithUncommitedChanges = false;
 				break;
 			case DIALOG:
+				guiUpdateStrategy = GuiUpdateStrategy.Never;
 				updateGuiWhenModelChanges = false;
-				timeToUpdateModelWhenGuiChanges = -1;
 				markFieldsWhithUncommitedChanges = false;
 				break;
 		}

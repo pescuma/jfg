@@ -1,40 +1,68 @@
 package jfg.gui.swt;
 
 import static jfg.gui.swt.SWTHelper.*;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
 import jfg.Attribute;
 import jfg.AttributeGroup;
+import jfg.gui.GuiCopyManager;
+import jfg.gui.GuiUpdateListener;
+import jfg.gui.GuiWidget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
 
 public class JfgFormComposite extends Composite
 {
 	private final JfgFormData data;
-	private final Collection<SWTAttribute> attributes = new ArrayList<SWTAttribute>();
-	private final SWTCopyManager copyManager;
+	private final BaseWidgetList widgets = new BaseWidgetList();
+	private final GuiCopyManager copyManager;
+	private final BaseGuiListenerManager listenerManager = new BaseGuiListenerManager();
+	private boolean initializing = true;
 	
 	public JfgFormComposite(Composite parent, int style, JfgFormData data)
 	{
 		super(parent, style);
 		this.data = data;
 		
-		if (data.timeToUpdateModelWhenGuiChanges < 0)
-			copyManager = new DontUpdateSWTCopyManager(this, data);
-		else if (data.timeToUpdateModelWhenGuiChanges == 0)
-			copyManager = new FastSWTCopyManager(this, data);
-		else if (data.updateModelInBatch)
-			copyManager = new BatchSWTCopyManager(this, data);
-		else
-			copyManager = new IndependentSWTCopyManager(this, data);
+		switch (data.guiUpdateStrategy)
+		{
+			case Never:
+				copyManager = new DontUpdateSWTCopyManager(this, data);
+				break;
+			case UpdateOnGuiChange:
+				copyManager = new FastSWTCopyManager(this, data);
+				break;
+			case BufferUpdatesForTimeout:
+				if (data.guiUpdateTimeout <= 0)
+					throw new IllegalArgumentException();
+				copyManager = new IndependentFixedTimeSWTCopyManager(this, data);
+				break;
+			case UpdateAfterFieldStoppedChanging:
+				if (data.guiUpdateTimeout <= 0)
+					throw new IllegalArgumentException();
+				copyManager = new IndependentSWTCopyManager(this, data);
+				break;
+			case UpdateAfterAllFieldsStoppedChanging:
+				if (data.guiUpdateTimeout <= 0)
+					throw new IllegalArgumentException();
+				copyManager = new BatchSWTCopyManager(this, data);
+				break;
+			default:
+				throw new IllegalArgumentException();
+		}
+		
+		parent.addListener(SWT.Show, new Listener() {
+			public void handleEvent(Event event)
+			{
+				if (initializing)
+					finishInitialize();
+			}
+		});
 	}
 	
 	/** Add all the attributes from the group, without adding the group itself */
@@ -159,22 +187,22 @@ public class JfgFormComposite extends Composite
 			if (filter.hideAttribute(attrib))
 				return;
 		
-		if (builder.wantNameLabel())
+		GuiWidget widget = builder.build(parent, attrib, data);
+		widgets.add(attrib, widget);
+	}
+	
+	private void finishInitialize()
+	{
+		for (AttributeWidgetPair aw : widgets)
 		{
-			Label name = new Label(parent, SWT.NONE);
-			name.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			name.setText(data.textTranslator.fieldName(attrib.getName()) + ":");
+			aw.widget.init(copyManager);
+			aw.widget.copyToGUI();
 		}
 		
-		GridLayout layout = (GridLayout) getLayout();
-		int numColumns = layout.numColumns;
-		if (builder.wantNameLabel())
-			numColumns--;
+		for (AttributeWidgetPair aw : widgets)
+			listenerManager.notifyChange(aw.attrib.getName(), aw.widget, widgets);
 		
-		SWTAttribute swta = builder.build((numColumns > 1 ? createHorizontalComposite(parent, numColumns) : parent), attrib, data);
-		swta.init(copyManager);
-		swta.copyToGUI();
-		attributes.add(swta);
+		initializing = false;
 	}
 	
 	private SWTWidgetBuilder getBuilderFor(Attribute attrib)
@@ -213,13 +241,52 @@ public class JfgFormComposite extends Composite
 	
 	public void copyToGUI()
 	{
-		for (SWTAttribute attrib : attributes)
-			attrib.copyToGUI();
+		for (AttributeWidgetPair aw : widgets)
+			aw.widget.copyToGUI();
 	}
 	
 	public void copyToModel()
 	{
-		for (SWTAttribute attrib : attributes)
-			attrib.copyToModel();
+		for (AttributeWidgetPair aw : widgets)
+			aw.widget.copyToModel();
 	}
+	
+	void onGuiUpdated(GuiWidget widget)
+	{
+		if (initializing)
+			return;
+		
+		listenerManager.notifyChange(widgets.getAttribute(widget).getName(), widget, widgets);
+	}
+	
+	public void addGuiUpdateListener(GuiUpdateListener listener)
+	{
+		listenerManager.addListener(null, listener);
+	}
+	
+	public void addGuiUpdateListener(Attribute attribute, GuiUpdateListener listener)
+	{
+		addGuiUpdateListener(attribute.getName(), listener);
+	}
+	
+	public void addGuiUpdateListener(String attributeName, GuiUpdateListener listener)
+	{
+		listenerManager.addListener(attributeName, listener);
+	}
+	
+	public void removeGuiUpdateListener(GuiUpdateListener listener)
+	{
+		listenerManager.removeListener(null, listener);
+	}
+	
+	public void removeGuiUpdateListener(Attribute attribute, GuiUpdateListener listener)
+	{
+		removeGuiUpdateListener(attribute.getName(), listener);
+	}
+	
+	public void removeGuiUpdateListener(String attributeName, GuiUpdateListener listener)
+	{
+		listenerManager.removeListener(attributeName, listener);
+	}
+	
 }

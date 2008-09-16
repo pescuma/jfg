@@ -9,41 +9,39 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-public class IndependentSWTCopyManager extends AbstractSWTCopyManager
+public class IndependentFixedTimeSWTCopyManager extends AbstractSWTCopyManager
 {
 	private Map<GuiWidget, Runnable> widgetTimers = new HashMap<GuiWidget, Runnable>();
 	
-	public IndependentSWTCopyManager(JfgFormComposite composite, JfgFormData data)
+	public IndependentFixedTimeSWTCopyManager(JfgFormComposite composite, JfgFormData data)
 	{
 		super(composite, data);
 		
 		composite.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event)
 			{
-				for (Runnable run : widgetTimers.values())
-					run.run();
-				widgetTimers.clear();
+				while (widgetTimers.size() > 0)
+					widgetTimers.values().iterator().next().run();
 			}
 		});
 	}
 	
 	public void guiChanged(final GuiWidget widget)
 	{
-		Runnable copyTimer = widgetTimers.get(widget);
-		if (copyTimer == null)
-		{
-			copyTimer = new Runnable() {
-				public void run()
-				{
-					getDisplay().timerExec(-1, this);
-					
-					widget.copyToModel();
-				}
-			};
-			widgetTimers.put(widget, copyTimer);
-		}
+		if (widgetTimers.get(widget) != null)
+			return;
 		
-		getDisplay().timerExec(-1, copyTimer);
+		Runnable copyTimer = new Runnable() {
+			public void run()
+			{
+				getDisplay().timerExec(-1, this);
+				widgetTimers.remove(widget);
+				
+				widget.copyToModel();
+			}
+		};
+		widgetTimers.put(widget, copyTimer);
+		
 		getDisplay().timerExec(data.guiUpdateTimeout, copyTimer);
 	}
 }

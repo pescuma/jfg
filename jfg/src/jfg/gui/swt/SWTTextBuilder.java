@@ -2,6 +2,7 @@ package jfg.gui.swt;
 
 import jfg.Attribute;
 import jfg.AttributeValueRange;
+import jfg.gui.GuiWidget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -22,45 +23,31 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 		return true;
 	}
 	
-	public SWTAttribute build(final Composite parent, final Attribute attrib, final JfgFormData data)
+	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
 	{
-		return new AbstractSWTAttribute(parent, attrib, data) {
+		return new AbstractLabeledSWTWidget(aParent, attrib, data) {
 			
 			private Text text;
 			private Color background;
 			
 			@Override
-			public void init(SWTCopyManager aManager)
+			protected void createWidget(Composite parent)
 			{
-				super.init(aManager);
-				
 				text = data.componentFactory.createText(parent, (attrib.canWrite() ? SWT.NONE : SWT.READ_ONLY) | getAdditionalTextStyle());
 				text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				text.addListener(SWT.Modify, getModifyListener());
 				text.addListener(SWT.Dispose, getDisposeListener());
 				addValidation(text, getType(attrib.getType()));
-				setTextLimit();
+				setTextLimit(attrib, text);
 				
 				addAttributeListener();
 				
 				background = text.getBackground();
 			}
 			
-			private void setTextLimit()
+			public Object getValue()
 			{
-				AttributeValueRange range = attrib.getValueRange();
-				if (range == null)
-					return;
-				
-				Object max = range.getMax();
-				if (max != null && (max instanceof Number))
-					text.setTextLimit(((Number) max).intValue());
-			}
-			
-			@Override
-			protected void guiToAttribute()
-			{
-				attrib.setValue(convertToObject(text.getText(), getType(attrib.getType()), canBeNull()));
+				return convertToObject(text.getText(), getType(attrib.getType()), canBeNull());
 			}
 			
 			private boolean canBeNull()
@@ -72,11 +59,10 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 				return range.canBeNull();
 			}
 			
-			@Override
-			protected void attibuteToGUI()
+			public void setValue(Object value)
 			{
 				int caretPosition = text.getCaretPosition();
-				text.setText(convertToString(text, attrib.getValue(), getType(attrib.getType())));
+				text.setText(convertToString(text, value, getType(attrib.getType())));
 				text.setSelection(caretPosition);
 			}
 			
@@ -92,6 +78,13 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 				text.setBackground(background);
 			}
 			
+			@Override
+			public void setEnabled(boolean enabled)
+			{
+				super.setEnabled(enabled);
+				
+				text.setEnabled(enabled);
+			}
 		};
 	}
 	
@@ -121,9 +114,18 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 	
 	protected Object getType(Object type)
 	{
-		if ("text".equals(type))
-			return String.class;
-		return type;
+		return String.class;
+	}
+	
+	protected void setTextLimit(Attribute attrib, Text text)
+	{
+		AttributeValueRange range = attrib.getValueRange();
+		if (range == null)
+			return;
+		
+		Object max = range.getMax();
+		if (max != null && (max instanceof Number))
+			text.setTextLimit(((Number) max).intValue());
 	}
 	
 }

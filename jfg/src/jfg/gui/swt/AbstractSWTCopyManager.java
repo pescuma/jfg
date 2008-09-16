@@ -1,8 +1,11 @@
 package jfg.gui.swt;
 
+import jfg.gui.GuiCopyManager;
+import jfg.gui.GuiWidget;
+
 import org.eclipse.swt.widgets.Display;
 
-public abstract class AbstractSWTCopyManager implements SWTCopyManager
+public abstract class AbstractSWTCopyManager implements GuiCopyManager
 {
 	protected final JfgFormComposite composite;
 	protected final JfgFormData data;
@@ -18,9 +21,14 @@ public abstract class AbstractSWTCopyManager implements SWTCopyManager
 		return composite.getDisplay();
 	}
 	
-	public void modelChanged(SWTAttribute attrib)
+	public void modelChanged(GuiWidget widget)
 	{
 		if (data.updateGuiWhenModelChanges)
-			attrib.copyToGUI();
+			widget.copyToGUI();
+	}
+	
+	public void guiUpdated(GuiWidget widget)
+	{
+		composite.onGuiUpdated(widget);
 	}
 }

@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import jfg.Attribute;
 import jfg.AttributeValueRange;
+import jfg.gui.GuiWidget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -24,24 +25,17 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 		return values != null && values.size() > 0;
 	}
 	
-	public boolean wantNameLabel()
+	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
 	{
-		return true;
-	}
-	
-	public SWTAttribute build(Composite parent, Attribute attrib, JfgFormData data)
-	{
-		return new AbstractSWTAttribute(parent, attrib, data) {
+		return new AbstractLabeledSWTWidget(aParent, attrib, data) {
 			
 			private Combo combo;
 			private Text text;
 			private Color background;
 			
 			@Override
-			public void init(SWTCopyManager aManager)
+			protected void createWidget(Composite parent)
 			{
-				super.init(aManager);
-				
 				if (attrib.canWrite())
 				{
 					combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
@@ -72,13 +66,15 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 					combo.add(convertToString(object, attrib.getType()));
 			}
 			
-			@Override
-			protected void guiToAttribute()
+			public Object getValue()
 			{
-				attrib.setValue(getValue(combo.getSelectionIndex()));
+				if (attrib.canWrite())
+					return getObject(combo.getSelectionIndex());
+				else
+					return attrib.getValue();
 			}
 			
-			private Object getValue(int index)
+			private Object getObject(int index)
 			{
 				int i = 0;
 				
@@ -99,13 +95,12 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				throw new IllegalArgumentException();
 			}
 			
-			@Override
-			protected void attibuteToGUI()
+			public void setValue(Object value)
 			{
 				if (attrib.canWrite())
-					combo.select(getIndex(attrib.getValue()));
+					combo.select(getIndex(value));
 				else
-					text.setText(convertToString(attrib.getValue(), attrib.getType()));
+					text.setText(convertToString(value, attrib.getType()));
 			}
 			
 			private int getIndex(Object value)
@@ -180,6 +175,20 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				}
 			}
 			
+			@Override
+			public void setEnabled(boolean enabled)
+			{
+				super.setEnabled(enabled);
+				
+				if (attrib.canWrite())
+				{
+					combo.setEnabled(enabled);
+				}
+				else
+				{
+					text.setEnabled(enabled);
+				}
+			}
 		};
 	}
 }

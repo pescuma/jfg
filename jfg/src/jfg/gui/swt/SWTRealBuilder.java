@@ -121,4 +121,9 @@ public class SWTRealBuilder extends SWTTextBuilder
 			return float.class;
 		return type;
 	}
+	
+	@Override
+	protected void setTextLimit(Attribute attrib, Text text)
+	{
+	}
 }

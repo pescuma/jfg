@@ -1,6 +1,7 @@
 package jfg.gui.swt;
 
 import jfg.Attribute;
+import jfg.gui.GuiWidget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -18,23 +19,16 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 		return type == Boolean.class || type == boolean.class || "checkbox".equals(type);
 	}
 	
-	public boolean wantNameLabel()
+	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
 	{
-		return false;
-	}
-	
-	public SWTAttribute build(final Composite parent, final Attribute attrib, final JfgFormData data)
-	{
-		return new AbstractSWTAttribute(parent, attrib, data) {
+		return new AbstractSWTWidget(aParent, attrib, data) {
 			
 			private Button chk;
 			private Color background;
 			
 			@Override
-			public void init(SWTCopyManager aManager)
+			protected void createWidget(Composite parent)
 			{
-				super.init(aManager);
-				
 				chk = data.componentFactory.createCheckbox(parent, SWT.NONE);
 				chk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				chk.setText(data.textTranslator.fieldName(attrib.getName()));
@@ -57,16 +51,14 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 				background = chk.getBackground();
 			}
 			
-			@Override
-			protected void guiToAttribute()
+			public Object getValue()
 			{
-				attrib.setValue(chk.getSelection() ? Boolean.TRUE : Boolean.FALSE);
+				return chk.getSelection() ? Boolean.TRUE : Boolean.FALSE;
 			}
 			
-			@Override
-			protected void attibuteToGUI()
+			public void setValue(Object value)
 			{
-				chk.setSelection((Boolean) attrib.getValue());
+				chk.setSelection((Boolean) value);
 			}
 			
 			@Override
@@ -81,7 +73,13 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 				chk.setBackground(background);
 			}
 			
+			@Override
+			public void setEnabled(boolean enabled)
+			{
+				super.setEnabled(enabled);
+				
+				chk.setEnabled(enabled);
+			}
 		};
 	}
-	
 }

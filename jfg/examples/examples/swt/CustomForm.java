@@ -41,7 +41,7 @@ public class CustomForm
 		obj.setA(1234);
 		
 		// Create the form
-		JfgFormData data = new JfgFormData();
+		JfgFormData data = new JfgFormData(JfgFormData.SYNC_GUI_BATCH);
 		data.showReadOnly = true;
 		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -136,8 +136,15 @@ public class CustomForm
 			public void addListener(final AttributeListener alistener)
 			{
 				ChangeListener listener = new ChangeListener() {
+					double old = obj.getReal();
+					
 					public void onChange()
 					{
+						double v = obj.getReal();
+						if (old == v)
+							return;
+						old = v;
+						
 						alistener.onChange();
 					}
 				};
@@ -278,5 +285,4 @@ public class CustomForm
 		}
 		display.dispose();
 	}
-	
 }

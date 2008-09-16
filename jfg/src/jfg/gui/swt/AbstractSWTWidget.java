@@ -1,31 +1,50 @@
 package jfg.gui.swt;
 
+import static jfg.gui.swt.SWTHelper.*;
 import jfg.Attribute;
 import jfg.AttributeListener;
+import jfg.gui.GuiCopyManager;
+import jfg.gui.GuiWidget;
 
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-abstract class AbstractSWTAttribute implements SWTAttribute
+abstract class AbstractSWTWidget implements GuiWidget
 {
-	protected final Composite parent;
 	protected final Attribute attrib;
 	protected final JfgFormData data;
 	
 	protected boolean ignoreToGUI;
 	protected boolean ignoreToAttribute;
 	protected AttributeListener attributeListener;
-	private SWTCopyManager manager;
+	private GuiCopyManager manager;
 	
-	public AbstractSWTAttribute(Composite parent, Attribute attrib, JfgFormData data)
+	public AbstractSWTWidget(Composite parent, Attribute attrib, JfgFormData data)
 	{
 		this.attrib = attrib;
 		this.data = data;
-		this.parent = parent;
+		
+		createWidget(createComposite(parent));
 	}
 	
-	public void init(SWTCopyManager aManager)
+	protected Composite createComposite(Composite parent)
+	{
+		Composite contentParent;
+		GridLayout layout = (GridLayout) parent.getLayout();
+		if (layout.numColumns < 1)
+			throw new IllegalArgumentException();
+		else if (layout.numColumns == 1)
+			contentParent = parent;
+		else
+			contentParent = createHorizontalComposite(parent, layout.numColumns);
+		return contentParent;
+	}
+	
+	protected abstract void createWidget(Composite parent);
+	
+	public void init(GuiCopyManager aManager)
 	{
 		manager = aManager;
 	}
@@ -58,6 +77,8 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 		return new Listener() {
 			public void handleEvent(Event event)
 			{
+				onGuiUpdated();
+				
 				if (!attrib.canWrite())
 					return;
 				
@@ -67,6 +88,11 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 				onGuiChange();
 			}
 		};
+	}
+	
+	protected void onGuiUpdated()
+	{
+		manager.guiUpdated(this);
 	}
 	
 	protected void onGuiChange()
@@ -103,7 +129,10 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 		ignoreToGUI = false;
 	}
 	
-	protected abstract void guiToAttribute();
+	protected void guiToAttribute()
+	{
+		attrib.setValue(getValue());
+	}
 	
 	public void copyToGUI()
 	{
@@ -117,7 +146,10 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 		ignoreToAttribute = false;
 	}
 	
-	protected abstract void attibuteToGUI();
+	protected void attibuteToGUI()
+	{
+		setValue(attrib.getValue());
+	}
 	
 	protected void markField()
 	{
@@ -127,4 +159,16 @@ abstract class AbstractSWTAttribute implements SWTAttribute
 	{
 	}
 	
+	public Attribute getAttribute()
+	{
+		return attrib;
+	}
+	
+	public void setEnabled(boolean enabled)
+	{
+	}
+	
+	public void setVisible(boolean visible)
+	{
+	}
 }
