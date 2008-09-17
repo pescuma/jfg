@@ -44,6 +44,6 @@ public class IndependentSWTCopyManager extends AbstractSWTCopyManager
 		}
 		
 		getDisplay().timerExec(-1, copyTimer);
-		getDisplay().timerExec(data.guiUpdateTimeout, copyTimer);
+		getDisplay().timerExec(data.modelUpdateTimeout, copyTimer);
 	}
 }

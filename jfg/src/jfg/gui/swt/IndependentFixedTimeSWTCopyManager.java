@@ -42,6 +42,6 @@ public class IndependentFixedTimeSWTCopyManager extends AbstractSWTCopyManager
 		};
 		widgetTimers.put(widget, copyTimer);
 		
-		getDisplay().timerExec(data.guiUpdateTimeout, copyTimer);
+		getDisplay().timerExec(data.modelUpdateTimeout, copyTimer);
 	}
 }

@@ -38,6 +38,6 @@ public class BatchSWTCopyManager extends AbstractSWTCopyManager
 	{
 		getDisplay().timerExec(-1, copyTimer);
 		changedWidgets.add(widget);
-		getDisplay().timerExec(data.guiUpdateTimeout, copyTimer);
+		getDisplay().timerExec(data.modelUpdateTimeout, copyTimer);
 	}
 }

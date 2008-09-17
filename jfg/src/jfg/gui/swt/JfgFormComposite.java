@@ -29,7 +29,7 @@ public class JfgFormComposite extends Composite
 		super(parent, style);
 		this.data = data;
 		
-		switch (data.guiUpdateStrategy)
+		switch (data.modelUpdateStrategy)
 		{
 			case Never:
 				copyManager = new DontUpdateSWTCopyManager(this, data);
@@ -38,17 +38,17 @@ public class JfgFormComposite extends Composite
 				copyManager = new FastSWTCopyManager(this, data);
 				break;
 			case BufferUpdatesForTimeout:
-				if (data.guiUpdateTimeout <= 0)
+				if (data.modelUpdateTimeout <= 0)
 					throw new IllegalArgumentException();
 				copyManager = new IndependentFixedTimeSWTCopyManager(this, data);
 				break;
 			case UpdateAfterFieldStoppedChanging:
-				if (data.guiUpdateTimeout <= 0)
+				if (data.modelUpdateTimeout <= 0)
 					throw new IllegalArgumentException();
 				copyManager = new IndependentSWTCopyManager(this, data);
 				break;
 			case UpdateAfterAllFieldsStoppedChanging:
-				if (data.guiUpdateTimeout <= 0)
+				if (data.modelUpdateTimeout <= 0)
 					throw new IllegalArgumentException();
 				copyManager = new BatchSWTCopyManager(this, data);
 				break;

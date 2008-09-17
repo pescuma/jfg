@@ -42,7 +42,7 @@ public final class JfgFormData
 	
 	public boolean updateGuiWhenModelChanges = true;
 	
-	enum GuiUpdateStrategy
+	enum ModelUpdateStrategy
 	{
 		Never,
 		UpdateOnGuiChange,
@@ -51,12 +51,12 @@ public final class JfgFormData
 		UpdateAfterAllFieldsStoppedChanging,
 	}
 	
+	public ModelUpdateStrategy modelUpdateStrategy = ModelUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;
+	
 	/** In ms */
-	public int guiUpdateTimeout = 1000;
+	public int modelUpdateTimeout = 1000;
 	
 	public boolean markFieldsWhithUncommitedChanges = true;
-	
-	public GuiUpdateStrategy guiUpdateStrategy = GuiUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;
 	
 	public JfgFormData()
 	{
@@ -183,30 +183,30 @@ public final class JfgFormData
 		switch (style)
 		{
 			case SYNC_GUI:
-				guiUpdateTimeout = 1000;
-				guiUpdateStrategy = GuiUpdateStrategy.UpdateAfterFieldStoppedChanging;
+				modelUpdateTimeout = 1000;
+				modelUpdateStrategy = ModelUpdateStrategy.UpdateAfterFieldStoppedChanging;
 				updateGuiWhenModelChanges = true;
 				markFieldsWhithUncommitedChanges = true;
 				break;
 			case SYNC_GUI_BATCH:
-				guiUpdateStrategy = GuiUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;
-				guiUpdateTimeout = 1000;
+				modelUpdateStrategy = ModelUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;
+				modelUpdateTimeout = 1000;
 				updateGuiWhenModelChanges = true;
 				markFieldsWhithUncommitedChanges = true;
 				break;
 			case SYNC_GUI_FAST:
-				guiUpdateStrategy = GuiUpdateStrategy.BufferUpdatesForTimeout;
-				guiUpdateTimeout = 300;
+				modelUpdateStrategy = ModelUpdateStrategy.BufferUpdatesForTimeout;
+				modelUpdateTimeout = 300;
 				updateGuiWhenModelChanges = true;
 				markFieldsWhithUncommitedChanges = false;
 				break;
 			case SYNC_GUI_NO_DELAY:
-				guiUpdateStrategy = GuiUpdateStrategy.UpdateOnGuiChange;
+				modelUpdateStrategy = ModelUpdateStrategy.UpdateOnGuiChange;
 				updateGuiWhenModelChanges = true;
 				markFieldsWhithUncommitedChanges = false;
 				break;
 			case DIALOG:
-				guiUpdateStrategy = GuiUpdateStrategy.Never;
+				modelUpdateStrategy = ModelUpdateStrategy.Never;
 				updateGuiWhenModelChanges = false;
 				markFieldsWhithUncommitedChanges = false;
 				break;
