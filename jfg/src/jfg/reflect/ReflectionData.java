@@ -1,3 +1,21 @@
+/*
+ * Copyright 2008 Riimport java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import jfg.AttributeListenerConverter;
+sion 3 of the License, or (at your option) any later version.
+ * 
+ * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package jfg.reflect;
 
 import java.lang.reflect.Member;
