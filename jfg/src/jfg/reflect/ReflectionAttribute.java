@@ -194,7 +194,7 @@ public class ReflectionAttribute implements Attribute
 		
 		boolean hasNotNull = !range.canBeNull;
 		boolean hasMin = (range.min > Long.MIN_VALUE || !Double.isInfinite(range.minf));
-		boolean hasMax = (range.max > Long.MAX_VALUE || !Double.isInfinite(range.maxf));
+		boolean hasMax = (range.max < Long.MAX_VALUE || !Double.isInfinite(range.maxf));
 		boolean hasValues = type.isEnum();
 		boolean hasComparator = (range.comparator != null);
 		if (!hasNotNull && !hasMin && !hasMax && !hasValues && !hasComparator)
