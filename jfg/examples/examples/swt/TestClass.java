@@ -1,5 +1,7 @@
 package examples.swt;
 
+import java.io.File;
+
 class TestClass extends ObjectWithListener
 {
 	static enum TestEnum
@@ -19,6 +21,8 @@ class TestClass extends ObjectWithListener
 	private TestClass.TestEnum side;
 	private double real;
 	private TestSub sub = new TestSub();
+	private File file;
+	private String path;
 	
 	public int getA()
 	{
@@ -129,12 +133,32 @@ class TestClass extends ObjectWithListener
 //			notifyListeners();
 //		}
 	
+	public File getFile()
+	{
+		return file;
+	}
+	
+	public void setFile(File file)
+	{
+		this.file = file;
+	}
+	
+	public String getPath()
+	{
+		return path;
+	}
+	
+	public void setPath(String path)
+	{
+		this.path = path;
+	}
+	
 	@Override
 	public String toString()
 	{
 		return "a = " + getA() + "\nb = " + getB() + "\nc = " + getC() + "\nname = " + getName() + "\npassword = " + getPassword()
 				+ "\nvalid = " + isValid() + "\nside = " + getSide() + "\nreal = " + getReal() + "\n  b = " + getSub().getB() + "\n  cd = "
-				+ getSub().getCd();
+				+ getSub().getCd() + "\nfile = " + getFile() + "\npath = " + getPath();
 		
 	}
 }

@@ -245,7 +245,8 @@ public class JfgFormComposite extends Composite
 		
 		GridLayout layout = (GridLayout) getLayout();
 		
-		Group frame = data.componentFactory.createGroup(createHorizontalComposite(parent, layout.numColumns), SWT.NONE);
+		Group frame = data.componentFactory.createGroup(setupHorizontalComposite(data.componentFactory.createComposite(parent, SWT.NONE),
+				layout.numColumns), SWT.NONE);
 		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		frame.setLayout(new GridLayout(2, false));
 		frame.setText(data.textTranslator.groupName(group.getName()));

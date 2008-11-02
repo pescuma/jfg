@@ -14,29 +14,28 @@
 
 package jfg.gui.swt;
 
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Scale;
+import java.io.File;
+
+import jfg.Attribute;
+
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Text;
 
-public interface SWTComponentFactory
+public class SWTDirectoryBuilder extends SWTFileBuilder
 {
-	Text createText(Composite parent, int style);
+	@Override
+	public boolean accept(Attribute attrib)
+	{
+		Object type = attrib.getType();
+		return type == File.class || type == String.class || "directory".equals(type);
+	}
 	
-	Button createCheckbox(Composite parent, int style);
+	@Override
+	protected String openDialog(Attribute attrib, Text text)
+	{
+		DirectoryDialog dialog = new DirectoryDialog(text.getShell());
+		dialog.setFilterPath(text.getText().trim());
+		return dialog.open();
+	}
 	
-	Combo createCombo(Composite parent, int style);
-	
-	Group createGroup(Composite parent, int style);
-	
-	Scale createScale(Composite parent, int style);
-	
-	Label createLabel(Composite parent, int style);
-	
-	Composite createComposite(Composite parent, int style);
-	
-	Button createButton(Composite parent, int style);
 }

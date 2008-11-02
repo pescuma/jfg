@@ -20,6 +20,7 @@ import jfg.AttributeListener;
 import jfg.gui.GuiCopyManager;
 import jfg.gui.GuiWidget;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -52,7 +53,7 @@ abstract class AbstractSWTWidget implements GuiWidget
 		else if (layout.numColumns == 1)
 			contentParent = parent;
 		else
-			contentParent = createHorizontalComposite(parent, layout.numColumns);
+			contentParent = setupHorizontalComposite(data.componentFactory.createComposite(parent, SWT.NONE), layout.numColumns);
 		return contentParent;
 	}
 	

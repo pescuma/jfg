@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
 
@@ -47,6 +48,21 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 	public Scale createScale(Composite parent, int style)
 	{
 		return new Scale(parent, style);
+	}
+	
+	public Label createLabel(Composite parent, int style)
+	{
+		return new Label(parent, style);
+	}
+	
+	public Composite createComposite(Composite parent, int style)
+	{
+		return new Composite(parent, style);
+	}
+	
+	public Button createButton(Composite parent, int style)
+	{
+		return new Button(parent, style);
 	}
 	
 }

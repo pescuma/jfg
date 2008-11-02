@@ -1,14 +1,10 @@
 /*
- * Copyright 2008 Riimport java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import jfg.AttributeListenerConverter;
-sion 3 of the License, or (at your option) any later version.
+ * Copyright 2008 Ricardo Pescuma Domenecci
+ * 
+ * This file is part of jfg.
+ * 
+ * jfg is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * 
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
@@ -17,6 +13,8 @@ sion 3 of the License, or (at your option) any later version.
  */
 
 package jfg.reflect;
+
+import static jfg.StringUtils.*;
 
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
@@ -119,8 +117,8 @@ public class ReflectionData
 			for (int i = 0; i < getterREs.length; i++)
 			{
 				String templ = getterTemplates.get(i);
-				templ = templ.replace("%Field%", "([A-Z_][a-zA-Z0-9_])");
-				templ = templ.replace("%field%", "([a-z_][a-zA-Z0-9_])");
+				templ = templ.replace("%Field%", "([A-Z_][a-zA-Z0-9_]+)");
+				templ = templ.replace("%field%", "([a-z_][a-zA-Z0-9_]+)");
 				getterREs[i] = Pattern.compile("^" + templ + "$");
 			}
 		}
@@ -159,21 +157,11 @@ public class ReflectionData
 		for (int i = 0; i < ret.length; i++)
 		{
 			String templ = templates.get(i);
-			templ = templ.replace("%Field%", firstUp(fieldName));
+			templ = templ.replace("%Field%", firstUpper(fieldName));
 			templ = templ.replace("%field%", firstLower(fieldName));
 			ret[i] = templ;
 		}
 		return ret;
-	}
-	
-	private String firstUp(String str)
-	{
-		return str.substring(0, 1).toUpperCase() + str.substring(1);
-	}
-	
-	private String firstLower(String str)
-	{
-		return str.substring(0, 1).toLowerCase() + str.substring(1);
 	}
 	
 	public boolean ignoreForAsGroup(String fullName)

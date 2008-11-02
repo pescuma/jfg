@@ -15,7 +15,9 @@
 package jfg.gui.swt;
 
 import static java.lang.Math.*;
+import static jfg.StringUtils.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -100,6 +102,8 @@ public final class JfgFormData
 		
 		builders.put(Enum.class, new SWTComboBuilder());
 		
+		builders.put(File.class, new SWTFileBuilder());
+		
 		builders.put("text", new SWTTextBuilder());
 		builders.put("number", new SWTNumberBuilder());
 		builders.put("real", new SWTRealBuilder());
@@ -107,6 +111,10 @@ public final class JfgFormData
 		builders.put("combo", new SWTComboBuilder());
 		builders.put("password", new SWTPasswordBuilder());
 		builders.put("scale", new SWTScaleBuilder());
+		builders.put("file", new SWTFileBuilder());
+		builders.put("file_open", new SWTFileBuilder());
+		builders.put("file_save", new SWTFileSaveBuilder());
+		builders.put("directory", new SWTDirectoryBuilder());
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
@@ -118,12 +126,39 @@ public final class JfgFormData
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
 			{
-				String name = getSimpleName(attrib).toLowerCase();
+				String name = getSimpleName(attrib);
 				
-				if (name.indexOf("password") >= 0 || name.indexOf("passwd") >= 0)
+				if (attrib.getType() == String.class && (matches(name, "password") || matches(name, "passwd")))
 					return "password";
 				
+				if (attrib.getType() == String.class && (matches(name, "filename") || matches(name, "file")))
+					return "file";
+				
+				if ((attrib.getType() == String.class || attrib.getType() == File.class)
+						&& (matches(name, "folder") || matches(name, "path") || matches(name, "directory") || matches(name, "dir")))
+					return "directory";
+				
 				return null;
+			}
+			
+			private boolean matches(String name, String str)
+			{
+				if (name.toLowerCase().equals(str))
+					return true;
+				if (name.startsWith(str))
+					return true;
+				int index = name.indexOf(firstUpper(str));
+				if (index >= 0)
+				{
+					index += str.length();
+					if (index >= name.length())
+						return true;
+					
+					String c = name.substring(index, index + 1);
+					if (Character.isUpperCase(c.charAt(0)))
+						return true;
+				}
+				return false;
 			}
 			
 			private String getSimpleName(Attribute attrib)

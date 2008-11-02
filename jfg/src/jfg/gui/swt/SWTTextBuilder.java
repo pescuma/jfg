@@ -32,11 +32,6 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 		return type == String.class || "text".equals(type);
 	}
 	
-	public boolean wantNameLabel()
-	{
-		return true;
-	}
-	
 	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
 	{
 		return new AbstractLabeledSWTWidget(aParent, attrib, data) {

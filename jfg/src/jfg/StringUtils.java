@@ -12,30 +12,29 @@
  * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jfg.gui.swt;
+package jfg;
 
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-
-class SWTHelper
+public class StringUtils
 {
-	public static GridLayout createBorderlessGridLayout(int numColumns, boolean makeColumnsEqualWidth)
+	public static String firstUpper(String str)
 	{
-		GridLayout layout = new GridLayout(numColumns, makeColumnsEqualWidth);
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		return layout;
+		int len = str.length();
+		if (len <= 0)
+			return "";
+		else if (len == 1)
+			return str.toUpperCase();
+		else
+			return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 	
-	public static Composite setupHorizontalComposite(Composite composite, int horizontalSpan)
+	public static String firstLower(String str)
 	{
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = horizontalSpan;
-		composite.setLayoutData(gd);
-		
-		composite.setLayout(createBorderlessGridLayout(1, true));
-		
-		return composite;
+		int len = str.length();
+		if (len <= 0)
+			return "";
+		else if (len == 1)
+			return str.toLowerCase();
+		else
+			return str.substring(0, 1).toLowerCase() + str.substring(1);
 	}
 }

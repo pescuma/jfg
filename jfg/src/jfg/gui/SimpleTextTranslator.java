@@ -14,6 +14,8 @@
 
 package jfg.gui;
 
+import static jfg.StringUtils.*;
+
 public class SimpleTextTranslator implements TextTranslator
 {
 	public String fieldName(String fieldName)
@@ -44,17 +46,6 @@ public class SimpleTextTranslator implements TextTranslator
 		text = text.replaceAll("(- )+$", "");
 		text = text.replaceAll(" +", " ");
 		return firstUpper(text.trim());
-	}
-	
-	private String firstUpper(String str)
-	{
-		int len = str.length();
-		if (len <= 0)
-			return "";
-		else if (len == 1)
-			return str.toUpperCase();
-		else
-			return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 	
 	public String translate(String text)

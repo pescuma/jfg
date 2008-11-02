@@ -35,7 +35,7 @@ abstract class AbstractLabeledSWTWidget extends AbstractSWTWidget
 	@Override
 	protected Composite createComposite(Composite parent)
 	{
-		name = new Label(parent, SWT.NONE);
+		name = data.componentFactory.createLabel(parent, SWT.NONE);
 		name.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		name.setText(data.textTranslator.fieldName(attrib.getName()) + ":");
 		
@@ -46,7 +46,7 @@ abstract class AbstractLabeledSWTWidget extends AbstractSWTWidget
 		else if (layout.numColumns == 2)
 			contentParent = parent;
 		else
-			contentParent = createHorizontalComposite(parent, layout.numColumns - 1);
+			contentParent = setupHorizontalComposite(data.componentFactory.createComposite(parent, SWT.NONE), layout.numColumns - 1);
 		return contentParent;
 	}
 	
