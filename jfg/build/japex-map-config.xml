@@ -11,7 +11,7 @@
     <param name="japex.resultUnit" value="ms"/>
 
     <driver name="MapGroup">
-        <param name="japex.driverClass" value="jfg.map.MapGroupPerformanceTest"/>
+        <param name="japex.driverClass" value="org.pescuma.jfg.map.MapGroupPerformanceTest"/>
         <param name="description" value="MapGroup Driver"/>
     </driver>
     

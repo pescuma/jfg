@@ -11,15 +11,15 @@
     <param name="japex.resultUnit" value="ms"/>
 
     <driver name="ObjectReflecionGroup">
-        <param name="japex.driverClass" value="jfg.reflect.ReflectionGroupPerformanceTest"/>
+        <param name="japex.driverClass" value="org.pescuma.jfg.reflect.ReflectionGroupPerformanceTest"/>
         <param name="description" value="ObjectReflecionGroup Driver"/>
     </driver>
     
     <testCase name="TestSub">
-    	<param name="class" value="jfg.reflect.TestSub"/>
+    	<param name="class" value="org.pescuma.jfg.reflect.TestSub"/>
     </testCase>
     <testCase name="TestClass">
-    	<param name="class" value="jfg.reflect.TestClass"/>
+    	<param name="class" value="org.pescuma.jfg.reflect.TestClass"/>
     </testCase>
 
 </testSuite>
