@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 
 import org.pescuma.jfg.AttributeListenerConverter;
 
-
 public class ReflectionData
 {
 	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters;
@@ -46,6 +45,8 @@ public class ReflectionData
 	public boolean usePublic = true;
 	public boolean useProtected = false;
 	public boolean useFriend = false;
+	public boolean useTransient = false;
+	public boolean useVolatile = true;
 	
 	private Pattern[] getterREs;
 	
@@ -86,7 +87,15 @@ public class ReflectionData
 		memberFilter = new MemberFilter() {
 			public boolean accept(Member member)
 			{
+				if (member.isSynthetic())
+					return false;
+				
 				int modifiers = member.getModifiers();
+				
+				if (!useTransient && Modifier.isTransient(modifiers))
+					return false;
+				if (!useVolatile && Modifier.isVolatile(modifiers))
+					return false;
 				
 				if (usePublic && Modifier.isPublic(modifiers))
 					return true;
