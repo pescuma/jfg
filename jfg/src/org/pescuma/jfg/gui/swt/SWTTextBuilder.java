@@ -9,20 +9,18 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
 
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeValueRange;
-import org.pescuma.jfg.gui.GuiWidget;
 
 public class SWTTextBuilder implements SWTWidgetBuilder
 {
@@ -32,26 +30,30 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 		return type == String.class || "text".equals(type);
 	}
 	
-	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractLabeledSWTWidget(aParent, attrib, data) {
+		return new AbstractLabelWidgetSWTWidget(attrib, data) {
 			
 			private Text text;
 			private Color background;
 			
 			@Override
-			protected void createWidget(Composite parent)
+			protected Control createWidget(Composite parent)
 			{
-				text = data.componentFactory.createText(parent, (attrib.canWrite() ? SWT.NONE : SWT.READ_ONLY) | getAdditionalTextStyle());
-				text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				text = data.componentFactory.createText(parent, (attrib.canWrite() ? SWT.NONE : SWT.READ_ONLY)
+						| getAdditionalTextStyle());
 				text.addListener(SWT.Modify, getModifyListener());
 				text.addListener(SWT.Dispose, getDisposeListener());
-				addValidation(text, getType(attrib.getType()));
-				setTextLimit(attrib, text);
 				
-				addAttributeListener();
+				if (attrib.canWrite())
+				{
+					addValidation(text, getType(attrib.getType()));
+					setTextLimit(attrib, text);
+				}
 				
 				background = text.getBackground();
+				
+				return text;
 			}
 			
 			public Object getValue()
@@ -78,12 +80,16 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 			@Override
 			protected void markField()
 			{
+				super.markField();
+				
 				text.setBackground(data.createBackgroundColor(text, background));
 			}
 			
 			@Override
 			protected void unmarkField()
 			{
+				super.unmarkField();
+				
 				text.setBackground(background);
 			}
 			

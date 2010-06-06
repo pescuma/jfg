@@ -9,7 +9,7 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.reflect;
@@ -19,11 +19,17 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeListenerConverter;
-
+import org.pescuma.jfg.SpecialFieldHandler;
 
 class ReflectionUtils
 {
@@ -39,7 +45,8 @@ class ReflectionUtils
 		return null;
 	}
 	
-	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, Class<?> returnType, String methodName, Class<?>... paramTypes)
+	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, Class<?> returnType, String methodName,
+			Class<?>... paramTypes)
 	{
 		Method method = getMethod(memberFilter, cls, methodName, paramTypes);
 		if (method != null && method.getReturnType() == returnType)
@@ -48,7 +55,8 @@ class ReflectionUtils
 			return null;
 	}
 	
-	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, String[] methodNames, Class<?>... paramTypes)
+	public static Method getMethod(MemberFilter memberFilter, Class<?> cls, String[] methodNames,
+			Class<?>... paramTypes)
 	{
 		for (String methodName : methodNames)
 		{
@@ -84,8 +92,8 @@ class ReflectionUtils
 		return null;
 	}
 	
-	public static Method getListenerMethod(MemberFilter memberFilter, Class<?> cls, String[] addMethodNames, String[] removeMethodNames,
-			ReflectionData data)
+	public static Method getListenerMethod(MemberFilter memberFilter, Class<?> cls, String[] addMethodNames,
+			String[] removeMethodNames, ReflectionData data)
 	{
 		for (Method m : cls.getMethods())
 		{
@@ -206,10 +214,18 @@ class ReflectionUtils
 		}
 	}
 	
-	public static void set(Object obj, Field field, Object value)
+	public static void set(Object obj, Field field, Object value, List<SpecialFieldHandler> specialFieldHandlers)
 	{
 		try
 		{
+			for (SpecialFieldHandler sfh : specialFieldHandlers)
+			{
+				if (sfh.handles(field))
+				{
+					sfh.setter(field, obj, value);
+					return;
+				}
+			}
 			field.set(obj, value);
 		}
 		catch (IllegalArgumentException e)
@@ -222,10 +238,15 @@ class ReflectionUtils
 		}
 	}
 	
-	public static Object get(Object obj, Field field)
+	public static Object get(Object obj, Field field, List<SpecialFieldHandler> specialFieldHandlers)
 	{
 		try
 		{
+			for (SpecialFieldHandler sfh : specialFieldHandlers)
+			{
+				if (sfh.handles(field))
+					return sfh.getter(field, obj);
+			}
 			return field.get(obj);
 		}
 		catch (IllegalArgumentException e)
@@ -289,8 +310,9 @@ class ReflectionUtils
 		if (converter != null)
 			return converter.wrapListener(attributeListener);
 		
-		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class[] { interfaceClass }, new CallbackInvocationHandler(
-				getListenerInterfaceMethod(interfaceClass, data).getName(), attributeListener));
+		return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(), new Class[] { interfaceClass },
+				new CallbackInvocationHandler(getListenerInterfaceMethod(interfaceClass, data).getName(),
+						attributeListener));
 	}
 	
 	private static class CallbackInvocationHandler implements InvocationHandler
@@ -398,4 +420,69 @@ class ReflectionUtils
 		}
 		return null;
 	}
+	
+	public static Set<Class<?>> getListElementTypes(Field field)
+	{
+		return getListElementTypes(field.getGenericType());
+	}
+	
+	public static Set<Class<?>> getListElementTypes(Method method)
+	{
+		return getListElementTypes(method.getGenericReturnType());
+	}
+	
+	private static Set<Class<?>> getListElementTypes(Type reflectionType)
+	{
+		Set<Class<?>> ret = new HashSet<Class<?>>();
+		
+		if (!(reflectionType instanceof ParameterizedType))
+			return ret;
+		
+		ParameterizedType pt = (ParameterizedType) reflectionType;
+		if (pt.getActualTypeArguments().length != 1)
+			return ret;
+		
+		Type argType = pt.getActualTypeArguments()[0];
+		if (argType instanceof WildcardType)
+		{
+			WildcardType wt = (WildcardType) argType;
+			for (Type type : wt.getUpperBounds())
+				addListElementType(ret, type);
+		}
+		else
+		{
+			addListElementType(ret, argType);
+		}
+		
+		return ret;
+	}
+	
+	public static Set<Class<?>> getListElementTypes(List<?> list)
+	{
+		Set<Class<?>> ret = new HashSet<Class<?>>();
+		
+		Type superclassType = list.getClass().getGenericSuperclass();
+		if (!(superclassType instanceof ParameterizedType))
+			return ret;
+		
+		ParameterizedType pt = (ParameterizedType) superclassType;
+		if (pt.getActualTypeArguments().length != 1)
+			return ret;
+		
+		Type argType = pt.getActualTypeArguments()[0];
+		addListElementType(ret, argType);
+		
+		return ret;
+	}
+	
+	private static void addListElementType(Set<Class<?>> elementTypes, Type type)
+	{
+		if (type instanceof Class<?>)
+		{
+			Class<?> cls = (Class<?>) type;
+			if (cls != Object.class)
+				elementTypes.add(cls);
+		}
+	}
+	
 }

@@ -9,24 +9,18 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
 
-import static org.pescuma.jfg.gui.swt.SWTHelper.*;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.gui.GuiCopyManager;
-import org.pescuma.jfg.gui.GuiWidget;
 
-abstract class AbstractSWTWidget implements GuiWidget
+abstract class AbstractSWTWidget implements SWTGuiWidget
 {
 	protected final Attribute attrib;
 	protected final JfgFormData data;
@@ -36,33 +30,19 @@ abstract class AbstractSWTWidget implements GuiWidget
 	protected AttributeListener attributeListener;
 	private GuiCopyManager manager;
 	
-	public AbstractSWTWidget(Composite parent, Attribute attrib, JfgFormData data)
+	public AbstractSWTWidget(Attribute attrib, JfgFormData data)
 	{
 		this.attrib = attrib;
 		this.data = data;
-		
-		createWidget(createComposite(parent));
 	}
 	
-	protected Composite createComposite(Composite parent)
-	{
-		Composite contentParent;
-		GridLayout layout = (GridLayout) parent.getLayout();
-		if (layout.numColumns < 1)
-			throw new IllegalArgumentException();
-		else if (layout.numColumns == 1)
-			contentParent = parent;
-		else
-			contentParent = setupHorizontalComposite(data.componentFactory.createComposite(parent, SWT.NONE), layout.numColumns);
-		return contentParent;
-	}
-	
-	protected abstract void createWidget(Composite parent);
-	
-	public void init(GuiCopyManager aManager)
+	public void init(SWTLayoutBuilder layout, GuiCopyManager aManager)
 	{
 		manager = aManager;
+		createWidgets(layout);
 	}
+	
+	protected abstract void createWidgets(SWTLayoutBuilder layout);
 	
 	protected void addAttributeListener()
 	{
@@ -92,17 +72,22 @@ abstract class AbstractSWTWidget implements GuiWidget
 		return new Listener() {
 			public void handleEvent(Event event)
 			{
-				onGuiUpdated();
-				
-				if (!attrib.canWrite())
-					return;
-				
-				if (ignoreToAttribute)
-					return;
-				
-				onGuiChange();
+				onWidgetModify();
 			}
 		};
+	}
+	
+	protected void onWidgetModify()
+	{
+		onGuiUpdated();
+		
+		if (!attrib.canWrite())
+			return;
+		
+		if (ignoreToAttribute)
+			return;
+		
+		onGuiChange();
 	}
 	
 	protected void onGuiUpdated()

@@ -9,7 +9,7 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.reflect;
@@ -29,12 +29,12 @@ import java.util.List;
 
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
+import org.pescuma.jfg.AttributeList;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeValueRange;
 import org.pescuma.jfg.model.ann.CompareWith;
 import org.pescuma.jfg.model.ann.NotNull;
 import org.pescuma.jfg.model.ann.Range;
-
 
 public class ReflectionAttribute implements Attribute
 {
@@ -64,21 +64,6 @@ public class ReflectionAttribute implements Attribute
 		}
 	};
 	
-	public ReflectionAttribute(Object obj, Field field)
-	{
-		this(obj, field, new ReflectionData());
-	}
-	
-	public ReflectionAttribute(Object obj, Field field, ReflectionData data)
-	{
-		this(new ReflectionGroup(obj, data), obj, field, data);
-	}
-	
-	ReflectionAttribute(AttributeGroup parent, Object obj, Field field, ReflectionData data)
-	{
-		this(parent, obj, field.getName(), data);
-	}
-	
 	public ReflectionAttribute(Object obj, String fieldName)
 	{
 		this(obj, fieldName, new ReflectionData());
@@ -96,7 +81,7 @@ public class ReflectionAttribute implements Attribute
 		this.data = data;
 		useStatic = (obj instanceof Class<?>);
 		
-		field = getField(memberFilter, getObjClass(), simpleName);
+		field = ReflectionUtils.getField(memberFilter, getObjClass(), simpleName);
 		getter = getMethod(memberFilter, getObjClass(), data.getGetterNames(simpleName));
 		
 		assertValid();
@@ -118,6 +103,16 @@ public class ReflectionAttribute implements Attribute
 		attributeValueRange = getRangeData(simpleName);
 		
 		setAccessible();
+	}
+	
+	public Field getField()
+	{
+		return field;
+	}
+	
+	public Method getGetter()
+	{
+		return getter;
 	}
 	
 	private String createFullName(String simpleName)
@@ -184,7 +179,7 @@ public class ReflectionAttribute implements Attribute
 		if (type.isPrimitive())
 			range.canBeNull = false;
 		
-		range.addFrom(getField(new MemberFilter() {
+		range.addFrom(ReflectionUtils.getField(new MemberFilter() {
 			public boolean accept(Member member)
 			{
 				return useStatic == Modifier.isStatic(member.getModifiers());
@@ -302,11 +297,25 @@ public class ReflectionAttribute implements Attribute
 		if (data.ignoreForAsGroup(type.getName()))
 			return null;
 		
+		// TODO Support object creation
 		Object value = getValue();
 		if (value == null)
 			return null;
 		
 		return new ReflectionGroup(getName(), value, data);
+	}
+	
+	public AttributeList asList()
+	{
+		if (!type.isInstance(List.class))
+			return null;
+		
+		// TODO Support object creation
+		Object value = getValue();
+		if (value == null)
+			return null;
+		
+		return new ReflectionList(getName(), field, getter, value, data);
 	}
 	
 	public boolean canWrite()
@@ -322,7 +331,7 @@ public class ReflectionAttribute implements Attribute
 		}
 		else if (field != null)
 		{
-			return get(getObjInstance(), field);
+			return get(getObjInstance(), field, data.specialFieldHandlers);
 		}
 		else
 		{
@@ -334,6 +343,8 @@ public class ReflectionAttribute implements Attribute
 	{
 		if (!canWrite())
 			throw new ReflectionAttributeException("Field is ready-only");
+		if (attributeValueRange != null && !attributeValueRange.canBeNull() && value == null)
+			throw new ReflectionAttributeException("Field does not allow null");
 		
 		if (setter != null)
 		{
@@ -341,7 +352,7 @@ public class ReflectionAttribute implements Attribute
 		}
 		else if (field != null)
 		{
-			set(getObjInstance(), field, value);
+			set(getObjInstance(), field, value, data.specialFieldHandlers);
 		}
 		else
 		{
@@ -388,7 +399,8 @@ public class ReflectionAttribute implements Attribute
 					public void onChange()
 					{
 						Object newValue = getValue();
-						if ((oldValue == newValue) || (oldValue != null && newValue != null && oldValue.equals(newValue)))
+						if ((oldValue == newValue)
+								|| (oldValue != null && newValue != null && oldValue.equals(newValue)))
 							return;
 						oldValue = newValue;
 						

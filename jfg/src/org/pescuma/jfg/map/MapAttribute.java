@@ -9,7 +9,7 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.map;
@@ -19,9 +19,9 @@ import java.util.Map;
 import org.pescuma.jfg.AbstractAttributeValueRange;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
+import org.pescuma.jfg.AttributeList;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeValueRange;
-
 
 public class MapAttribute implements Attribute
 {
@@ -111,6 +111,11 @@ public class MapAttribute implements Attribute
 			return null;
 		
 		return new MapGroup(getName(), value, externalType);
+	}
+	
+	public AttributeList asList()
+	{
+		return null;
 	}
 	
 	public boolean canListen()

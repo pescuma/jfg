@@ -9,7 +9,7 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
@@ -19,12 +19,13 @@ import static org.pescuma.jfg.gui.swt.TypeUtils.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeValueRange;
-import org.pescuma.jfg.gui.GuiWidget;
 
 public class SWTScaleBuilder implements SWTWidgetBuilder
 {
@@ -38,9 +39,9 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 		return typeIsNumber(type) || typeIsReal(type) || "scale".equals(type);
 	}
 	
-	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractLabeledSWTWidget(aParent, attrib, data) {
+		return new AbstractLabelWidgetSWTWidget(attrib, data) {
 			
 			private Scale scale;
 			private Color background;
@@ -54,17 +55,27 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 			}
 			
 			@Override
-			protected void createWidget(Composite parent)
+			protected Control createWidget(Composite parent)
 			{
 				scale = data.componentFactory.createScale(parent, SWT.NONE);
-				scale.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				scale.addListener(SWT.Selection, getModifyListener());
 				scale.addListener(SWT.Dispose, getDisposeListener());
 				setLimits();
 				
-				addAttributeListener();
+				// SWT does not support a read-only scale
+				if (!attrib.canWrite())
+				{
+					scale.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event)
+						{
+							copyToGUI();
+						}
+					});
+				}
 				
 				background = scale.getBackground();
+				
+				return scale;
 			}
 			
 			private void setLimits()
@@ -181,12 +192,16 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 			@Override
 			protected void markField()
 			{
+				super.markField();
+				
 				scale.setBackground(data.createBackgroundColor(scale, background));
 			}
 			
 			@Override
 			protected void unmarkField()
 			{
+				super.unmarkField();
+				
 				scale.setBackground(background);
 			}
 			

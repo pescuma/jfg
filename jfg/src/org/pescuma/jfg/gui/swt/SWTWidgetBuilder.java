@@ -9,19 +9,16 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
 
-
-import org.eclipse.swt.widgets.Composite;
 import org.pescuma.jfg.Attribute;
-import org.pescuma.jfg.gui.GuiWidget;
 
 public interface SWTWidgetBuilder
 {
 	boolean accept(Attribute attrib);
 	
-	GuiWidget build(Composite parent, Attribute attrib, JfgFormData data);
+	SWTGuiWidget build(Attribute attrib, JfgFormData data);
 }

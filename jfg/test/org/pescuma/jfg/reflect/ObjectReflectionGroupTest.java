@@ -9,7 +9,7 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.reflect;
@@ -32,6 +32,7 @@ import org.pescuma.jfg.model.ann.CompareWith;
 import org.pescuma.jfg.model.ann.NotNull;
 import org.pescuma.jfg.model.ann.Range;
 
+@SuppressWarnings("unused")
 public class ObjectReflectionGroupTest
 {
 	private static class TestClassNoData

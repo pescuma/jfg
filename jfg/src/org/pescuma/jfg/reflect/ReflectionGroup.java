@@ -9,11 +9,12 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.reflect;
 
+import static org.pescuma.jfg.StringUtils.*;
 import static org.pescuma.jfg.reflect.ReflectionUtils.*;
 
 import java.lang.reflect.Field;
@@ -22,14 +23,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeListener;
-
 
 public class ReflectionGroup implements AttributeGroup
 {
@@ -37,7 +38,7 @@ public class ReflectionGroup implements AttributeGroup
 	private final Object obj;
 	private final boolean useStatic;
 	private final ReflectionData data;
-	private ArrayList<Object> attributes;
+	private ArrayList<ReflectionAttribute> attributes;
 	private Method addListener;
 	private Method removeListener;
 	
@@ -102,54 +103,72 @@ public class ReflectionGroup implements AttributeGroup
 		return name;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Collection<Object> getAttributes()
 	{
 		if (attributes == null)
 			loadAttributes();
 		
-		return attributes;
+		return (Collection) attributes;
+	}
+	
+	private class FieldAndName
+	{
+		Field field;
+		Method method;
+		String name;
+		
+		public FieldAndName(Field field)
+		{
+			this.field = field;
+			name = field.getName();
+		}
+		
+		public FieldAndName(Method method, String name)
+		{
+			this.method = method;
+			this.name = name;
+		}
 	}
 	
 	private void loadAttributes()
 	{
-		attributes = new ArrayList<Object>();
+		attributes = new ArrayList<ReflectionAttribute>();
 		
-		addListener = getListenerMethod(memberFilter, getObjClass(), data.getAddObjectListenerNames(), data.getRemoveObjectListenerNames(),
-				data);
+		addListener = getListenerMethod(memberFilter, getObjClass(), data.getAddObjectListenerNames(),
+				data.getRemoveObjectListenerNames(), data);
 		if (addListener != null)
-			removeListener = getMethod(memberFilter, getObjClass(), data.getRemoveObjectListenerNames(), addListener.getParameterTypes());
+			removeListener = getMethod(memberFilter, getObjClass(), data.getRemoveObjectListenerNames(),
+					addListener.getParameterTypes());
 		
 		if (addListener != null)
 			addListener.setAccessible(true);
 		if (removeListener != null)
 			removeListener.setAccessible(true);
 		
-		addAttributesFrom(getObjClass());
+		List<FieldAndName> allCandidates = new LinkedList<FieldAndName>();
+		addAttributesFrom(allCandidates, getObjClass());
+		
+		filterAttributes(allCandidates);
+		
+		for (FieldAndName fn : allCandidates)
+			attributes.add(new ReflectionAttribute(this, obj, fn.name, data));
 	}
 	
-	private void addAttributesFrom(Class<?> cls)
+	private void addAttributesFrom(List<FieldAndName> allCandidates, Class<?> cls)
 	{
 		if (cls == Object.class)
 			return;
 		
-		addAttributesFrom(cls.getSuperclass());
+		addAttributesFrom(allCandidates, cls.getSuperclass());
 		
 		for (Field field : cls.getDeclaredFields())
-		{
-			Method getter = getMethod(memberFilter, cls, data.getGetterNames(field.getName()));
-			if (!memberFilter.accept(field) && getter == null)
-				continue;
-			
-			attributes.add(new ReflectionAttribute(this, obj, field, data));
-		}
+			allCandidates.add(new FieldAndName(field));
 		
 		Pattern[] getterREs = data.getGetterREs();
 		
 		for (Method method : cls.getDeclaredMethods())
 		{
-			if (!memberFilter.accept(method))
-				continue;
-			
 			Class<?>[] parameterTypes = method.getParameterTypes();
 			if (parameterTypes != null && parameterTypes.length > 0)
 				continue;
@@ -174,31 +193,40 @@ public class ReflectionGroup implements AttributeGroup
 			if (attrName == null)
 				continue;
 			
-			ReflectionAttribute attrib = new ReflectionAttribute(this, obj, attrName, data);
-			if (hasAttribute(attrib.getName()))
-				continue;
-			
-			attributes.add(attrib);
+			FieldAndName fn = findAttribute(allCandidates, attrName);
+			if (fn != null)
+				fn.method = method;
+			else
+				allCandidates.add(new FieldAndName(method, attrName));
 		}
 	}
 	
-	private boolean hasAttribute(String attrName)
+	private FieldAndName findAttribute(List<FieldAndName> allCandidates, String attrName)
 	{
-		for (Object attribute : attributes)
+		for (FieldAndName fn : allCandidates)
 		{
-			if (!(attribute instanceof Attribute))
-				continue;
-			
-			Attribute attr = (Attribute) attribute;
-			if (attr.getName().equals(attrName))
-				return true;
+			if (fn.name.equals(attrName))
+				return fn;
 		}
-		return false;
+		return null;
 	}
 	
-	private String firstLower(String str)
+	private void filterAttributes(List<FieldAndName> allCandidates)
 	{
-		return str.substring(0, 1).toLowerCase() + str.substring(1);
+		for (Iterator<FieldAndName> it = allCandidates.iterator(); it.hasNext();)
+		{
+			FieldAndName fn = it.next();
+			
+			boolean accept = false;
+			
+			if (fn.field != null && memberFilter.accept(fn.field))
+				accept = true;
+			if (fn.method != null && memberFilter.accept(fn.method))
+				accept = true;
+			
+			if (!accept)
+				it.remove();
+		}
 	}
 	
 	public boolean canListen()

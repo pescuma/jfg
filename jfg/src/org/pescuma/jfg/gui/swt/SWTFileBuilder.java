@@ -9,7 +9,7 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
@@ -24,13 +24,13 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeValueRange;
-import org.pescuma.jfg.gui.GuiWidget;
 
 public class SWTFileBuilder implements SWTWidgetBuilder
 {
@@ -40,21 +40,22 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 		return type == File.class || type == String.class || "file".equals(type) || "file_open".equals(type);
 	}
 	
-	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractLabeledSWTWidget(aParent, attrib, data) {
+		return new AbstractLabelWidgetSWTWidget(attrib, data) {
 			
 			private Text text;
 			private Color background;
 			private Button select;
 			
 			@Override
-			protected void createWidget(Composite parent)
+			protected Control createWidget(Composite parent)
 			{
+				Control ret;
+				
 				if (attrib.canWrite())
 				{
 					Composite composite = data.componentFactory.createComposite(parent, SWT.NONE);
-					composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					composite.setLayout(createBorderlessGridLayout(2, false));
 					
 					text = data.componentFactory.createText(composite, SWT.NONE);
@@ -69,10 +70,14 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 								text.setText(sel);
 						}
 					});
+					
+					ret = composite;
 				}
 				else
 				{
 					text = data.componentFactory.createText(parent, SWT.READ_ONLY);
+					
+					ret = text;
 				}
 				
 				text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -80,9 +85,9 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 				text.addListener(SWT.Dispose, getDisposeListener());
 				setTextLimit(attrib, text);
 				
-				addAttributeListener();
-				
 				background = text.getBackground();
+				
+				return ret;
 			}
 			
 			private void setTextLimit(Attribute attrib, Text text)
@@ -131,12 +136,16 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 			@Override
 			protected void markField()
 			{
+				super.markField();
+				
 				text.setBackground(data.createBackgroundColor(text, background));
 			}
 			
 			@Override
 			protected void unmarkField()
 			{
+				super.unmarkField();
+				
 				text.setBackground(background);
 			}
 			

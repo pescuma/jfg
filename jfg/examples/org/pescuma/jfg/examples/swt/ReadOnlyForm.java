@@ -9,12 +9,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.gui.swt.JfgFormComposite;
 import org.pescuma.jfg.gui.swt.JfgFormData;
+import org.pescuma.jfg.model.ann.Range;
 import org.pescuma.jfg.reflect.ReflectionGroup;
 
 public class ReadOnlyForm
 {
 	static class TestSub
 	{
+		@Range(min = 1, max = 5)
 		private int b = 987;
 		private String cd = "CD!!";
 		

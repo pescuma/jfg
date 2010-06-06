@@ -9,20 +9,14 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
 
-import static org.pescuma.jfg.gui.swt.SWTHelper.*;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
@@ -37,6 +31,7 @@ public class JfgFormComposite extends Composite
 	private final GuiCopyManager copyManager;
 	private final BaseGuiListenerManager listenerManager = new BaseGuiListenerManager();
 	private boolean initializing = true;
+	private boolean layoutInitialized = false;
 	
 	public JfgFormComposite(Composite parent, int style, JfgFormData data)
 	{
@@ -82,117 +77,88 @@ public class JfgFormComposite extends Composite
 	/** Add all the attributes from the group, without adding the group itself */
 	public void addContentsFrom(AttributeGroup group)
 	{
-		initLayout();
-		buildAttributes(this, group, 0);
+		buildAttributes(group, 0);
 	}
 	
 	public void add(Attribute attrib)
 	{
-		initLayout();
-		buildAttribute(this, attrib, 0);
+		buildAttribute(attrib, 0);
 	}
 	
 	public void add(AttributeGroup group)
 	{
-		initLayout();
-		buildGroup(this, group, 0);
+		buildGroup(group, 0);
 	}
 	
 	public void addText(Attribute text)
 	{
-		initLayout();
-		addAttribute(this, new SWTTextBuilder(), text);
+		addAttribute(new SWTTextBuilder(), text);
 	}
 	
 	public void addNumer(Attribute number)
 	{
-		initLayout();
-		addAttribute(this, new SWTNumberBuilder(), number);
+		addAttribute(new SWTNumberBuilder(), number);
 	}
 	
 	public void addReal(Attribute real)
 	{
-		initLayout();
-		addAttribute(this, new SWTRealBuilder(), real);
+		addAttribute(new SWTRealBuilder(), real);
 	}
 	
 	public void addCheckbox(Attribute bool)
 	{
-		initLayout();
-		addAttribute(this, new SWTCheckboxBuilder(), bool);
+		addAttribute(new SWTCheckboxBuilder(), bool);
 	}
 	
 	public void addCombo(Attribute enumer)
 	{
-		initLayout();
-		addAttribute(this, new SWTComboBuilder(), enumer);
+		addAttribute(new SWTComboBuilder(), enumer);
 	}
 	
 	public void addPassword(Attribute enumer)
 	{
-		initLayout();
-		addAttribute(this, new SWTPasswordBuilder(), enumer);
+		addAttribute(new SWTPasswordBuilder(), enumer);
 	}
 	
 	public void addScale(Attribute enumer)
 	{
-		initLayout();
-		addAttribute(this, new SWTScaleBuilder(), enumer);
+		addAttribute(new SWTScaleBuilder(), enumer);
 	}
 	
 	public void addCustom(SWTWidgetBuilder builder, Attribute custom)
 	{
-		initLayout();
-		addAttribute(this, builder, custom);
+		addAttribute(builder, custom);
 	}
 	
-	@Override
-	public void setLayout(Layout layout)
-	{
-		if (!(layout instanceof GridLayout))
-			throw new IllegalArgumentException("JfgFormComposite needs a GridLayout");
-		
-		GridLayout gl = (GridLayout) layout;
-		if (gl.numColumns < 2)
-			throw new IllegalArgumentException("GridLayout need to have at least 2 columns");
-		
-		super.setLayout(layout);
-	}
-	
-	private void initLayout()
-	{
-		if (getLayout() != null)
-			return;
-		
-		setLayout(new GridLayout(2, false));
-	}
-	
-	private void buildAttributes(Composite parent, AttributeGroup group, int currentLevel)
+	private void buildAttributes(AttributeGroup group, int currentLevel)
 	{
 		for (Object attrib : group.getAttributes())
 		{
 			if (attrib instanceof AttributeGroup)
-				buildGroup(parent, (AttributeGroup) attrib, currentLevel);
+				buildGroup((AttributeGroup) attrib, currentLevel);
 			else if (attrib instanceof Attribute)
-				buildAttribute(parent, (Attribute) attrib, currentLevel);
+				buildAttribute((Attribute) attrib, currentLevel);
 		}
 	}
 	
-	private void buildAttribute(Composite parent, Attribute attrib, int currentLevel)
+	private void buildAttribute(Attribute attrib, int currentLevel)
 	{
 		SWTWidgetBuilder builder = getBuilderFor(attrib);
-		if (builder == null)
+		if (builder != null)
+		{
+			addAttribute(builder, attrib);
+		}
+		else
 		{
 			// TODO Support groups when attribute is read/write
-			if (!attrib.canWrite())
-				buildGroup(parent, attrib.asGroup(), currentLevel + 1);
-			return;
+			//if (!attrib.canWrite())
+			AttributeGroup group = attrib.asGroup();
+			if (group != null)
+				buildGroup(group, currentLevel + 1);
 		}
-		
-		addAttribute(parent, builder, attrib);
 	}
 	
-	private void addAttribute(Composite parent, SWTWidgetBuilder builder, Attribute attrib)
+	private void addAttribute(SWTWidgetBuilder builder, Attribute attrib)
 	{
 		if (!builder.accept(attrib))
 			throw new IllegalArgumentException("Wrong configuration");
@@ -201,17 +167,29 @@ public class JfgFormComposite extends Composite
 			if (filter.hideAttribute(attrib))
 				return;
 		
-		GuiWidget widget = builder.build(parent, attrib, data);
+		initLayout();
+		
+		SWTGuiWidget widget = builder.build(attrib, data);
+		widget.init(data.layout, copyManager);
 		widgets.add(attrib, widget);
+	}
+	
+	private void initLayout()
+	{
+		if (!layoutInitialized)
+		{
+			data.layout.init(this, data);
+			layoutInitialized = true;
+		}
 	}
 	
 	private void finishInitialize()
 	{
+		if (layoutInitialized)
+			data.layout.finish();
+		
 		for (AttributeWidgetPair aw : widgets)
-		{
-			aw.widget.init(copyManager);
 			aw.widget.copyToGUI();
-		}
 		
 		for (AttributeWidgetPair aw : widgets)
 			listenerManager.notifyChange(aw.attrib.getName(), aw.widget, widgets);
@@ -236,22 +214,18 @@ public class JfgFormComposite extends Composite
 		return attrib.getType();
 	}
 	
-	private void buildGroup(Composite parent, AttributeGroup group, int currentLevel)
+	private void buildGroup(AttributeGroup group, int currentLevel)
 	{
-		if (group == null)
-			return;
 		if (currentLevel > data.maxGroupAttributeLevels)
 			return;
 		
-		GridLayout layout = (GridLayout) getLayout();
+		initLayout();
 		
-		Group frame = data.componentFactory.createGroup(setupHorizontalComposite(data.componentFactory.createComposite(parent, SWT.NONE),
-				layout.numColumns), SWT.NONE);
-		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		frame.setLayout(new GridLayout(2, false));
-		frame.setText(data.textTranslator.groupName(group.getName()));
+		data.layout.startGroup(group.getName());
 		
-		buildAttributes(frame, group, currentLevel);
+		buildAttributes(group, currentLevel);
+		
+		data.layout.endGroup(group.getName());
 	}
 	
 	public void copyToGUI()

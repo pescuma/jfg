@@ -9,21 +9,19 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
 
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
-import org.pescuma.jfg.gui.GuiWidget;
 
 public class SWTCheckboxBuilder implements SWTWidgetBuilder
 {
@@ -33,26 +31,25 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 		return type == Boolean.class || type == boolean.class || "checkbox".equals(type);
 	}
 	
-	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractSWTWidget(aParent, attrib, data) {
+		return new AbstractWidgetSWTWidget(attrib, data) {
 			
-			private Button chk;
+			private Button checkbox;
 			private Color background;
 			
 			@Override
-			protected void createWidget(Composite parent)
+			protected Control createWidget(Composite parent)
 			{
-				chk = data.componentFactory.createCheckbox(parent, SWT.NONE);
-				chk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				chk.setText(data.textTranslator.fieldName(attrib.getName()));
-				chk.addListener(SWT.Selection, getModifyListener());
-				chk.addListener(SWT.Dispose, getDisposeListener());
+				checkbox = data.componentFactory.createCheckbox(parent, SWT.NONE);
+				checkbox.setText(data.textTranslator.fieldName(attrib.getName()));
+				checkbox.addListener(SWT.Selection, getModifyListener());
+				checkbox.addListener(SWT.Dispose, getDisposeListener());
 				
 				// SWT does not support a read-only checkbox
 				if (!attrib.canWrite())
 				{
-					chk.addListener(SWT.Selection, new Listener() {
+					checkbox.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event)
 						{
 							copyToGUI();
@@ -60,31 +57,35 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 					});
 				}
 				
-				addAttributeListener();
+				background = checkbox.getBackground();
 				
-				background = chk.getBackground();
+				return checkbox;
 			}
 			
 			public Object getValue()
 			{
-				return chk.getSelection() ? Boolean.TRUE : Boolean.FALSE;
+				return checkbox.getSelection() ? Boolean.TRUE : Boolean.FALSE;
 			}
 			
 			public void setValue(Object value)
 			{
-				chk.setSelection((Boolean) value);
+				checkbox.setSelection((Boolean) value);
 			}
 			
 			@Override
 			protected void markField()
 			{
-				chk.setBackground(data.createBackgroundColor(chk, background));
+				super.markField();
+				
+				checkbox.setBackground(data.createBackgroundColor(checkbox, background));
 			}
 			
 			@Override
 			protected void unmarkField()
 			{
-				chk.setBackground(background);
+				super.unmarkField();
+				
+				checkbox.setBackground(background);
 			}
 			
 			@Override
@@ -92,7 +93,7 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 			{
 				super.setEnabled(enabled);
 				
-				chk.setEnabled(enabled);
+				checkbox.setEnabled(enabled);
 			}
 		};
 	}

@@ -8,5 +8,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/swt-debug.jar" sourcepath="lib/swt-src.zip"/>
 	<classpathentry kind="lib" path="lib-perf/japex.jar"/>
+	<classpathentry kind="lib" path="lib/lti-civil/lti-civil-no_s_w_t.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -9,23 +9,21 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
 
 import java.util.Collection;
 
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeValueRange;
-import org.pescuma.jfg.gui.GuiWidget;
 
 public class SWTComboBuilder implements SWTWidgetBuilder
 {
@@ -39,17 +37,18 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 		return values != null && values.size() > 0;
 	}
 	
-	public GuiWidget build(Composite aParent, Attribute attrib, JfgFormData data)
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractLabeledSWTWidget(aParent, attrib, data) {
+		return new AbstractLabelWidgetSWTWidget(attrib, data) {
 			
 			private Combo combo;
 			private Text text;
 			private Color background;
 			
 			@Override
-			protected void createWidget(Composite parent)
+			protected Control createWidget(Composite parent)
 			{
+				Control ret;
 				if (attrib.canWrite())
 				{
 					combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
@@ -57,18 +56,19 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 					combo.addListener(SWT.Modify, getModifyListener());
 					combo.addListener(SWT.Dispose, getDisposeListener());
 					
-					background = combo.getBackground();
+					ret = combo;
 				}
 				else
 				{
 					text = data.componentFactory.createText(parent, SWT.READ_ONLY);
-					text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					text.addListener(SWT.Dispose, getDisposeListener());
 					
-					background = text.getBackground();
+					ret = text;
 				}
 				
-				addAttributeListener();
+				background = ret.getBackground();
+				
+				return ret;
 			}
 			
 			private void fill()
@@ -143,7 +143,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 				if (value == null)
 					return data.textTranslator.translate("null");
 				
-				if (type instanceof Class)
+				if (type instanceof Class<?>)
 				{
 					Class<?> cls = (Class<?>) type;
 					if (cls.isEnum())
@@ -166,6 +166,8 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 			@Override
 			protected void markField()
 			{
+				super.markField();
+				
 				if (attrib.canWrite())
 				{
 					combo.setBackground(data.createBackgroundColor(combo, background));
@@ -179,6 +181,8 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 			@Override
 			protected void unmarkField()
 			{
+				super.unmarkField();
+				
 				if (attrib.canWrite())
 				{
 					combo.setBackground(background);

@@ -9,13 +9,14 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.reflect;
 
 import static org.pescuma.jfg.StringUtils.*;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -24,27 +25,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.pescuma.jfg.AttributeListenerConverter;
+import org.pescuma.jfg.SpecialFieldHandler;
 
 public class ReflectionData
 {
-	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters;
+	public final Map<Class<?>, AttributeListenerConverter<?>> attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>();
 	
-	public final List<String> getterTemplates;
-	public final List<String> setterTemplates;
-	public final List<String> addFieldListenerTemplates;
-	public final List<String> removeFieldListenerTemplates;
-	public final List<String> addObjectListenerTemplates;
-	public final List<String> removeObjectListenerTemplates;
+	public final List<String> getterTemplates = new ArrayList<String>();
+	public final List<String> setterTemplates = new ArrayList<String>();
+	public final List<String> addFieldListenerTemplates = new ArrayList<String>();
+	public final List<String> removeFieldListenerTemplates = new ArrayList<String>();
+	public final List<String> addObjectListenerTemplates = new ArrayList<String>();
+	public final List<String> removeObjectListenerTemplates = new ArrayList<String>();
 	
-	public final List<String> listenerInterfaceMethodREs;
+	public final List<String> listenerInterfaceMethodREs = new ArrayList<String>();
 	
-	public final List<String> classPrefixesIgnoredInAsGroup;
+	public final List<String> classPrefixesIgnoredInAsGroup = new ArrayList<String>();
+	
+	public final List<SpecialFieldHandler> specialFieldHandlers = new ArrayList<SpecialFieldHandler>();
 	
 	public MemberFilter memberFilter;
 	public boolean usePublic = true;
 	public boolean useProtected = false;
 	public boolean useFriend = false;
+	public boolean usePrivate = false;
 	public boolean useTransient = false;
 	public boolean useVolatile = true;
 	
@@ -52,16 +60,6 @@ public class ReflectionData
 	
 	public ReflectionData()
 	{
-		attributeListenerConverters = new HashMap<Class<?>, AttributeListenerConverter<?>>();
-		getterTemplates = new ArrayList<String>();
-		setterTemplates = new ArrayList<String>();
-		addFieldListenerTemplates = new ArrayList<String>();
-		removeFieldListenerTemplates = new ArrayList<String>();
-		addObjectListenerTemplates = new ArrayList<String>();
-		removeObjectListenerTemplates = new ArrayList<String>();
-		listenerInterfaceMethodREs = new ArrayList<String>();
-		classPrefixesIgnoredInAsGroup = new ArrayList<String>();
-		
 		getterTemplates.add("get%Field%");
 		getterTemplates.add("is%Field%");
 		
@@ -101,12 +99,42 @@ public class ReflectionData
 					return true;
 				if (useProtected && Modifier.isProtected(modifiers))
 					return true;
-				if (useFriend && !Modifier.isPublic(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPrivate(modifiers))
+				if (usePrivate && Modifier.isPrivate(modifiers))
+					return true;
+				if (useFriend && !Modifier.isPublic(modifiers) && !Modifier.isProtected(modifiers)
+						&& !Modifier.isPrivate(modifiers))
 					return true;
 				
 				return false;
 			}
 		};
+		
+		specialFieldHandlers.add(new SpecialFieldHandler() {
+			@Override
+			public boolean handles(Field field)
+			{
+				return field.getClass().equals(Image.class);
+			}
+			
+			@Override
+			public Object getter(Field field, Object obj) throws IllegalArgumentException, IllegalAccessException
+			{
+				return field.get(obj);
+			}
+			
+			@Override
+			public void setter(Field field, Object obj, Object value) throws IllegalArgumentException,
+					IllegalAccessException
+			{
+				Image oldImage = (Image) field.get(obj);
+				if (oldImage != null)
+					oldImage.dispose();
+				
+				if (value != null)
+					value = new Image(Display.getDefault(), (Image) value, SWT.IMAGE_COPY);
+				field.set(obj, value);
+			}
+		});
 	}
 	
 	public String[] getGetterNames(String fieldName)
@@ -127,8 +155,8 @@ public class ReflectionData
 			for (int i = 0; i < getterREs.length; i++)
 			{
 				String templ = getterTemplates.get(i);
-				templ = templ.replace("%Field%", "([A-Z_][a-zA-Z0-9_]+)");
-				templ = templ.replace("%field%", "([a-z_][a-zA-Z0-9_]+)");
+				templ = templ.replace("%Field%", "([A-Z_][a-zA-Z0-9_]*)");
+				templ = templ.replace("%field%", "([a-z_][a-zA-Z0-9_]*)");
 				getterREs[i] = Pattern.compile("^" + templ + "$");
 			}
 		}

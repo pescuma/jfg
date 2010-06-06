@@ -9,7 +9,7 @@
  * jfg is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public License along with Foobar. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.pescuma.jfg.gui.swt;
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Widget;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.SimpleTextTranslator;
@@ -50,6 +50,8 @@ public final class JfgFormData
 	
 	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory();
 	
+	public SWTLayoutBuilder layout = new SWTSimpleFormBuilder();
+	
 	public int maxGroupAttributeLevels = 1;
 	
 	public TextTranslator textTranslator = new SimpleTextTranslator();
@@ -60,11 +62,7 @@ public final class JfgFormData
 	
 	enum ModelUpdateStrategy
 	{
-		Never,
-		UpdateOnGuiChange,
-		BufferUpdatesForTimeout,
-		UpdateAfterFieldStoppedChanging,
-		UpdateAfterAllFieldsStoppedChanging,
+		Never, UpdateOnGuiChange, BufferUpdatesForTimeout, UpdateAfterFieldStoppedChanging, UpdateAfterAllFieldsStoppedChanging,
 	}
 	
 	public ModelUpdateStrategy modelUpdateStrategy = ModelUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;
@@ -104,7 +102,10 @@ public final class JfgFormData
 		
 		builders.put(File.class, new SWTFileBuilder());
 		
+		builders.put(Image.class, new SWTImageBuilder());
+		
 		builders.put("text", new SWTTextBuilder());
+		builders.put("text_area", new SWTTextAreaBuilder());
 		builders.put("number", new SWTNumberBuilder());
 		builders.put("real", new SWTRealBuilder());
 		builders.put("checkbox", new SWTCheckboxBuilder());
@@ -115,6 +116,8 @@ public final class JfgFormData
 		builders.put("file_open", new SWTFileBuilder());
 		builders.put("file_save", new SWTFileSaveBuilder());
 		builders.put("directory", new SWTDirectoryBuilder());
+		builders.put("image", new SWTImageBuilder());
+		builders.put("webcam", new SWTImageBuilder());
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
@@ -135,7 +138,8 @@ public final class JfgFormData
 					return "file";
 				
 				if ((attrib.getType() == String.class || attrib.getType() == File.class)
-						&& (matches(name, "folder") || matches(name, "path") || matches(name, "directory") || matches(name, "dir")))
+						&& (matches(name, "folder") || matches(name, "path") || matches(name, "directory") || matches(
+								name, "dir")))
 					return "directory";
 				
 				return null;
@@ -202,7 +206,7 @@ public final class JfgFormData
 				if (builders.get(type) != null)
 					return null;
 				
-				if (!(type instanceof Class))
+				if (!(type instanceof Class<?>))
 					return null;
 				
 				Class<?> cls = (Class<?>) type;
@@ -232,8 +236,8 @@ public final class JfgFormData
 		switch (style)
 		{
 			case SYNC_GUI:
-				modelUpdateTimeout = 1000;
 				modelUpdateStrategy = ModelUpdateStrategy.UpdateAfterFieldStoppedChanging;
+				modelUpdateTimeout = 1000;
 				updateGuiWhenModelChanges = true;
 				markFieldsWhithUncommitedChanges = true;
 				break;
