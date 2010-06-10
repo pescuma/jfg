@@ -152,7 +152,7 @@ public class ReflectionList implements AttributeList
 		for (Entry<Object, Attribute> entry : attributes.entrySet())
 		{
 			if (entry.getValue() == attrib)
-				return list.indexOf(entry.getValue());
+				return list.indexOf(entry.getKey());
 		}
 		return -1;
 	}
@@ -218,7 +218,7 @@ public class ReflectionList implements AttributeList
 		@Override
 		public String getName()
 		{
-			return name + "#item";
+			return null;
 		}
 		
 		@Override
@@ -281,7 +281,7 @@ public class ReflectionList implements AttributeList
 		{
 			if (value == null)
 				throw new ReflectionAttributeException("Field does not allow null");
-			if (!value.getClass().isInstance(type))
+			if (!type.isInstance(value))
 				throw new ReflectionAttributeException("Invalid value type");
 			
 			int index = list.indexOf(obj);

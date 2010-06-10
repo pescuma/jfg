@@ -35,9 +35,9 @@ abstract class AbstractWidgetSWTWidget extends AbstractSWTWidget
 		
 		Control widget = createWidget(parent);
 		
-		addAttributeListener();
-		
 		layout.addWidget(attrib.getName(), widget, wantToFillVertical());
+		
+		addAttributeListener();
 	}
 	
 	protected abstract Control createWidget(Composite parent);

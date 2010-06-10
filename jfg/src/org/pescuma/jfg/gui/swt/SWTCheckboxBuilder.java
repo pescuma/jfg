@@ -42,7 +42,10 @@ public class SWTCheckboxBuilder implements SWTWidgetBuilder
 			protected Control createWidget(Composite parent)
 			{
 				checkbox = data.componentFactory.createCheckbox(parent, SWT.NONE);
-				checkbox.setText(data.textTranslator.fieldName(attrib.getName()));
+				
+				if (attrib.getName() != null)
+					checkbox.setText(data.textTranslator.fieldName(attrib.getName()));
+				
 				checkbox.addListener(SWT.Selection, getModifyListener());
 				checkbox.addListener(SWT.Dispose, getDisposeListener());
 				

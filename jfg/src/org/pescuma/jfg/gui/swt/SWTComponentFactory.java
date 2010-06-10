@@ -17,8 +17,10 @@ package org.pescuma.jfg.gui.swt;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
 
@@ -39,4 +41,6 @@ public interface SWTComponentFactory
 	Composite createComposite(Composite parent, int style);
 	
 	Button createButton(Composite parent, int style);
+	
+	Control createFlatButton(Composite parent, String text, String image, Listener selectionListener);
 }

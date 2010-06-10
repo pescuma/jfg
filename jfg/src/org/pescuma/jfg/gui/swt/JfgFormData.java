@@ -168,6 +168,8 @@ public final class JfgFormData
 			private String getSimpleName(Attribute attrib)
 			{
 				String name = attrib.getName();
+				if (name == null)
+					return "";
 				int index = name.lastIndexOf('.');
 				if (index >= 0 && index < name.length() - 1)
 					name = name.substring(index + 1);

@@ -307,7 +307,7 @@ public class ReflectionAttribute implements Attribute
 	
 	public AttributeList asList()
 	{
-		if (!type.isInstance(List.class))
+		if (!List.class.isAssignableFrom(type))
 			return null;
 		
 		// TODO Support object creation

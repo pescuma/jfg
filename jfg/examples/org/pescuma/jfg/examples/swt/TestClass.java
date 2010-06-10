@@ -2,15 +2,14 @@ package org.pescuma.jfg.examples.swt;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 class TestClass extends ObjectWithListener
 {
 	static enum TestEnum
 	{
-		Left,
-		Rigth,
-		Top,
-		Bottom
+		Left, Rigth, Top, Bottom
 	}
 	
 	private int a;
@@ -25,6 +24,17 @@ class TestClass extends ObjectWithListener
 	private File file;
 	private String path;
 	
+	public final List<TestSub> subs = new ArrayList<TestSub>();
+	public final List<String> names = new ArrayList<String>();
+	
+	public TestClass()
+	{
+		subs.add(new TestSub());
+		
+		names.add("Abc");
+		names.add("Xyz");
+	}
+
 	public int getA()
 	{
 		return a;
@@ -127,12 +137,12 @@ class TestClass extends ObjectWithListener
 	}
 	
 	// Right now it will only show inner objects if they are read-only
-//		public void setSub(TestSub sub)
-//		{
-//			this.sub = sub;
-//			
-//			notifyListeners();
-//		}
+	//		public void setSub(TestSub sub)
+	//		{
+	//			this.sub = sub;
+	//			
+	//			notifyListeners();
+	//		}
 	
 	public File getFile()
 	{
@@ -161,10 +171,33 @@ class TestClass extends ObjectWithListener
 	@Override
 	public String toString()
 	{
-		return "a = " + getA() + "\nb = " + getB() + "\nc = " + getC() + "\nname = " + getName() + "\npassword = " + getPassword()
-				+ "\nvalid = " + isValid() + "\nside = " + getSide() + "\nreal = " + getReal() + "\n  b = " + getSub().getB() + "\n  cd = "
-				+ getSub().getCd() + "\nfile = " + toString(getFile()) + "\npath = " + getPath();
-		
+		StringBuilder builder = new StringBuilder();
+		builder.append("a = " + getA() + "\n");
+		builder.append("b = " + getB() + "\n");
+		builder.append("c = " + getC() + "\n");
+		builder.append("name = " + getName() + "\n");
+		builder.append("password = " + getPassword() + "\n");
+		builder.append("valid = " + isValid() + "\n");
+		builder.append("side = " + getSide() + "\n");
+		builder.append("real = " + getReal() + "\n");
+		builder.append("  b = " + getSub().getB() + "\n");
+		builder.append("  cd = " + getSub().getCd() + "\n");
+		builder.append("file = " + toString(getFile()) + "\n");
+		builder.append("path = " + getPath() + "\n");
+		builder.append("subs: " + subs.size() + "\n");
+		for (int i = 0; i < subs.size(); i++)
+		{
+			TestSub sub = subs.get(i);
+			builder.append("  item " + i + ":\n");
+			builder.append("    b = " + sub.getB() + "\n");
+			builder.append("    cd = " + sub.getCd() + "\n");
+		}
+		builder.append("names: " + names.size() + "\n");
+		for (int i = 0; i < names.size(); i++)
+		{
+			builder.append("  item " + i + ": " + names.get(i) + "\n");
+		}
+		return builder.toString();
 	}
 	
 	private String toString(File f)

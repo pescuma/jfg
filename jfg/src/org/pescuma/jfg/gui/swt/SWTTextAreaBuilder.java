@@ -43,11 +43,16 @@ public class SWTTextAreaBuilder implements SWTWidgetBuilder
 			@Override
 			protected Control createWidget(Composite parent)
 			{
-				Group group = data.componentFactory.createGroup(parent, SWT.NONE);
-				group.setText(data.textTranslator.fieldName(attrib.getName()));
-				group.setLayout(new GridLayout(1, false));
+				Group group = null;
+				if (attrib.getName() != null)
+				{
+					group = data.componentFactory.createGroup(parent, SWT.NONE);
+					group.setText(data.textTranslator.fieldName(attrib.getName()));
+					group.setLayout(new GridLayout(1, false));
+				}
 				
-				text = data.componentFactory.createText(group, (attrib.canWrite() ? SWT.NONE : SWT.READ_ONLY)
+				text = data.componentFactory.createText(group == null ? parent : group, (attrib.canWrite() ? SWT.NONE
+						: SWT.READ_ONLY)
 						| SWT.MULTI | SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
 				text.addListener(SWT.Modify, getModifyListener());
 				text.addListener(SWT.Dispose, getDisposeListener());
@@ -61,7 +66,7 @@ public class SWTTextAreaBuilder implements SWTWidgetBuilder
 				
 				background = text.getBackground();
 				
-				return group;
+				return group == null ? text : group;
 			}
 			
 			@Override

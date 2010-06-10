@@ -15,17 +15,16 @@
 package org.pescuma.jfg.gui.swt;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.GuiWidget;
 import org.pescuma.jfg.gui.GuiWidgetList;
 
-
 class BaseWidgetList implements GuiWidgetList, Iterable<AttributeWidgetPair>
 {
-	private final Collection<AttributeWidgetPair> widgets = new ArrayList<AttributeWidgetPair>();
+	private final List<AttributeWidgetPair> widgets = new ArrayList<AttributeWidgetPair>();
 	
 	public boolean add(Attribute attrib, GuiWidget widget)
 	{
@@ -42,9 +41,19 @@ class BaseWidgetList implements GuiWidgetList, Iterable<AttributeWidgetPair>
 		return widgets.isEmpty();
 	}
 	
-	public boolean remove(GuiWidget o)
+	public boolean remove(GuiWidget widget)
 	{
-		return widgets.remove(o);
+		boolean ret = false;
+		for (Iterator<AttributeWidgetPair> it = widgets.iterator(); it.hasNext();)
+		{
+			AttributeWidgetPair aw = it.next();
+			if (aw.widget == widget)
+			{
+				it.remove();
+				ret = true;
+			}
+		}
+		return ret;
 	}
 	
 	public int size()

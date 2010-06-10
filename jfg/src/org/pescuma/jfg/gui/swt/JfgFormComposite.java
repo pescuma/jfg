@@ -14,15 +14,26 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.TypedEvent;
+import org.eclipse.swt.internal.SWTEventListener;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
+import org.pescuma.jfg.AttributeList;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class JfgFormComposite extends Composite
 {
@@ -32,6 +43,7 @@ public class JfgFormComposite extends Composite
 	private final BaseGuiListenerManager listenerManager = new BaseGuiListenerManager();
 	private boolean initializing = true;
 	private boolean layoutInitialized = false;
+	private boolean postponeFinishInitialize = false;
 	
 	public JfgFormComposite(Composite parent, int style, JfgFormData data)
 	{
@@ -65,128 +77,64 @@ public class JfgFormComposite extends Composite
 				throw new IllegalArgumentException();
 		}
 		
-		parent.addListener(SWT.Show, new Listener() {
-			public void handleEvent(Event event)
-			{
-				if (initializing)
+		final Composite root = getRoot();
+		if (!root.isVisible())
+		{
+			postponeFinishInitialize = true;
+			
+			root.addListener(SWT.Show, new Listener() {
+				public void handleEvent(Event event)
+				{
+					postponeFinishInitialize = false;
 					finishInitialize();
-			}
-		});
-	}
-	
-	/** Add all the attributes from the group, without adding the group itself */
-	public void addContentsFrom(AttributeGroup group)
-	{
-		buildAttributes(group, 0);
-	}
-	
-	public void add(Attribute attrib)
-	{
-		buildAttribute(attrib, 0);
-	}
-	
-	public void add(AttributeGroup group)
-	{
-		buildGroup(group, 0);
-	}
-	
-	public void addText(Attribute text)
-	{
-		addAttribute(new SWTTextBuilder(), text);
-	}
-	
-	public void addNumer(Attribute number)
-	{
-		addAttribute(new SWTNumberBuilder(), number);
-	}
-	
-	public void addReal(Attribute real)
-	{
-		addAttribute(new SWTRealBuilder(), real);
-	}
-	
-	public void addCheckbox(Attribute bool)
-	{
-		addAttribute(new SWTCheckboxBuilder(), bool);
-	}
-	
-	public void addCombo(Attribute enumer)
-	{
-		addAttribute(new SWTComboBuilder(), enumer);
-	}
-	
-	public void addPassword(Attribute enumer)
-	{
-		addAttribute(new SWTPasswordBuilder(), enumer);
-	}
-	
-	public void addScale(Attribute enumer)
-	{
-		addAttribute(new SWTScaleBuilder(), enumer);
-	}
-	
-	public void addCustom(SWTWidgetBuilder builder, Attribute custom)
-	{
-		addAttribute(builder, custom);
-	}
-	
-	private void buildAttributes(AttributeGroup group, int currentLevel)
-	{
-		for (Object attrib : group.getAttributes())
-		{
-			if (attrib instanceof AttributeGroup)
-				buildGroup((AttributeGroup) attrib, currentLevel);
-			else if (attrib instanceof Attribute)
-				buildAttribute((Attribute) attrib, currentLevel);
+					
+					root.removeListener(SWT.Show, this);
+				}
+			});
 		}
 	}
 	
-	private void buildAttribute(Attribute attrib, int currentLevel)
+	private Composite getRoot()
 	{
-		SWTWidgetBuilder builder = getBuilderFor(attrib);
-		if (builder != null)
-		{
-			addAttribute(builder, attrib);
-		}
-		else
-		{
-			// TODO Support groups when attribute is read/write
-			//if (!attrib.canWrite())
-			AttributeGroup group = attrib.asGroup();
-			if (group != null)
-				buildGroup(group, currentLevel + 1);
-		}
+		Composite root = getParent();
+		while (root.getParent() != null)
+			root = root.getParent();
+		return root;
 	}
 	
-	private void addAttribute(SWTWidgetBuilder builder, Attribute attrib)
-	{
-		if (!builder.accept(attrib))
-			throw new IllegalArgumentException("Wrong configuration");
-		
-		for (SWTAttributeFilter filter : data.attributeFilters)
-			if (filter.hideAttribute(attrib))
-				return;
-		
-		initLayout();
-		
-		SWTGuiWidget widget = builder.build(attrib, data);
-		widget.init(data.layout, copyManager);
-		widgets.add(attrib, widget);
-	}
-	
-	private void initLayout()
+	private SWTLayoutBuilder initLayout()
 	{
 		if (!layoutInitialized)
 		{
-			data.layout.init(this, data);
+			data.layout.init(this, new Runnable() {
+				@Override
+				public void run()
+				{
+					layout();
+					
+					LayoutEvent event = new LayoutEvent(JfgFormComposite.this);
+					event.widget = JfgFormComposite.this;
+					event.display = event.widget.getDisplay();
+					event.time = 0; // TODO
+					
+					for (LayoutListener l : layoutListeners)
+						l.layoutChanged(event);
+				}
+			}, data);
 			layoutInitialized = true;
 		}
+		return data.layout;
+	}
+	
+	private void startInitialize()
+	{
+		initializing = true;
 	}
 	
 	private void finishInitialize()
 	{
-		if (layoutInitialized)
-			data.layout.finish();
+		if (postponeFinishInitialize)
+			return;
 		
 		for (AttributeWidgetPair aw : widgets)
 			aw.widget.copyToGUI();
@@ -195,6 +143,107 @@ public class JfgFormComposite extends Composite
 			listenerManager.notifyChange(aw.attrib.getName(), aw.widget, widgets);
 		
 		initializing = false;
+	}
+	
+	/** Add all the attributes from the group, without adding the group itself */
+	public void addContentsFrom(AttributeGroup group)
+	{
+		startInitialize();
+		buildAttributes(initLayout(), group, 0);
+		finishInitialize();
+	}
+	
+	public void add(Attribute attrib)
+	{
+		startInitialize();
+		buildAttribute(initLayout(), attrib, 0);
+		finishInitialize();
+	}
+	
+	public void add(AttributeGroup group)
+	{
+		startInitialize();
+		buildGroup(initLayout(), group, 0);
+		finishInitialize();
+	}
+	
+	public void addText(Attribute text)
+	{
+		startInitialize();
+		addAttribute(initLayout(), new SWTTextBuilder(), text);
+		finishInitialize();
+	}
+	
+	public void addNumer(Attribute number)
+	{
+		startInitialize();
+		addAttribute(initLayout(), new SWTNumberBuilder(), number);
+		finishInitialize();
+	}
+	
+	public void addReal(Attribute real)
+	{
+		startInitialize();
+		addAttribute(initLayout(), new SWTRealBuilder(), real);
+		finishInitialize();
+	}
+	
+	public void addCheckbox(Attribute bool)
+	{
+		startInitialize();
+		addAttribute(initLayout(), new SWTCheckboxBuilder(), bool);
+		finishInitialize();
+	}
+	
+	public void addCombo(Attribute enumer)
+	{
+		startInitialize();
+		addAttribute(initLayout(), new SWTComboBuilder(), enumer);
+		finishInitialize();
+	}
+	
+	public void addPassword(Attribute enumer)
+	{
+		startInitialize();
+		addAttribute(initLayout(), new SWTPasswordBuilder(), enumer);
+		finishInitialize();
+	}
+	
+	public void addScale(Attribute enumer)
+	{
+		startInitialize();
+		addAttribute(initLayout(), new SWTScaleBuilder(), enumer);
+		finishInitialize();
+	}
+	
+	public void addCustom(SWTWidgetBuilder builder, Attribute custom)
+	{
+		startInitialize();
+		addAttribute(initLayout(), builder, custom);
+		finishInitialize();
+	}
+	
+	private void addAttribute(SWTLayoutBuilder layout, SWTWidgetBuilder builder, Attribute attrib)
+	{
+		if (!builder.accept(attrib))
+			throw new IllegalArgumentException("Wrong configuration");
+		
+		for (SWTAttributeFilter filter : data.attributeFilters)
+			if (filter.hideAttribute(attrib))
+				return;
+		
+		final SWTGuiWidget widget = builder.build(attrib, data);
+		widget.init(layout, copyManager);
+		widgets.add(attrib, widget);
+		
+		widget.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e)
+			{
+				if (!widgets.remove(widget))
+					throw new IllegalStateException();
+			}
+		});
 	}
 	
 	private SWTWidgetBuilder getBuilderFor(Attribute attrib)
@@ -214,18 +263,122 @@ public class JfgFormComposite extends Composite
 		return attrib.getType();
 	}
 	
-	private void buildGroup(AttributeGroup group, int currentLevel)
+	private void buildAttributes(SWTLayoutBuilder layout, AttributeGroup group, int currentLevel)
+	{
+		for (Object attrib : group.getAttributes())
+		{
+			if (attrib instanceof AttributeGroup)
+				buildGroup(layout, (AttributeGroup) attrib, currentLevel);
+			else if (attrib instanceof Attribute)
+				buildAttribute(layout, (Attribute) attrib, currentLevel);
+		}
+	}
+	
+	private void buildAttribute(SWTLayoutBuilder layout, Attribute attrib, int currentLevel)
+	{
+		SWTWidgetBuilder builder = getBuilderFor(attrib);
+		if (builder != null)
+		{
+			addAttribute(layout, builder, attrib);
+			return;
+		}
+		
+		AttributeList list = attrib.asList();
+		if (list != null)
+		{
+			if (attrib.canWrite())
+				System.out.println("[JFG] Creating GUI for read/write list. "
+						+ "I'll only change the list in place and will not check for changes in it!");
+			
+			buildList(layout, list, currentLevel);
+			return;
+		}
+		
+		AttributeGroup group = attrib.asGroup();
+		if (group != null)
+		{
+			if (attrib.canWrite())
+				System.out.println("[JFG] Creating GUI for read/write object. "
+						+ "I'll only change the object in place and will not check for changes in it!");
+			
+			buildGroup(layout, group, currentLevel + 1);
+		}
+	}
+	
+	private void buildList(SWTLayoutBuilder layout, final AttributeList list, final int currentLevel)
+	{
+		layout.startList(list.getName());
+		
+		for (int i = 0; i < list.size(); i++)
+			buildAttributeInsideList(layout, list, list.get(i), currentLevel);
+		
+		final SWTLayoutBuilder[] listLayout = new SWTLayoutBuilder[1];
+		
+		Listener listener = new Listener() {
+			@Override
+			public void handleEvent(Event event)
+			{
+				buildAttributeInsideList(listLayout[0], list, list.add(), currentLevel);
+			}
+		};
+		
+		Control addMore = data.componentFactory.createFlatButton(layout.getParentForAddMore(),
+				data.textTranslator.translate("Add", list.getName()), "icons/add.png", listener);
+		
+		listLayout[0] = layout.endList(list.getName(), addMore);
+	}
+	
+	private void buildAttributeInsideList(final SWTLayoutBuilder layout, final AttributeList list,
+			final Attribute attrib, int currentLevel)
+	{
+		layout.startListItem(list.getName());
+		
+		SWTWidgetBuilder builder = getBuilderFor(attrib);
+		if (builder != null)
+		{
+			addAttribute(layout, builder, attrib);
+		}
+		else
+		{
+			AttributeList innerList = attrib.asList();
+			if (innerList != null)
+				// TODO
+				throw new NotImplementedException();
+			
+			AttributeGroup group = attrib.asGroup();
+			if (group != null)
+				buildAttributes(layout, group, currentLevel);
+		}
+		
+		final SWTLayoutBuilder.ListItem[] listItem = new SWTLayoutBuilder.ListItem[1];
+		
+		Listener listener = new Listener() {
+			@Override
+			public void handleEvent(Event event)
+			{
+				int indexOf = list.indexOf(attrib);
+				if (indexOf < 0)
+					throw new IllegalStateException();
+				
+				list.remove(indexOf);
+				layout.removeListItem(listItem[0]);
+			}
+		};
+		Control remove = data.componentFactory.createFlatButton(layout.getParentForRemove(),
+				data.textTranslator.translate("Remove", list.getName()), "icons/delete.png", listener);
+		listItem[0] = layout.endListItem(list.getName(), remove);
+	}
+	
+	private void buildGroup(SWTLayoutBuilder layout, AttributeGroup group, int currentLevel)
 	{
 		if (currentLevel > data.maxGroupAttributeLevels)
 			return;
 		
-		initLayout();
+		layout.startGroup(group.getName());
 		
-		data.layout.startGroup(group.getName());
+		buildAttributes(layout, group, currentLevel);
 		
-		buildAttributes(group, currentLevel);
-		
-		data.layout.endGroup(group.getName());
+		layout.endGroup(group.getName());
 	}
 	
 	public void copyToGUI()
@@ -278,4 +431,47 @@ public class JfgFormComposite extends Composite
 		listenerManager.removeListener(attributeName, listener);
 	}
 	
+	public static class LayoutEvent extends TypedEvent
+	{
+		private static final long serialVersionUID = 41527952251823222L;
+		
+		public LayoutEvent(Event e)
+		{
+			super(e);
+		}
+		
+		public LayoutEvent(Object object)
+		{
+			super(object);
+		}
+	}
+	
+	public static interface LayoutListener extends SWTEventListener
+	{
+		/**
+		 * Sent when the layout changes in this composite due to add or remove
+		 * items from a list.
+		 * 
+		 * @param e an event containing information about the operation
+		 */
+		public void layoutChanged(LayoutEvent e);
+	}
+	
+	private final List<LayoutListener> layoutListeners = new LinkedList<LayoutListener>();
+	
+	public void addLayoutListener(LayoutListener listener)
+	{
+		checkWidget();
+		if (listener == null)
+			SWT.error(SWT.ERROR_NULL_ARGUMENT);
+		layoutListeners.add(listener);
+	}
+	
+	public void removeLayoutListener(LayoutListener listener)
+	{
+		checkWidget();
+		if (listener == null)
+			SWT.error(SWT.ERROR_NULL_ARGUMENT);
+		layoutListeners.remove(listener);
+	}
 }

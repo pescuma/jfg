@@ -32,21 +32,37 @@ abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void createWidgets(SWTLayoutBuilder layout)
 	{
-		Composite[] parents = layout.getParentsForLabelWidget(attrib.getName());
-		if (parents[0] != null)
+		String attribName = attrib.getName();
+		
+		if (attribName != null)
 		{
-			name = data.componentFactory.createLabel(parents[0], SWT.NONE);
-			name.setText(data.textTranslator.fieldName(attrib.getName()) + ":");
+			Composite[] parents = layout.getParentsForLabelWidget(attrib.getName());
+			if (parents[0] != null)
+			{
+				name = data.componentFactory.createLabel(parents[0], SWT.NONE);
+				name.setText(data.textTranslator.fieldName(attribName) + ":");
+			}
+			
+			if (parents[1] == null)
+				throw new IllegalStateException();
+			
+			Control widget = createWidget(parents[1]);
+			
+			layout.addLabelWidget(attrib.getName(), name, widget, wantToFillVertical());
+		}
+		else
+		{
+			Composite parent = layout.getParentForWidget(attrib.getName());
+			
+			if (parent == null)
+				throw new IllegalStateException();
+			
+			Control widget = createWidget(parent);
+			
+			layout.addWidget(attrib.getName(), widget, wantToFillVertical());
 		}
 		
-		if (parents[1] == null)
-			throw new IllegalStateException();
-		
-		Control widget = createWidget(parents[1]);
-		
 		addAttributeListener();
-		
-		layout.addLabelWidget(attrib.getName(), name, widget, wantToFillVertical());
 	}
 	
 	protected abstract Control createWidget(Composite parent);

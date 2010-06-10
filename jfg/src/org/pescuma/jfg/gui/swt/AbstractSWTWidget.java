@@ -14,6 +14,11 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
@@ -29,6 +34,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected boolean ignoreToAttribute;
 	protected AttributeListener attributeListener;
 	private GuiCopyManager manager;
+	private final List<DisposeListener> disposeListeners = new LinkedList<DisposeListener>();
 	
 	public AbstractSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -110,6 +116,9 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 			{
 				if (attrib.canListen())
 					attrib.removeListener(attributeListener);
+				
+				for (DisposeListener l : disposeListeners)
+					l.widgetDisposed(new DisposeEvent(event));
 			}
 		};
 	}
@@ -171,4 +180,11 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	public void setVisible(boolean visible)
 	{
 	}
+	
+	@Override
+	public void addDisposeListener(DisposeListener listener)
+	{
+		disposeListeners.add(listener);
+	}
+	
 }

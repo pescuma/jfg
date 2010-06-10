@@ -18,15 +18,13 @@ public class WebcamDialog
 	@SuppressWarnings("unused")
 	private static class TestClass
 	{
-		public String nome;
-		public String a;
+		public String name;
 		public Image img1;
 		public Image img2;
 		public Image img3;
 		public Image img4;
 		public Image img5;
-		public Image brubts;
-		public int x;
+		public int value;
 	}
 	
 	public static void main(String[] args)

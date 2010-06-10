@@ -15,13 +15,18 @@
 package org.pescuma.jfg.gui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
 public class SWTSimpleComponentFactory implements SWTComponentFactory
 {
@@ -65,4 +70,14 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 		return new Button(parent, style);
 	}
 	
+	public Control createFlatButton(Composite parent, String text, String image, Listener selectionListener)
+	{
+		ToolBar addMore = new ToolBar(parent, SWT.FLAT | SWT.RIGHT);
+		ToolItem item = new ToolItem(addMore, SWT.PUSH);
+		item.setText(text);
+		item.setImage(new Image(item.getDisplay(), image));
+		item.addListener(SWT.Selection, selectionListener);
+		item.addListener(SWT.DefaultSelection, selectionListener);
+		return addMore;
+	}
 }

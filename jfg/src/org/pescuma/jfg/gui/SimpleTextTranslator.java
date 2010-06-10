@@ -48,9 +48,16 @@ public class SimpleTextTranslator implements TextTranslator
 		return firstUpper(text.trim());
 	}
 	
-	public String translate(String text)
+	public String translate(String... text)
 	{
-		return text;
+		if (text.length == 2)
+		{
+			if (text[0].equals("Add"))
+				return "Add another";
+			else if (text[0].equals("Remove"))
+				return "";
+		}
+		return text[0];
 	}
 	
 }
