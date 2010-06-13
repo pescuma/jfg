@@ -14,6 +14,7 @@
 
 package org.pescuma.jfg.reflect;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -30,6 +31,7 @@ import java.util.Set;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeListenerConverter;
 import org.pescuma.jfg.SpecialFieldHandler;
+import org.pescuma.jfg.model.ann.ReadOnly;
 
 class ReflectionUtils
 {
@@ -485,4 +487,13 @@ class ReflectionUtils
 		}
 	}
 	
+	public static boolean isReadOnly(AccessibleObject... objs)
+	{
+		for (AccessibleObject obj : objs)
+		{
+			if (obj != null && obj.isAnnotationPresent(ReadOnly.class))
+				return true;
+		}
+		return false;
+	}
 }

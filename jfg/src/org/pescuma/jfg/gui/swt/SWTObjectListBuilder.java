@@ -17,6 +17,8 @@ package org.pescuma.jfg.gui.swt;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -55,6 +57,8 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 			private InnerBuilder innerBuilder;
 			private AttributeList list;
 			private final List<Item> items = new ArrayList<Item>();
+			private Composite frame;
+			private Color background;
 			
 			@Override
 			protected boolean canCopyToAttribute()
@@ -71,7 +75,8 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 				this.innerBuilder = innerBuilder;
 				list = attrib.asList();
 				
-				layout.startList(list.getName());
+				frame = layout.startList(list.getName());
+				background = frame.getBackground();
 				
 				Control addMore = null;
 				if (list.canWrite())
@@ -116,6 +121,7 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 						{
 							listLayout.removeListItem(item.listItem);
 							items.remove(item);
+							onWidgetModify();
 						}
 					};
 					
@@ -213,6 +219,28 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 						return i;
 				}
 				return -1;
+			}
+			
+			@Override
+			public void setEnabled(boolean enabled)
+			{
+				frame.setEnabled(enabled);
+			}
+			
+			@Override
+			protected void markField()
+			{
+				super.markField();
+				
+				frame.setBackground(data.createBackgroundColor(frame, background));
+			}
+			
+			@Override
+			protected void unmarkField()
+			{
+				super.unmarkField();
+				
+				frame.setBackground(background);
 			}
 		};
 	}

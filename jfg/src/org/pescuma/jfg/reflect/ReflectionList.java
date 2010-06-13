@@ -28,13 +28,14 @@ public class ReflectionList implements AttributeList
 	private final List list;
 	private final ReflectionData data;
 	private final Map<Object, Attribute> attributes = new HashMap<Object, Attribute>();
+	private boolean canWrite;
 	
 	public ReflectionList(String name, List<?> list, Class<?> elementType)
 	{
-		this(name, list, elementType, new ReflectionData());
+		this(name, list, elementType, true, new ReflectionData());
 	}
 	
-	public ReflectionList(String name, List<?> list, Class<?> elementType, ReflectionData data)
+	public ReflectionList(String name, List<?> list, Class<?> elementType, boolean canChangeList, ReflectionData data)
 	{
 		if (list == null)
 			throw new IllegalArgumentException();
@@ -45,9 +46,10 @@ public class ReflectionList implements AttributeList
 		this.list = list;
 		this.data = data;
 		this.elementType = elementType;
+		this.canWrite = canChangeList;
 	}
 	
-	public ReflectionList(String name, Field field, Method method, Object obj, ReflectionData data)
+	public ReflectionList(String name, Field field, Method getter, Method setter, Object obj, ReflectionData data)
 	{
 		if (obj == null)
 			throw new IllegalArgumentException();
@@ -57,7 +59,8 @@ public class ReflectionList implements AttributeList
 		this.name = name;
 		this.list = (List<?>) obj;
 		this.data = data;
-		this.elementType = findElementType(field, method);
+		this.elementType = findElementType(field, getter);
+		this.canWrite = !ReflectionUtils.isReadOnly(field, getter, setter);
 	}
 	
 	private Class<?> findElementType(Field field, Method method)
@@ -160,7 +163,7 @@ public class ReflectionList implements AttributeList
 	@Override
 	public boolean canWrite()
 	{
-		return true;
+		return canWrite;
 	}
 	
 	@Override
@@ -176,6 +179,8 @@ public class ReflectionList implements AttributeList
 	@Override
 	public void add(int index, Attribute item)
 	{
+		if (!canWrite())
+			throw new ReflectionAttributeException("Field is ready-only");
 		if (item == null)
 			throw new IllegalArgumentException("item can't be null");
 		if (!(item instanceof ReflectionListAttribute))
@@ -189,6 +194,9 @@ public class ReflectionList implements AttributeList
 	@Override
 	public void remove(int index)
 	{
+		if (!canWrite())
+			throw new ReflectionAttributeException("Field is ready-only");
+		
 		Object obj = list.remove(index);
 		if (obj != null)
 			attributes.remove(obj);

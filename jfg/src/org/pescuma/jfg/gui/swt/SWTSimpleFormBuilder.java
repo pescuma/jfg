@@ -131,7 +131,7 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 	}
 	
 	@Override
-	public void startList(String attributeName)
+	public Composite startList(String attributeName)
 	{
 		Group frame = data.componentFactory.createGroup(createFullRowComposite(), SWT.NONE);
 		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -139,6 +139,8 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 		frame.setText(data.textTranslator.fieldName(attributeName));
 		
 		currents.add(new ListItem(frame));
+		
+		return frame;
 	}
 	
 	@Override
@@ -246,6 +248,11 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 				moveBelow += (getGridData(children[moveBelow]).horizontalSpan == 1 ? 1 : 0);
 				empty.moveBelow(children[moveBelow]);
 			}
+		}
+		else
+		{
+			GridLayout layout = (GridLayout) item.parent.getLayout();
+			layout.numColumns = 2;
 		}
 		
 		Control[] children = item.parent.getChildren();

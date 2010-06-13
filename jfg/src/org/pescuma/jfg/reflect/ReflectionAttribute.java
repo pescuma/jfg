@@ -49,6 +49,7 @@ public class ReflectionAttribute implements Attribute
 	private final Method removeListener;
 	private final String name;
 	private final Class<?> type;
+	private final boolean canWrite;
 	private final AttributeValueRange attributeValueRange;
 	
 	private Object listener;
@@ -101,6 +102,15 @@ public class ReflectionAttribute implements Attribute
 			removeListener = null;
 		
 		attributeValueRange = getRangeData(simpleName);
+		
+		if (ReflectionUtils.isReadOnly(field, setter, getter))
+			canWrite = false;
+		else if (setter != null)
+			canWrite = true;
+		else if (field != null)
+			canWrite = !Modifier.isFinal(field.getModifiers());
+		else
+			canWrite = false;
 		
 		setAccessible();
 	}
@@ -315,12 +325,12 @@ public class ReflectionAttribute implements Attribute
 		if (value == null)
 			return null;
 		
-		return new ReflectionList(getName(), field, getter, value, data);
+		return new ReflectionList(getName(), field, getter, setter, value, data);
 	}
 	
 	public boolean canWrite()
 	{
-		return setter != null || (field != null && !Modifier.isFinal(field.getModifiers()));
+		return canWrite;
 	}
 	
 	public Object getValue()

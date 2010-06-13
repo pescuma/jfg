@@ -18,7 +18,7 @@ public interface SWTLayoutBuilder
 	Composite getParentForWidget(String attributeName);
 	void addWidget(String attributeName, Control widget, boolean wantToFillVertical);
 	
-	void startList(String attributeName);
+	Composite startList(String attributeName);
 	Composite getParentForAddMore();
 	SWTLayoutBuilder endList(String attributeName, Control addMore);
 

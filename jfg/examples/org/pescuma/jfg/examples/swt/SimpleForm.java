@@ -61,6 +61,14 @@ public class SimpleForm
 				obj.setReal(1234.56);
 				obj.getSub().setB(987);
 				obj.getSub().setCd("CD!!");
+				
+				TestSub sub = new TestSub();
+				sub.setB(2);
+				sub.setCd("suuuuub");
+				obj.subs.add(sub);
+				
+				obj.names.add("N1");
+				obj.names.add("N 2");
 			}
 		});
 		set.setText("Set");
