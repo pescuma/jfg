@@ -47,11 +47,17 @@ public class SplitButton extends Button {
     
     public SplitButton(Composite parent, int style) {
         super(parent, SWT.PUSH);
-        setText("");
+        super.setText(EMPTY_SPACE);
         super.addPaintListener(new PaintListener() {
             
             @Override
             public void paintControl(PaintEvent e) {
+            	
+        		updateText();
+        		
+            	if (!hasMenu())
+            		return;
+            	
                 // draw the split line and arrow
             	
             	Color oldForeground = e.gc.getForeground();
@@ -93,7 +99,7 @@ public class SplitButton extends Button {
             
             @Override
             public void handleEvent(Event event) {
-                if (isShowMenu(event.x, event.y)) {
+                if (hasMenu() && isShowMenu(event.x, event.y)) {
                     
                     for (SplitButtonSelectionListener listener : listeners) {
                         if (!listener.showMenu()) {
@@ -113,11 +119,15 @@ public class SplitButton extends Button {
                 }
             }
         });
-        menu = new Menu (getShell(), SWT.POP_UP);;
+        menu = new Menu (getShell(), SWT.POP_UP);
     }
     
     private boolean isShowMenu(int x, int y) {
         return x>=x1 && y>=y1 && x<=x2 && y<=y2;
+    }
+    
+    private boolean hasMenu() {
+        return menu != null && menu.getItemCount() > 0;
     }
     
     public void addSplitButtonSelectionListener(SplitButtonSelectionListener listener) {
@@ -132,6 +142,7 @@ public class SplitButton extends Button {
     @Override
     public void setMenu(Menu menu) {
         this.menu = menu;
+        updateText();
     }
 
     @Override
@@ -141,10 +152,22 @@ public class SplitButton extends Button {
 
     @Override
     public void setText(String string) {
-        if (string != null) {
-            super.setText(string + EMPTY_SPACE);
-        } 
+    	if (string == null)
+    		string = "";
+   		super.setText(string.trim() + EMPTY_SPACE);
     }
+
+	private void updateText()
+	{
+		String orig = super.getText();
+		
+		String text = orig.trim();
+		if (hasMenu())
+			text += EMPTY_SPACE;
+		
+		if (!text.equals(orig))
+			super.setText(text);
+	}
 
     @Override
     public String getText() {

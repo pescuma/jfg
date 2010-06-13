@@ -21,34 +21,26 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
-import com.lti.civil.CaptureDeviceInfo;
-import com.lti.civil.CaptureException;
-import com.lti.civil.CaptureObserver;
-import com.lti.civil.CaptureStream;
-import com.lti.civil.CaptureSystem;
-import com.lti.civil.DefaultCaptureSystemFactorySingleton;
-import com.lti.civil.VideoFormat;
-
 public class WebcamControl extends Canvas
 {
-	private static final LTIManager lti = new LTIManager();
+	private static final LTIManager lti = LTIManagerBuilder.createLTIManager();
 	
 	private Image image;
 	
 	private boolean ltiInitialized;
 	private int webcamIndex = -1;
-	private com.lti.civil.Image pendingImage;
+	private LTIManager.Image pendingImage;
 	private boolean cropImage = true;
 	
-	private CaptureObserver captureObserver = new CaptureObserver() {
+	private LTIManager.CaptureObserver captureObserver = new LTIManager.CaptureObserver() {
 		@Override
-		public void onNewImage(CaptureStream sender, com.lti.civil.Image image)
+		public void onNewImage(LTIManager.Image image)
 		{
 			setPendingImage(image);
 		}
 		
 		@Override
-		public void onError(CaptureStream sender, CaptureException e)
+		public void onError(Exception e)
 		{
 		}
 	};
@@ -86,24 +78,17 @@ public class WebcamControl extends Canvas
 		this.cropImage = crop;
 	}
 	
-	private List<CaptureDeviceInfo> getDevices()
-	{
-		return lti.getDevices();
-	}
-	
 	public int getWebcamCount()
 	{
-		return getDevices().size();
+		return lti.getNumDevices();
 	}
 	
 	public String getWebcamName(int index)
 	{
-		List<CaptureDeviceInfo> devices = getDevices();
-		
-		if (index < 0 || index >= devices.size())
+		if (index < 0 || index >= lti.getNumDevices())
 			return null;
 		
-		return devices.get(index).getDescription();
+		return lti.getDeviceDescription(index);
 	}
 	
 	public boolean isShowingWebcam()
@@ -132,8 +117,7 @@ public class WebcamControl extends Canvas
 		
 		stopWebcam();
 		
-		List<CaptureDeviceInfo> devices = getDevices();
-		if (index < 0 || index >= devices.size())
+		if (index < 0 || index >= lti.getNumDevices())
 			return false;
 		
 		if (lti.startCapture(getShell(), index, captureObserver))
@@ -284,7 +268,7 @@ public class WebcamControl extends Canvas
 		disposeImage();
 	}
 	
-	private synchronized void setPendingImage(com.lti.civil.Image image)
+	private synchronized void setPendingImage(LTIManager.Image image)
 	{
 		pendingImage = image;
 		invalidate();
@@ -309,27 +293,6 @@ public class WebcamControl extends Canvas
 		}
 	}
 	
-	private static int getBitsPerPixel(int format)
-	{
-		switch (format)
-		{
-			case com.lti.civil.VideoFormat.RGB24:
-				return 24;
-			case com.lti.civil.VideoFormat.RGB32:
-				return 32;
-			default:
-				throw new RuntimeException();
-		}
-	}
-	
-	private static ImageData convertToSWTImageData(final com.lti.civil.Image image)
-	{
-		final VideoFormat format = image.getFormat();
-		PaletteData palette = new PaletteData(0xff, 0xff00, 0xff0000);
-		return new ImageData(format.getWidth(), format.getHeight(), getBitsPerPixel(format.getFormatType()), palette,
-				1, image.getBytes());
-	}
-	
 	private synchronized void processPendingImage()
 	{
 		if (pendingImage == null)
@@ -337,7 +300,7 @@ public class WebcamControl extends Canvas
 		
 		try
 		{
-			Image processed = new Image(getDisplay(), convertToSWTImageData(pendingImage));
+			Image processed = new Image(getDisplay(), lti.convertToSWTImageData(pendingImage));
 			disposeImage();
 			image = processed;
 		}
@@ -347,9 +310,15 @@ public class WebcamControl extends Canvas
 		}
 	}
 	
-	static class LTIManager
+	private static class LTIManagerBuilder
 	{
-		private static final boolean hasLTI = hasLTI();
+		private static LTIManager createLTIManager()
+		{
+			if (hasLTI())
+				return new RealLTIManager();
+			else
+				return new DummyLTIManager();
+		}
 		
 		private static boolean hasLTI()
 		{
@@ -362,24 +331,146 @@ public class WebcamControl extends Canvas
 				return false;
 			}
 		}
+	}
+	
+	private static interface LTIManager
+	{
+		static interface Image
+		{
+		}
 		
+		static interface CaptureObserver
+		{
+			void onNewImage(Image image);
+			
+			void onError(Exception e);
+		}
+		
+		boolean init(Shell shell);
+		
+		boolean startCapture(Shell shell, int index, CaptureObserver captureObserver);
+		
+		void stopCapture(int index, CaptureObserver captureObserver);
+		
+		void dispose();
+		
+		int getNumDevices();
+		
+		String getDeviceDescription(int index);
+		
+		ImageData convertToSWTImageData(Image image);
+	}
+	
+	private static class DummyLTIManager implements LTIManager
+	{
+		@Override
+		public int getNumDevices()
+		{
+			return 0;
+		}
+		
+		@Override
+		public String getDeviceDescription(int index)
+		{
+			return null;
+		}
+		
+		@Override
+		public boolean init(Shell shell)
+		{
+			return false;
+		}
+		
+		@Override
+		public boolean startCapture(Shell shell, int index, CaptureObserver captureObserver)
+		{
+			return false;
+		}
+		
+		@Override
+		public void stopCapture(int index, CaptureObserver captureObserver)
+		{
+		}
+		
+		@Override
+		public void dispose()
+		{
+		}
+		
+		@Override
+		public ImageData convertToSWTImageData(LTIManager.Image image)
+		{
+			return null;
+		}
+	}
+	
+	private static class RealLTIManager implements LTIManager
+	{
 		private long clients = 0;
-		private CaptureSystem system;
+		private com.lti.civil.CaptureSystem system;
+		
+		private static class ImageAdapter implements LTIManager.Image
+		{
+			final com.lti.civil.Image image;
+			
+			public ImageAdapter(com.lti.civil.Image image)
+			{
+				this.image = image;
+			}
+		}
+		
+		private static class CaptureObserverAdapter implements com.lti.civil.CaptureObserver
+		{
+			final LTIManager.CaptureObserver observer;
+			
+			public CaptureObserverAdapter(LTIManager.CaptureObserver observer)
+			{
+				this.observer = observer;
+			}
+			
+			@Override
+			public void onNewImage(com.lti.civil.CaptureStream stream, com.lti.civil.Image image)
+			{
+				observer.onNewImage(new ImageAdapter(image));
+			}
+			
+			@Override
+			public void onError(com.lti.civil.CaptureStream stream, com.lti.civil.CaptureException e)
+			{
+				observer.onError(e);
+			}
+			
+			@Override
+			public int hashCode()
+			{
+				return observer.hashCode();
+			}
+			
+			@Override
+			public boolean equals(Object obj)
+			{
+				if (this == obj)
+					return true;
+				if (obj == null)
+					return false;
+				if (getClass() != obj.getClass())
+					return false;
+				CaptureObserverAdapter other = (CaptureObserverAdapter) obj;
+				return observer.equals(other.observer);
+			}
+		}
 		
 		private static class WebcamData
 		{
 			long clients = 0;
-			CaptureStream captureStream;
-			final List<CaptureObserver> observers = new ArrayList<CaptureObserver>();
+			com.lti.civil.CaptureStream captureStream;
+			final List<CaptureObserverAdapter> observers = new ArrayList<CaptureObserverAdapter>();
 		}
 		
 		private Map<Integer, WebcamData> webcams = new HashMap<Integer, WebcamData>();
 		
 		public boolean init(Shell shell)
 		{
-			if (!hasLTI)
-				return false;
-			
 			clients++;
 			
 			if (system != null)
@@ -387,22 +478,11 @@ public class WebcamControl extends Canvas
 			
 			try
 			{
-				system = DefaultCaptureSystemFactorySingleton.instance().createCaptureSystem();
+				system = com.lti.civil.DefaultCaptureSystemFactorySingleton.instance().createCaptureSystem();
 				system.init();
-				
-				// List<CaptureDeviceInfo> devices = getDevices();
-				// for (int i = 0; i < devices.size(); ++i)
-				// {
-				// CaptureDeviceInfo info = devices.get(i);
-				// System.out.println("Device ID " + i + ": " +
-				// info.getDeviceID());
-				// System.out.println("Description " + i + ": " +
-				// info.getDescription());
-				// }
-				
 				return true;
 			}
-			catch (CaptureException e)
+			catch (com.lti.civil.CaptureException e)
 			{
 				e.printStackTrace();
 				
@@ -417,12 +497,12 @@ public class WebcamControl extends Canvas
 			}
 		}
 		
-		public boolean startCapture(Shell shell, int index, CaptureObserver captureObserver)
+		public boolean startCapture(Shell shell, int index, LTIManager.CaptureObserver captureObserver)
 		{
 			if (system == null)
 				return false;
 			
-			List<CaptureDeviceInfo> devices = getDevices();
+			List<com.lti.civil.CaptureDeviceInfo> devices = getDevices();
 			if (index < 0 || index >= devices.size())
 				return false;
 			
@@ -431,34 +511,34 @@ public class WebcamControl extends Canvas
 				if (data != null)
 				{
 					data.clients++;
-					data.observers.add(captureObserver);
+					data.observers.add(new CaptureObserverAdapter(captureObserver));
 					return true;
 				}
 			}
 			
 			final WebcamData data = new WebcamData();
 			data.clients++;
-			data.observers.add(captureObserver);
+			data.observers.add(new CaptureObserverAdapter(captureObserver));
 			
 			try
 			{
-				CaptureDeviceInfo info = devices.get(index);
+				com.lti.civil.CaptureDeviceInfo info = devices.get(index);
 				data.captureStream = system.openCaptureDeviceStream(info.getDeviceID());
-				data.captureStream.setObserver(new CaptureObserver() {
+				data.captureStream.setObserver(new com.lti.civil.CaptureObserver() {
 					@Override
-					public void onNewImage(CaptureStream sender, com.lti.civil.Image image)
+					public void onNewImage(com.lti.civil.CaptureStream sender, com.lti.civil.Image image)
 					{
-						for (CaptureObserver observer : data.observers)
+						for (com.lti.civil.CaptureObserver observer : data.observers)
 							observer.onNewImage(sender, image);
 					}
 					
 					@Override
-					public void onError(CaptureStream sender, CaptureException e)
+					public void onError(com.lti.civil.CaptureStream sender, com.lti.civil.CaptureException e)
 					{
 						System.err.println("Error loading image from " + sender);
 						e.printStackTrace();
 						
-						for (CaptureObserver observer : data.observers)
+						for (com.lti.civil.CaptureObserver observer : data.observers)
 							observer.onError(sender, e);
 					}
 				});
@@ -469,7 +549,7 @@ public class WebcamControl extends Canvas
 				
 				return true;
 			}
-			catch (CaptureException e)
+			catch (com.lti.civil.CaptureException e)
 			{
 				e.printStackTrace();
 				
@@ -484,7 +564,7 @@ public class WebcamControl extends Canvas
 			}
 		}
 		
-		public void stopCapture(int index, CaptureObserver captureObserver)
+		public void stopCapture(int index, LTIManager.CaptureObserver captureObserver)
 		{
 			if (system == null)
 				return;
@@ -494,7 +574,7 @@ public class WebcamControl extends Canvas
 				return;
 			
 			data.clients--;
-			data.observers.remove(captureObserver);
+			data.observers.remove(new CaptureObserverAdapter(captureObserver));
 			if (data.clients > 0)
 				return;
 			
@@ -502,7 +582,7 @@ public class WebcamControl extends Canvas
 			webcams.remove(index);
 		}
 		
-		private void stop(CaptureStream captureStream)
+		private void stop(com.lti.civil.CaptureStream captureStream)
 		{
 			if (captureStream != null)
 			{
@@ -510,7 +590,7 @@ public class WebcamControl extends Canvas
 				{
 					captureStream.stop();
 				}
-				catch (CaptureException e)
+				catch (com.lti.civil.CaptureException e)
 				{
 					e.printStackTrace();
 				}
@@ -519,7 +599,7 @@ public class WebcamControl extends Canvas
 				{
 					captureStream.dispose();
 				}
-				catch (CaptureException e)
+				catch (com.lti.civil.CaptureException e)
 				{
 					e.printStackTrace();
 				}
@@ -528,9 +608,6 @@ public class WebcamControl extends Canvas
 		
 		public void dispose()
 		{
-			if (!hasLTI)
-				return;
-			
 			clients--;
 			
 			if (clients > 0)
@@ -546,7 +623,7 @@ public class WebcamControl extends Canvas
 				{
 					system.dispose();
 				}
-				catch (CaptureException e)
+				catch (com.lti.civil.CaptureException e)
 				{
 					e.printStackTrace();
 				}
@@ -555,20 +632,60 @@ public class WebcamControl extends Canvas
 		}
 		
 		@SuppressWarnings("unchecked")
-		public List<CaptureDeviceInfo> getDevices()
+		private List<com.lti.civil.CaptureDeviceInfo> getDevices()
 		{
 			if (system == null)
-				return new ArrayList<CaptureDeviceInfo>();
+				return new ArrayList<com.lti.civil.CaptureDeviceInfo>();
 			
 			try
 			{
 				return system.getCaptureDeviceInfoList();
 			}
-			catch (CaptureException e)
+			catch (com.lti.civil.CaptureException e)
 			{
 				e.printStackTrace();
-				return new ArrayList<CaptureDeviceInfo>();
+				return new ArrayList<com.lti.civil.CaptureDeviceInfo>();
 			}
+		}
+		
+		private static int getBitsPerPixel(int format)
+		{
+			switch (format)
+			{
+				case com.lti.civil.VideoFormat.RGB24:
+					return 24;
+				case com.lti.civil.VideoFormat.RGB32:
+					return 32;
+				default:
+					throw new RuntimeException();
+			}
+		}
+		
+		private static ImageData convertToSWTImageData(final com.lti.civil.Image image)
+		{
+			final com.lti.civil.VideoFormat format = image.getFormat();
+			PaletteData palette = new PaletteData(0xff, 0xff00, 0xff0000);
+			return new ImageData(format.getWidth(), format.getHeight(), getBitsPerPixel(format.getFormatType()),
+					palette, 1, image.getBytes());
+		}
+		
+		@Override
+		public ImageData convertToSWTImageData(LTIManager.Image image)
+		{
+			ImageAdapter imageAdapter = (ImageAdapter) image;
+			return convertToSWTImageData(imageAdapter.image);
+		}
+		
+		@Override
+		public int getNumDevices()
+		{
+			return getDevices().size();
+		}
+		
+		@Override
+		public String getDeviceDescription(int index)
+		{
+			return getDevices().get(index).getDescription();
 		}
 	}
 }
