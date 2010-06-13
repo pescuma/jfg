@@ -20,8 +20,8 @@ public interface AttributeGroup
 {
 	String getName();
 	
-	/** @return a list of Attributes/Groups */
-	Collection<Object> getAttributes();
+	/** @return a list of Attributes */
+	Collection<Attribute> getAttributes();
 	
 	boolean canListen();
 	void addListener(AttributeListener listener);

@@ -30,6 +30,7 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 	{
 		int listItemStart = 0;
 		Control addMoreParent;
+		boolean ended = false;
 		
 		public ListItem(Composite parent)
 		{
@@ -102,7 +103,7 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 		widget.setLayoutData(new GridData(wantToFillVertical ? FILL_BOTH : FILL_HORIZONTAL));
 	}
 	
-	public void startGroup(String groupName)
+	public Group startGroup(String groupName)
 	{
 		Group frame = data.componentFactory.createGroup(createFullRowComposite(), SWT.NONE);
 		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -110,6 +111,8 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 		frame.setText(data.textTranslator.groupName(groupName));
 		
 		currents.add(new Item(frame));
+		
+		return frame;
 	}
 	
 	public void endGroup(String groupName)
@@ -155,9 +158,12 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 	public SWTLayoutBuilder endList(String attributeName, Control addMore)
 	{
 		assertCurrentIsList();
-		addMore.setLayoutData(new GridData(FILL_HORIZONTAL));
+		
+		if (addMore != null)
+			addMore.setLayoutData(new GridData(FILL_HORIZONTAL));
 		
 		ListItem current = getCurrentList();
+		current.ended = true;
 		
 		currents.remove(currents.size() - 1);
 		
@@ -199,52 +205,56 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 		ListItem item = getCurrentList();
 		int addMoreOffset = (item.addMoreParent != null ? -1 : 0);
 		
-		Control[] children = item.parent.getChildren();
-		
-		remove.moveBelow(children[children.length - 1]);
-		
 		if (item.addMoreParent != null)
 		{
+			Control[] children = item.parent.getChildren();
+			
 			int index = indexOf(children, item.addMoreParent);
 			if (index < 0)
 				throw new IllegalStateException();
 			if (index < item.listItemStart)
 				item.listItemStart--;
-			item.addMoreParent.moveBelow(remove);
-		}
-		
-		children = item.parent.getChildren();
-		
-		int items = 0;
-		for (int i = item.listItemStart; i < children.length - 1 + addMoreOffset; i++)
-			items += getGridData(children[i]).horizontalSpan;
-		items /= 2;
-		
-		if (items == 0)
-			throw new IllegalStateException();
-		
-		int moveBelow = item.listItemStart + (getGridData(children[0]).horizontalSpan == 1 ? 1 : 0);
-		remove.moveBelow(children[moveBelow]);
-		
-		if (items > 1)
-		{
-			Label empty = data.componentFactory.createLabel(item.parent, SWT.NONE);
-			GridData gridData = new GridData();
-			gridData.verticalSpan = items - 1;
-			empty.setLayoutData(gridData);
 			
-			moveBelow++;
-			moveBelow += (getGridData(children[moveBelow]).horizontalSpan == 1 ? 1 : 0);
-			empty.moveBelow(children[moveBelow]);
+			item.addMoreParent.moveBelow(null);
 		}
 		
-		children = item.parent.getChildren();
+		if (remove != null)
+		{
+			remove.moveBelow(null);
+			
+			Control[] children = item.parent.getChildren();
+			
+			int items = 0;
+			for (int i = item.listItemStart; i < children.length - 1 + addMoreOffset; i++)
+				items += getGridData(children[i]).horizontalSpan;
+			items /= 2;
+			
+			if (items == 0)
+				throw new IllegalStateException();
+			
+			int moveBelow = item.listItemStart + (getGridData(children[0]).horizontalSpan == 1 ? 1 : 0);
+			remove.moveBelow(children[moveBelow]);
+			
+			if (items > 1)
+			{
+				Label empty = data.componentFactory.createLabel(item.parent, SWT.NONE);
+				GridData gridData = new GridData();
+				gridData.verticalSpan = items - 1;
+				empty.setLayoutData(gridData);
+				
+				moveBelow++;
+				moveBelow += (getGridData(children[moveBelow]).horizontalSpan == 1 ? 1 : 0);
+				empty.moveBelow(children[moveBelow]);
+			}
+		}
+		
+		Control[] children = item.parent.getChildren();
 		
 		ControlsToRemove constrols = new ControlsToRemove();
 		for (int i = item.listItemStart; i < children.length + addMoreOffset; i++)
 			constrols.constrols.add(children[i]);
 		
-		if (item.addMoreParent != null)
+		if (item.ended)
 			layoutListener.run();
 		
 		return constrols;
@@ -258,6 +268,31 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder
 				return i;
 		}
 		return -1;
+	}
+	
+	@Override
+	public void moveAfter(SWTLayoutBuilder.ListItem baseItem, SWTLayoutBuilder.ListItem itemToMove)
+	{
+		assertCurrentIsList();
+		ListItem item = getCurrentList();
+		
+		ControlsToRemove constrolsToMove = (ControlsToRemove) itemToMove;
+		ControlsToRemove baseConstrols = (ControlsToRemove) baseItem;
+		
+		if (baseConstrols == null)
+		{
+			for (int i = constrolsToMove.constrols.size() - 1; i > 0; i--)
+				constrolsToMove.constrols.get(i).moveAbove(null);
+		}
+		else
+		{
+			Control base = baseConstrols.constrols.get(baseConstrols.constrols.size() - 1);
+			for (int i = constrolsToMove.constrols.size() - 1; i > 0; i--)
+				constrolsToMove.constrols.get(i).moveBelow(base);
+		}
+		
+		if (item.ended)
+			layoutListener.run();
 	}
 	
 	@Override

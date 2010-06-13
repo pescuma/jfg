@@ -22,8 +22,6 @@ public interface GuiWidget
 	
 	void setEnabled(boolean enabled);
 	
-	void setVisible(boolean visible);
-	
 	Object getValue();
 	
 	void setValue(Object value);

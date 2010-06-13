@@ -44,7 +44,6 @@ public class SimpleDialog
 		scroll.setExpandHorizontal(true);
 		scroll.setExpandVertical(true);
 		scroll.setMinSize(contents.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
 		form.addLayoutListener(new LayoutListener() {
 			@Override
 			public void layoutChanged(LayoutEvent e)
@@ -64,6 +63,11 @@ public class SimpleDialog
 			}
 		});
 		ok.setText("Ok");
+		
+		// If you want that the form appears without scroll bars, use this line.
+		// The problem with it is that depending on the contents of your objects the form will have 
+		// a different size.
+		form.copyToGUI();
 		
 		shell.setText("Simple Dialog");
 		shell.pack();

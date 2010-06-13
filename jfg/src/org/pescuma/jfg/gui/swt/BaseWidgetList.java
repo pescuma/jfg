@@ -15,6 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -64,6 +65,11 @@ class BaseWidgetList implements GuiWidgetList, Iterable<AttributeWidgetPair>
 	public Iterator<AttributeWidgetPair> iterator()
 	{
 		return widgets.iterator();
+	}
+	
+	public Collection<AttributeWidgetPair> getWidgetList()
+	{
+		return widgets;
 	}
 	
 	public GuiWidget getWidget(Attribute attribute)

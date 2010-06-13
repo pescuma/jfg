@@ -26,10 +26,9 @@ abstract class AbstractWidgetSWTWidget extends AbstractSWTWidget
 	}
 	
 	@Override
-	protected void createWidgets(SWTLayoutBuilder layout)
+	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 	{
 		Composite parent = layout.getParentForWidget(attrib.getName());
-		
 		if (parent == null)
 			throw new IllegalStateException();
 		

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeListener;
 
@@ -38,7 +39,7 @@ public class ReflectionGroup implements AttributeGroup
 	private final Object obj;
 	private final boolean useStatic;
 	private final ReflectionData data;
-	private ArrayList<ReflectionAttribute> attributes;
+	private List<Attribute> attributes;
 	private Method addListener;
 	private Method removeListener;
 	
@@ -104,7 +105,7 @@ public class ReflectionGroup implements AttributeGroup
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Collection<Object> getAttributes()
+	public Collection<Attribute> getAttributes()
 	{
 		if (attributes == null)
 			loadAttributes();
@@ -133,7 +134,7 @@ public class ReflectionGroup implements AttributeGroup
 	
 	private void loadAttributes()
 	{
-		attributes = new ArrayList<ReflectionAttribute>();
+		attributes = new ArrayList<Attribute>();
 		
 		addListener = getListenerMethod(memberFilter, getObjClass(), data.getAddObjectListenerNames(),
 				data.getRemoveObjectListenerNames(), data);

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeListener;
 
@@ -26,7 +27,7 @@ public class MapGroup implements AttributeGroup
 {
 	private final String name;
 	private final Map<?, ?> map;
-	private ArrayList<Object> attributes;
+	private ArrayList<Attribute> attributes;
 	private final Class<?> valueClass;
 	
 	public MapGroup(Map<?, ?> map)
@@ -56,7 +57,7 @@ public class MapGroup implements AttributeGroup
 		return name;
 	}
 	
-	public Collection<Object> getAttributes()
+	public Collection<Attribute> getAttributes()
 	{
 		if (attributes == null)
 			loadAttributes();
@@ -66,7 +67,7 @@ public class MapGroup implements AttributeGroup
 	
 	private void loadAttributes()
 	{
-		attributes = new ArrayList<Object>();
+		attributes = new ArrayList<Attribute>();
 		
 		for (Object key : map.keySet())
 			attributes.add(new MapAttribute(map, key, valueClass));

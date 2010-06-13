@@ -20,6 +20,10 @@ public class SimpleTextTranslator implements TextTranslator
 {
 	public String fieldName(String fieldName)
 	{
+		if (fieldName.endsWith("#item"))
+			// No name in list items
+			return null;
+		
 		return formatText(fieldName);
 	}
 	

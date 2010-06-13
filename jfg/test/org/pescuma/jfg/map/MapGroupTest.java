@@ -49,11 +49,11 @@ public class MapGroupTest
 		MapGroup group = new MapGroup(map);
 		assertGroup(group, "Map");
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertNotNull(attributes);
 		assertEquals(3, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		Attribute attrib = (Attribute) it.next();
 		assertAttribute(attrib, "abc", String.class, true, false);
 		assertGetSet(attrib, map, "abc", "123", "aa", "xy");
@@ -78,11 +78,11 @@ public class MapGroupTest
 		MapGroup group = new MapGroup("Xz", map, String.class);
 		assertGroup(group, "Xz");
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertNotNull(attributes);
 		assertEquals(3, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		Attribute attrib = (Attribute) it.next();
 		assertAttribute(attrib, "abc", String.class, true, false);
 		assertGetSet(attrib, map, "abc", "123", "aa", "xy");
@@ -114,11 +114,11 @@ public class MapGroupTest
 		MapGroup group = new MapGroup(map);
 		assertGroup(group, "Map");
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertNotNull(attributes);
 		assertEquals(4, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		Attribute attrib = (Attribute) it.next();
 		assertAttribute(attrib, "abc", String.class, true, false);
 		assertGetSet(attrib, map, "abc", "123", "aa", "xy");
@@ -133,11 +133,11 @@ public class MapGroupTest
 			AttributeGroup group2 = attrib.asGroup();
 			assertGroup(group2, "map.x");
 			
-			Collection<Object> attributes2 = group2.getAttributes();
+			Collection<Attribute> attributes2 = group2.getAttributes();
 			assertNotNull(attributes2);
 			assertEquals(3, attributes2.size());
 			
-			Iterator<Object> it2 = attributes2.iterator();
+			Iterator<Attribute> it2 = attributes2.iterator();
 			Attribute attrib2 = (Attribute) it2.next();
 			assertAttribute(attrib2, "u", String.class, true, true);
 			assertGetSet(attrib2, map2, "u", null, "aa", "xy");

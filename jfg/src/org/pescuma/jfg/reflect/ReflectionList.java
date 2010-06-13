@@ -163,20 +163,27 @@ public class ReflectionList implements AttributeList
 		return true;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
-	public Attribute add()
+	public Attribute createNewElement()
 	{
 		Object obj = newInstance(elementType);
 		if (obj == null)
 			throw new ReflectionAttributeException("Could not create new object of class " + elementType.getName());
+		return new ReflectionListAttribute(obj);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void add(int index, Attribute item)
+	{
+		if (item == null)
+			throw new IllegalArgumentException("item can't be null");
+		if (!(item instanceof ReflectionListAttribute))
+			throw new IllegalArgumentException("Wrong item type");
 		
-		if (!list.add(obj))
-			return null;
-		
-		Attribute attrib = new ReflectionListAttribute(obj);
-		attributes.put(obj, attrib);
-		return attrib;
+		Object obj = item.getValue();
+		attributes.put(obj, item);
+		list.add(index, obj);
 	}
 	
 	@Override
@@ -218,7 +225,7 @@ public class ReflectionList implements AttributeList
 		@Override
 		public String getName()
 		{
-			return null;
+			return name + "#item";
 		}
 		
 		@Override
@@ -326,4 +333,5 @@ public class ReflectionList implements AttributeList
 			return null;
 		}
 	}
+	
 }

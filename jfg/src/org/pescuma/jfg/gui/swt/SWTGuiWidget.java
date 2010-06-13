@@ -1,12 +1,19 @@
 package org.pescuma.jfg.gui.swt;
 
 import org.eclipse.swt.events.DisposeListener;
+import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiWidget;
 
 public interface SWTGuiWidget extends GuiWidget
 {
-	void init(SWTLayoutBuilder layout, GuiCopyManager manager);
+	interface InnerBuilder
+	{
+		boolean canBuildInnerAttribute();
+		void buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib);
+	}
+	
+	void init(SWTLayoutBuilder layout, InnerBuilder innerBuilder, GuiCopyManager manager);
 	
 	void addDisposeListener(DisposeListener listener);
 }

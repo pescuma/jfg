@@ -30,9 +30,11 @@ abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
 	}
 	
 	@Override
-	protected void createWidgets(SWTLayoutBuilder layout)
+	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 	{
 		String attribName = attrib.getName();
+		if (attribName != null)
+			attribName = data.textTranslator.fieldName(attribName);
 		
 		if (attribName != null)
 		{
@@ -40,7 +42,7 @@ abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
 			if (parents[0] != null)
 			{
 				name = data.componentFactory.createLabel(parents[0], SWT.NONE);
-				name.setText(data.textTranslator.fieldName(attribName) + ":");
+				name.setText(attribName + ":");
 			}
 			
 			if (parents[1] == null)

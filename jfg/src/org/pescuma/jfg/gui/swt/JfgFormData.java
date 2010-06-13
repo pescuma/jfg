@@ -29,6 +29,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Widget;
 import org.pescuma.jfg.Attribute;
+import org.pescuma.jfg.AttributeGroup;
+import org.pescuma.jfg.AttributeList;
 import org.pescuma.jfg.gui.SimpleTextTranslator;
 import org.pescuma.jfg.gui.TextTranslator;
 
@@ -52,7 +54,7 @@ public final class JfgFormData
 	
 	public SWTLayoutBuilder layout = new SWTSimpleFormBuilder();
 	
-	public int maxGroupAttributeLevels = 1;
+	public int maxAttributeSubLevels = 1;
 	
 	public TextTranslator textTranslator = new SimpleTextTranslator();
 	
@@ -99,10 +101,9 @@ public final class JfgFormData
 		builders.put(Boolean.class, new SWTCheckboxBuilder());
 		
 		builders.put(Enum.class, new SWTComboBuilder());
-		
 		builders.put(File.class, new SWTFileBuilder());
-		
 		builders.put(Image.class, new SWTImageBuilder());
+		builders.put(List.class, new SWTObjectListBuilder());
 		
 		builders.put("text", new SWTTextBuilder());
 		builders.put("text_area", new SWTTextAreaBuilder());
@@ -118,6 +119,8 @@ public final class JfgFormData
 		builders.put("directory", new SWTDirectoryBuilder());
 		builders.put("image", new SWTImageBuilder());
 		builders.put("webcam", new SWTImageBuilder());
+		builders.put("list_objects", new SWTObjectListBuilder());
+		builders.put("group", new SWTGroupBuilder());
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
@@ -219,12 +222,56 @@ public final class JfgFormData
 			}
 		});
 		
+		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
+			private SWTGroupBuilder groupBuilder = new SWTGroupBuilder();
+			
+			public Object getTypeFor(Attribute attrib)
+			{
+				if (builders.containsKey(attrib.getType()))
+					return null;
+				
+				if (groupBuilder.accept(attrib))
+					return "group";
+				
+				return null;
+			}
+		});
+		
 		attributeFilters.add(new SWTAttributeFilter() {
 			public boolean hideAttribute(Attribute attrib)
 			{
-				if (!showReadOnly && !attrib.canWrite())
-					return true;
-				return false;
+				if (showReadOnly || attrib.canWrite())
+					return false;
+				
+				SWTWidgetBuilder builder = getBuilderFor(attrib);
+				
+				if (builder instanceof SWTGroupBuilder)
+				{
+					AttributeGroup group = attrib.asGroup();
+					if (group == null)
+						return true;
+					
+					for (Attribute ga : group.getAttributes())
+						if (!hideAttribute(ga))
+							return false;
+				}
+				else if (builder instanceof SWTObjectListBuilder)
+				{
+					AttributeList list = attrib.asList();
+					if (list.size() < 1)
+						return true;
+					
+					Attribute item = list.get(0);
+					AttributeGroup group = item.asGroup();
+					if (group == null)
+						return !item.canWrite();
+					
+					for (Attribute ga : group.getAttributes())
+						if (!hideAttribute(ga))
+							return false;
+				}
+				
+				return true;
 			}
 		});
 		
@@ -266,6 +313,23 @@ public final class JfgFormData
 				markFieldsWhithUncommitedChanges = false;
 				break;
 		}
+	}
+	
+	public SWTWidgetBuilder getBuilderFor(Attribute attrib)
+	{
+		return builders.get(getBuilderTypeOf(attrib));
+	}
+	
+	private Object getBuilderTypeOf(Attribute attrib)
+	{
+		Object type = null;
+		for (SWTBuilderTypeSelector selector : builderTypeSelectors)
+		{
+			type = selector.getTypeFor(attrib);
+			if (type != null)
+				return type;
+		}
+		return attrib.getType();
 	}
 	
 	public Color createBackgroundColor(Widget ctrl, Color background)

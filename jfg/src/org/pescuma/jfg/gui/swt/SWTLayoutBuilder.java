@@ -2,13 +2,14 @@ package org.pescuma.jfg.gui.swt;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
 public interface SWTLayoutBuilder
 {
 	void init(Composite root, Runnable layoutListener, JfgFormData data);
 	
-	void startGroup(String groupName);
+	Group startGroup(String groupName);
 	void endGroup(String groupName);
 	
 	Composite[] getParentsForLabelWidget(String attributeName);
@@ -27,4 +28,5 @@ public interface SWTLayoutBuilder
 	Composite getParentForRemove();
 	ListItem endListItem(String attributeName, Control remove);
 	void removeListItem(ListItem item);
+	void moveAfter(ListItem baseItem, ListItem itemToMove);
 }

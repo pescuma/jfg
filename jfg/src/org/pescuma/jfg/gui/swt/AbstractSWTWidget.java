@@ -30,8 +30,8 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected final Attribute attrib;
 	protected final JfgFormData data;
 	
-	protected boolean ignoreToGUI;
-	protected boolean ignoreToAttribute;
+	protected boolean ignoreToGUI = false;
+	protected boolean ignoreToAttribute = false;
 	protected AttributeListener attributeListener;
 	private GuiCopyManager manager;
 	private final List<DisposeListener> disposeListeners = new LinkedList<DisposeListener>();
@@ -42,13 +42,18 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		this.data = data;
 	}
 	
-	public void init(SWTLayoutBuilder layout, GuiCopyManager aManager)
+	protected boolean canCopyToAttribute()
 	{
-		manager = aManager;
-		createWidgets(layout);
+		return attrib.canWrite();
 	}
 	
-	protected abstract void createWidgets(SWTLayoutBuilder layout);
+	public void init(SWTLayoutBuilder layout, InnerBuilder innerBuilder, GuiCopyManager aManager)
+	{
+		manager = aManager;
+		createWidgets(layout, innerBuilder);
+	}
+	
+	protected abstract void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder);
 	
 	protected void addAttributeListener()
 	{
@@ -85,24 +90,14 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	
 	protected void onWidgetModify()
 	{
-		onGuiUpdated();
+		manager.guiUpdated(this);
 		
-		if (!attrib.canWrite())
+		if (!canCopyToAttribute())
 			return;
 		
 		if (ignoreToAttribute)
 			return;
 		
-		onGuiChange();
-	}
-	
-	protected void onGuiUpdated()
-	{
-		manager.guiUpdated(this);
-	}
-	
-	protected void onGuiChange()
-	{
 		if (data.markFieldsWhithUncommitedChanges)
 			markField();
 		
@@ -125,7 +120,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	
 	public void copyToModel()
 	{
-		if (!attrib.canWrite())
+		if (!canCopyToAttribute())
 			return;
 		
 		ignoreToGUI = true;
@@ -174,10 +169,6 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	}
 	
 	public void setEnabled(boolean enabled)
-	{
-	}
-	
-	public void setVisible(boolean visible)
 	{
 	}
 	

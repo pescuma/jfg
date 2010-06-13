@@ -24,7 +24,8 @@ public interface AttributeList
 	int indexOf(Attribute attrib);
 	
 	boolean canWrite();
-	Attribute add();
+	Attribute createNewElement();
+	void add(int index, Attribute item);
 	void remove(int index);
 	
 	boolean canListen();

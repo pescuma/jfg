@@ -62,10 +62,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithPublicFields", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(3, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -206,10 +206,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithPublicFieldsAndGettersSetters", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(3, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -315,10 +315,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithOnlyMethods", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(3, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -404,10 +404,10 @@ public class ObjectReflectionGroupTest
 	
 	static void testWithEverything(TestClassWithEverything tc, AttributeGroup group)
 	{
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(3, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -466,10 +466,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithExtends", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(5, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -571,10 +571,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithFieldListener", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(1, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -658,10 +658,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithStrangeFieldListener", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(1, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -762,10 +762,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithWrongFieldListener", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(1, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		Object obj = it.next();
 		assertSimpleFieldAttribute(obj, long.class);
@@ -906,10 +906,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithGroupListener", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(2, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -990,10 +990,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithOther", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(1, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
@@ -1035,7 +1035,7 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithEnum", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(1, attributes.size());
 		
 		Iterator<?> it = attributes.iterator();
@@ -1097,10 +1097,10 @@ public class ObjectReflectionGroupTest
 		ReflectionGroup group = new ReflectionGroup(tc);
 		assertEquals("TestClassWithAnnotations", group.getName());
 		
-		Collection<Object> attributes = group.getAttributes();
+		Collection<Attribute> attributes = group.getAttributes();
 		assertEquals(3, attributes.size());
 		
-		Iterator<Object> it = attributes.iterator();
+		Iterator<Attribute> it = attributes.iterator();
 		
 		// aa
 		Object obj = it.next();
