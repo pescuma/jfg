@@ -41,10 +41,13 @@ public class ReflectionAttribute implements Attribute
 	private final AttributeGroup parent;
 	private final ReflectionData data;
 	private final Object obj;
-	private final Field field;
 	private final boolean useStatic;
+	private final Field field;
 	private final Method setter;
 	private final Method getter;
+	private Field nonFilteredField;
+	private Method nonFilteredGetter;
+	private Method nonFilteredSetter;
 	private final Method addListener;
 	private final Method removeListener;
 	private final String name;
@@ -54,16 +57,6 @@ public class ReflectionAttribute implements Attribute
 	
 	private Object listener;
 	private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
-	
-	private final MemberFilter memberFilter = new MemberFilter() {
-		public boolean accept(Member member)
-		{
-			if (useStatic != Modifier.isStatic(member.getModifiers()))
-				return false;
-			
-			return data.memberFilter.accept(member);
-		}
-	};
 	
 	public ReflectionAttribute(Object obj, String fieldName)
 	{
@@ -75,23 +68,44 @@ public class ReflectionAttribute implements Attribute
 		this(new ReflectionGroup(obj, data), obj, fieldName, data);
 	}
 	
-	ReflectionAttribute(AttributeGroup parent, Object obj, String simpleName, ReflectionData data)
+	ReflectionAttribute(AttributeGroup parent, Object obj, String simpleName, final ReflectionData data)
 	{
 		this.parent = parent;
 		this.obj = obj;
 		this.data = data;
 		useStatic = (obj instanceof Class<?>);
 		
-		field = ReflectionUtils.getField(memberFilter, getObjClass(), simpleName);
-		getter = getMethod(memberFilter, getObjClass(), data.getGetterNames(simpleName));
+		final MemberFilter simpleMemberField = new MemberFilter() {
+			public boolean accept(Member member)
+			{
+				return useStatic == Modifier.isStatic(member.getModifiers());
+			}
+		};
+		final MemberFilter memberFilter = new MemberFilter() {
+			public boolean accept(Member member)
+			{
+				if (useStatic != Modifier.isStatic(member.getModifiers()))
+					return false;
+				
+				return data.memberFilter.accept(member);
+			}
+		};
+		
+		nonFilteredField = ReflectionUtils.getField(simpleMemberField, getObjClass(), simpleName);
+		field = checkMember(nonFilteredField);
+		
+		nonFilteredGetter = getMethod(simpleMemberField, getObjClass(), data.getGetterNames(simpleName));
+		getter = checkMember(nonFilteredGetter);
 		
 		assertValid();
 		
-		type = (field != null ? field.getType() : getter.getReturnType());
+		type = (getter != null ? getter.getReturnType() : field.getType());
 		
 		name = createFullName(simpleName);
 		
-		setter = getMethod(memberFilter, getObjClass(), void.class, data.getSetterNames(simpleName), type);
+		nonFilteredSetter = getMethod(simpleMemberField, getObjClass(), void.class, data.getSetterNames(simpleName),
+				type);
+		setter = checkMember(nonFilteredSetter);
 		
 		addListener = getListenerMethod(memberFilter, getObjClass(), data.getAddFieldListenerNames(simpleName),
 				data.getRemoveFieldListenerNames(simpleName), data);
@@ -101,18 +115,31 @@ public class ReflectionAttribute implements Attribute
 		else
 			removeListener = null;
 		
-		attributeValueRange = getRangeData(simpleName);
+		attributeValueRange = getRangeData(nonFilteredField, nonFilteredGetter, nonFilteredSetter);
 		
-		if (ReflectionUtils.isReadOnly(field, setter, getter))
-			canWrite = false;
-		else if (setter != null)
-			canWrite = true;
-		else if (field != null)
-			canWrite = !Modifier.isFinal(field.getModifiers());
-		else
-			canWrite = false;
+		canWrite = getCanWrite(nonFilteredField, nonFilteredGetter, nonFilteredSetter);
 		
 		setAccessible();
+	}
+	
+	private <T extends Member> T checkMember(T member)
+	{
+		if (member != null && data.memberFilter.accept(member))
+			return member;
+		else
+			return null;
+	}
+	
+	private boolean getCanWrite(Field forcedField, Method forcedGetter, Method forcedSetter)
+	{
+		if (ReflectionUtils.isReadOnly(forcedField, forcedGetter, forcedSetter))
+			return false;
+		else if (setter != null && data.memberFilter.accept(setter))
+			return true;
+		else if (field != null && data.memberFilter.accept(field))
+			return !Modifier.isFinal(field.getModifiers());
+		else
+			return false;
 	}
 	
 	public Field getField()
@@ -127,10 +154,10 @@ public class ReflectionAttribute implements Attribute
 	
 	private String createFullName(String simpleName)
 	{
-		if (field != null)
-			return field.getDeclaringClass().getName() + "." + simpleName;
 		if (getter != null)
 			return getter.getDeclaringClass().getName() + "." + simpleName;
+		if (field != null)
+			return field.getDeclaringClass().getName() + "." + simpleName;
 		throw new IllegalStateException();
 	}
 	
@@ -182,21 +209,16 @@ public class ReflectionAttribute implements Attribute
 		}
 	}
 	
-	private AttributeValueRange getRangeData(String simpleName)
+	private AttributeValueRange getRangeData(Field forcedField, Method forcedGetter, Method forcedSetter)
 	{
 		final RangeData range = new RangeData();
 		
 		if (type.isPrimitive())
 			range.canBeNull = false;
 		
-		range.addFrom(ReflectionUtils.getField(new MemberFilter() {
-			public boolean accept(Member member)
-			{
-				return useStatic == Modifier.isStatic(member.getModifiers());
-			}
-		}, getObjClass(), simpleName));
-		range.addFrom(getter);
-		range.addFrom(setter);
+		range.addFrom(forcedField);
+		range.addFrom(forcedGetter);
+		range.addFrom(forcedSetter);
 		
 		boolean hasNotNull = !range.canBeNull;
 		boolean hasMin = (range.min > Long.MIN_VALUE || !Double.isInfinite(range.minf));
@@ -325,7 +347,7 @@ public class ReflectionAttribute implements Attribute
 		if (value == null)
 			return null;
 		
-		return new ReflectionList(getName(), field, getter, setter, value, data);
+		return new ReflectionList(getName(), nonFilteredField, nonFilteredGetter, nonFilteredSetter, value, data);
 	}
 	
 	public boolean canWrite()

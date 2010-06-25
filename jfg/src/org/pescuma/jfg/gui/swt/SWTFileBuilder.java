@@ -61,7 +61,7 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 					text = data.componentFactory.createText(composite, SWT.NONE);
 					
 					select = data.componentFactory.createButton(composite, SWT.PUSH | SWT.FLAT);
-					select.setText(data.textTranslator.translate("..."));
+					select.setText(data.textTranslator.translate("FileWidget:Select"));
 					select.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event)
 						{

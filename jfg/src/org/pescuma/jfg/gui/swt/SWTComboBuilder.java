@@ -74,7 +74,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 			private void fill()
 			{
 				if (canBeNull())
-					combo.add(data.textTranslator.translate("<None>"));
+					combo.add(data.textTranslator.translate("ComboWidget:None"));
 				
 				for (Object object : getPossibleValues())
 					combo.add(convertToString(object, attrib.getType()));
@@ -141,7 +141,7 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 			private String convertToString(Object value, Object type)
 			{
 				if (value == null)
-					return data.textTranslator.translate("null");
+					return data.textTranslator.translate("ComboWidget:null");
 				
 				if (type instanceof Class<?>)
 				{

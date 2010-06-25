@@ -20,5 +20,5 @@ public interface TextTranslator
 	String enumElement(String enumElement);
 	String groupName(String groupName);
 	
-	String translate(String... text);
+	String translate(String text);
 }

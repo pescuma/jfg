@@ -61,12 +61,6 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 			private Color background;
 			
 			@Override
-			protected boolean canCopyToAttribute()
-			{
-				return list.canWrite();
-			}
-			
-			@Override
 			protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 			{
 				if (!innerBuilder.canBuildInnerAttribute())
@@ -90,7 +84,7 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 						}
 					};
 					addMore = data.componentFactory.createFlatButton(layout.getParentForAddMore(),
-							data.textTranslator.translate("Add", list.getName()), "icons/add.png", listener);
+							data.textTranslator.translate(list.getName() + ":Add"), "icons/add.png", listener);
 				}
 				listLayout = layout.endList(list.getName(), addMore);
 			}
@@ -126,12 +120,18 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 					};
 					
 					remove = data.componentFactory.createFlatButton(listLayout.getParentForRemove(),
-							data.textTranslator.translate("Remove", list.getName()), "icons/delete.png", listener);
+							data.textTranslator.translate(list.getName() + ":Remove"), "icons/delete.png", listener);
 				}
 				
 				item.listItem = listLayout.endListItem(list.getName(), remove);
 				item.attrib = itemAttribute;
 				items.add(item);
+			}
+			
+			@Override
+			protected boolean canCopyToAttribute()
+			{
+				return list.canWrite();
 			}
 			
 			@Override

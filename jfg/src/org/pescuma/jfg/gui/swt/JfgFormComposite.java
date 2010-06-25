@@ -33,6 +33,7 @@ import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
+import org.pescuma.jfg.gui.GuiWidgetList;
 
 public class JfgFormComposite extends Composite
 {
@@ -40,7 +41,7 @@ public class JfgFormComposite extends Composite
 	private final BaseWidgetList widgets = new BaseWidgetList();
 	private final GuiCopyManager copyManager;
 	private final BaseGuiListenerManager listenerManager = new BaseGuiListenerManager();
-	private boolean initializing = true;
+	private int initializing = 0;
 	private boolean layoutInitialized = false;
 	private boolean postponeFinishInitialize = false;
 	
@@ -93,6 +94,11 @@ public class JfgFormComposite extends Composite
 		}
 	}
 	
+	public GuiWidgetList getWidgets()
+	{
+		return widgets;
+	}
+	
 	private Composite getRoot()
 	{
 		Composite root = getParent();
@@ -127,20 +133,34 @@ public class JfgFormComposite extends Composite
 	
 	private void startInitialize()
 	{
-		initializing = true;
+		initializing++;
 	}
 	
 	private void finishInitialize()
 	{
+		finishInitialize(null);
+	}
+	
+	private void finishInitialize(Set<AttributeWidgetPair> filter)
+	{
 		if (postponeFinishInitialize)
 			return;
 		
-		copyToGUI();
+		copyToGUI(filter);
+		notifyAllListeners(filter);
 		
+		initializing--;
+	}
+	
+	private void notifyAllListeners(Set<AttributeWidgetPair> filter)
+	{
 		for (AttributeWidgetPair aw : widgets)
+		{
+			if (filter != null && filter.contains(aw))
+				continue;
+			
 			listenerManager.notifyChange(aw.attrib.getName(), aw.widget, widgets);
-		
-		initializing = false;
+		}
 	}
 	
 	/** Add all the attributes from the group, without adding the group itself */
@@ -228,7 +248,11 @@ public class JfgFormComposite extends Composite
 			@Override
 			public void buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib)
 			{
+				Set<AttributeWidgetPair> filter = new HashSet<AttributeWidgetPair>(widgets.getWidgetList());
+				
+				startInitialize();
 				addAttribute(layout, null, attrib, currentLevel + 1);
+				finishInitialize(filter);
 			}
 		};
 		
@@ -254,6 +278,11 @@ public class JfgFormComposite extends Composite
 	
 	public void copyToGUI()
 	{
+		copyToGUI(null);
+	}
+	
+	private void copyToGUI(Set<AttributeWidgetPair> filter)
+	{
 		Set<AttributeWidgetPair> handled = new HashSet<AttributeWidgetPair>();
 		
 		int oldSize;
@@ -263,6 +292,8 @@ public class JfgFormComposite extends Composite
 			
 			for (AttributeWidgetPair aw : new ArrayList<AttributeWidgetPair>(widgets.getWidgetList()))
 			{
+				if (filter != null && filter.contains(aw))
+					continue;
 				if (handled.contains(aw))
 					continue;
 				handled.add(aw);
@@ -281,7 +312,7 @@ public class JfgFormComposite extends Composite
 	
 	void onGuiUpdated(GuiWidget widget)
 	{
-		if (initializing)
+		if (initializing > 0)
 			return;
 		
 		listenerManager.notifyChange(widgets.getAttribute(widget).getName(), widget, widgets);

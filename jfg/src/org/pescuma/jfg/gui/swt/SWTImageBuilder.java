@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.pescuma.jfg.Attribute;
+import org.pescuma.jfg.gui.WebcamGuiWidget;
 
 import de.ikoffice.widgets.SplitButton;
 
@@ -51,7 +52,7 @@ public class SWTImageBuilder implements SWTWidgetBuilder
 		return new WebcamSWTWidget(attrib, data);
 	}
 	
-	private static class WebcamSWTWidget extends AbstractLabelWidgetSWTWidget
+	private static class WebcamSWTWidget extends AbstractLabelWidgetSWTWidget implements WebcamGuiWidget
 	{
 		private WebcamControl webcam;
 		private SplitButton buttom;
@@ -287,21 +288,21 @@ public class SWTImageBuilder implements SWTWidgetBuilder
 		
 		private void createTakeImage()
 		{
-			buttom.setText(data.textTranslator.translate("Take picture"));
+			buttom.setText(data.textTranslator.translate("WebcamGuiWidget:Take picture"));
 			buttom.setImage(new Image(buttom.getDisplay(), "icons/webcam.png"));
 			buttom.addListener(SWT.Selection, takeSnapshotListener);
 		}
 		
 		private void createWebcam()
 		{
-			buttom.setText(data.textTranslator.translate("Webcam"));
+			buttom.setText(data.textTranslator.translate("WebcamGuiWidget:Webcam"));
 			buttom.setImage(new Image(buttom.getDisplay(), "icons/webcam.png"));
 			buttom.addListener(SWT.Selection, showWebcamListener);
 		}
 		
 		private void createSetImage()
 		{
-			buttom.setText(data.textTranslator.translate("Set image"));
+			buttom.setText(data.textTranslator.translate("WebcamGuiWidget:Set image"));
 			buttom.setImage(new Image(buttom.getDisplay(), "icons/picture.png"));
 			buttom.addListener(SWT.Selection, setImageListener);
 		}
@@ -309,24 +310,25 @@ public class SWTImageBuilder implements SWTWidgetBuilder
 		private void createClear(Menu menu)
 		{
 			MenuItem clear = new MenuItem(menu, SWT.PUSH);
-			clear.setText(data.textTranslator.translate("Clear"));
+			clear.setText(data.textTranslator.translate("WebcamGuiWidget:Clear"));
 			clear.addListener(SWT.Selection, clearListener);
 		}
 		
 		private void createSetImage(Menu menu)
 		{
 			MenuItem setImage = new MenuItem(menu, SWT.PUSH);
-			setImage.setText(data.textTranslator.translate("Set image"));
+			setImage.setText(data.textTranslator.translate("WebcamGuiWidget:Set image"));
 			setImage.setImage(new Image(buttom.getDisplay(), "icons/picture.png"));
 			setImage.addListener(SWT.Selection, setImageListener);
 		}
 		
-		private void showWebcam()
+		private boolean showWebcam()
 		{
 			if (!webcam.showWebcam())
-				return;
+				return false;
 			
 			updateButton();
+			return true;
 		}
 		
 		private void takeSnapshot()
@@ -356,8 +358,8 @@ public class SWTImageBuilder implements SWTWidgetBuilder
 		{
 			FileDialog dialog = new FileDialog(webcam.getShell(), SWT.OPEN);
 			dialog.setFilterNames(new String[] {
-					data.textTranslator.translate("Image Files") + " (*.jpg;*.png;*.bmp;*.gif)",
-					data.textTranslator.translate("All Files") + " (*.*)" });
+					data.textTranslator.translate("ImageBuilder:Image Files") + " (*.jpg;*.png;*.bmp;*.gif)",
+					data.textTranslator.translate("ImageBuilder:All Files") + " (*.*)" });
 			dialog.setFilterExtensions(new String[] { "*.jpg;*.png;*.bmp;*.gif", "*.*" });
 			String filename = dialog.open();
 			if (filename == null)
@@ -393,6 +395,32 @@ public class SWTImageBuilder implements SWTWidgetBuilder
 			webcam.showImage(snapshot);
 			
 			onWidgetModify();
+		}
+		
+		@Override
+		public boolean startWebcam()
+		{
+			if (!attrib.canWrite())
+				return false;
+			
+			if (webcam.isShowingWebcam())
+				return true;
+			
+			return showWebcam();
+		}
+		
+		@Override
+		public boolean stopWebcam()
+		{
+			if (!attrib.canWrite())
+				return false;
+			
+			if (!webcam.isShowingWebcam())
+				return true;
+			
+			webcam.showImage(snapshot);
+			updateButton();
+			return false;
 		}
 	};
 }

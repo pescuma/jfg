@@ -52,16 +52,25 @@ public class SimpleTextTranslator implements TextTranslator
 		return firstUpper(text.trim());
 	}
 	
-	public String translate(String... text)
+	public String translate(String text)
 	{
-		if (text.length == 2)
+		if (text.endsWith(":Add"))
+			return "Add another";
+		else if (text.endsWith(":Remove"))
+			return "";
+		else if (text.equals("ComboWidget:null"))
+			return "<Empty>";
+		else if (text.equals("ComboWidget:None"))
+			return "<None>";
+		else if (text.equals("FileWidget:Select"))
+			return "...";
+		else
 		{
-			if (text[0].equals("Add"))
-				return "Add another";
-			else if (text[0].equals("Remove"))
-				return "";
+			int index = text.indexOf(':');
+			if (index >= 0)
+				return text.substring(index + 1);
+			else
+				return text;
 		}
-		return text[0];
 	}
-	
 }
