@@ -47,12 +47,12 @@ public class SWTGroupBuilder implements SWTWidgetBuilder
 				
 				AttributeGroup group = attrib.asGroup();
 				
-				frame = layout.startGroup(group.getName());
+				frame = layout.addGroup(group.getName());
+				
+				SWTLayoutBuilder innerLayout = data.createLayoutFor(group.getName(), frame, layout.getLayoutListener());
 				
 				for (Attribute ga : group.getAttributes())
-					innerBuilder.buildInnerAttribute(layout, ga);
-				
-				layout.endGroup(group.getName());
+					innerBuilder.buildInnerAttribute(innerLayout, ga);
 			}
 			
 			@Override

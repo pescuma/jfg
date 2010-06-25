@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Widget;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
@@ -53,6 +54,7 @@ public final class JfgFormData
 	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory();
 	
 	public SWTLayoutBuilder layout = new SWTSimpleFormBuilder();
+	public Map<String, SWTLayoutBuilder> perAttributeLayout = new HashMap<String, SWTLayoutBuilder>();
 	
 	public int maxAttributeSubLevels = 1;
 	
@@ -258,10 +260,10 @@ public final class JfgFormData
 				else if (builder instanceof SWTObjectListBuilder)
 				{
 					AttributeList list = attrib.asList();
-					if (list.size() < 1)
-						return true;
 					
-					Attribute item = list.get(0);
+					// Have to create a new element to inspect
+					Attribute item = list.createNewElement();
+					
 					AttributeGroup group = item.asGroup();
 					if (group == null)
 						return !item.canWrite();
@@ -343,5 +345,15 @@ public final class JfgFormData
 			b += 40;
 		b = max(0, min(255, b));
 		return new Color(ctrl.getDisplay(), r, g, b);
+	}
+	
+	public SWTLayoutBuilder createLayoutFor(String attributeName, Composite root, Runnable layoutListener)
+	{
+		SWTLayoutBuilder ret = perAttributeLayout.get(attributeName);
+		if (ret == null)
+			ret = layout;
+		ret = ret.clone();
+		ret.init(root, layoutListener, this);
+		return ret;
 	}
 }

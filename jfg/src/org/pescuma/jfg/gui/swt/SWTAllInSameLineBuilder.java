@@ -25,11 +25,12 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
+public class SWTAllInSameLineBuilder implements SWTLayoutBuilder, Cloneable
 {
 	private Composite parent;
 	private Runnable layoutListener;
 	private JfgFormData data;
+	private int desidedColumns = 0;
 	
 	@Override
 	public void init(Composite root, Runnable layoutListener, JfgFormData data)
@@ -44,13 +45,19 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
 		GridLayout layout = (GridLayout) parent.getLayout();
 		
 		if (layout == null)
-			parent.setLayout(createBorderlessGridLayout(2, false));
+			parent.setLayout(createBorderlessGridLayout(1, false));
 		
 		else if (!(layout instanceof GridLayout))
-			throw new IllegalArgumentException("SWTSimpleFormBuilder needs a GridLayout");
+			throw new IllegalArgumentException("SWTAllInSameLineBuilder needs a GridLayout");
 		
 		else
-			layout.numColumns = 2;
+			layout.numColumns = 1;
+	}
+	
+	private void updateColumns(int columnsToAdd)
+	{
+		desidedColumns += columnsToAdd;
+		((GridLayout) parent.getLayout()).numColumns = desidedColumns;
 	}
 	
 	@Override
@@ -59,66 +66,62 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
 		return layoutListener;
 	}
 	
-	protected Composite getParent()
-	{
-		return parent;
-	}
-	
 	public Composite[] getParentsForLabelWidget(String attributeName)
 	{
-		return new Composite[] { getParent(), getParent() };
+		return new Composite[] { parent, parent };
 	}
 	
 	public void addLabelWidget(String attributeName, Label label, Control widget, boolean wantToFillVertical)
 	{
 		label.setLayoutData(new GridData(HORIZONTAL_ALIGN_END));
 		widget.setLayoutData(new GridData(wantToFillVertical ? FILL_BOTH : FILL_HORIZONTAL));
+		
+		updateColumns(2);
 	}
 	
 	public Composite getParentForWidget(String attributeName)
 	{
-		return createFullRowComposite();
+		return parent;
 	}
 	
 	public void addWidget(String attributeName, Control widget, boolean wantToFillVertical)
 	{
 		widget.setLayoutData(new GridData(wantToFillVertical ? FILL_BOTH : FILL_HORIZONTAL));
+		
+		updateColumns(1);
 	}
 	
 	public Group addGroup(String groupName)
 	{
-		Group frame = data.componentFactory.createGroup(createFullRowComposite(), SWT.NONE);
+		Group frame = data.componentFactory.createGroup(parent, SWT.NONE);
 		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		frame.setLayout(new GridLayout(2, false));
 		frame.setText(data.textTranslator.groupName(groupName));
 		
+		updateColumns(1);
+		
 		return frame;
-	}
-	
-	private Composite createFullRowComposite()
-	{
-		Composite composite = data.componentFactory.createComposite(getParent(), SWT.NONE);
-		setupHorizontalComposite(composite, 2);
-		return composite;
 	}
 	
 	@Override
 	public ListBuilder addList(String attributeName)
 	{
-		Group frame = data.componentFactory.createGroup(createFullRowComposite(), SWT.NONE);
+		Group frame = data.componentFactory.createGroup(parent, SWT.NONE);
 		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		frame.setLayout(new GridLayout(2, false));
 		frame.setText(data.textTranslator.fieldName(attributeName));
+		
+		updateColumns(1);
 		
 		return new SWTSimpleFormListBuilder(attributeName, frame, layoutListener, data);
 	}
 	
 	@Override
-	public SWTSimpleFormBuilder clone()
+	public SWTAllInSameLineBuilder clone()
 	{
 		try
 		{
-			return (SWTSimpleFormBuilder) super.clone();
+			return (SWTAllInSameLineBuilder) super.clone();
 		}
 		catch (CloneNotSupportedException e)
 		{

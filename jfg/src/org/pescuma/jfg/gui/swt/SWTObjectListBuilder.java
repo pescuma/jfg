@@ -49,11 +49,11 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 			
 			class Item
 			{
-				SWTLayoutBuilder.ListItem listItem;
+				SWTLayoutBuilder.ListBuilder.ListItem listItem;
 				Attribute attrib;
 			}
 			
-			private SWTLayoutBuilder listLayout;
+			private SWTLayoutBuilder.ListBuilder listLayout;
 			private InnerBuilder innerBuilder;
 			private AttributeList list;
 			private final List<Item> items = new ArrayList<Item>();
@@ -69,7 +69,8 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 				this.innerBuilder = innerBuilder;
 				list = attrib.asList();
 				
-				frame = layout.startList(list.getName());
+				listLayout = layout.addList(list.getName());
+				frame = listLayout.getContents();
 				background = frame.getBackground();
 				
 				Control addMore = null;
@@ -83,27 +84,31 @@ public class SWTObjectListBuilder implements SWTWidgetBuilder
 							onWidgetModify();
 						}
 					};
-					addMore = data.componentFactory.createFlatButton(layout.getParentForAddMore(),
+					addMore = data.componentFactory.createFlatButton(listLayout.getParentForAddMore(),
 							data.textTranslator.translate(list.getName() + ":Add"), "icons/add.png", listener);
+					listLayout.addAddMore(addMore);
 				}
-				listLayout = layout.endList(list.getName(), addMore);
 			}
 			
 			private void buildAttributeInsideList(final Attribute itemAttribute)
 			{
 				final Item item = new Item();
 				
-				listLayout.startListItem(list.getName());
+				Composite composite = listLayout.startListItem(list.getName());
 				
 				AttributeGroup group = itemAttribute.asGroup();
 				if (group != null)
 				{
+					SWTLayoutBuilder layout = data.createLayoutFor(group.getName(), composite, listLayout.getLayoutListener());
+					
 					for (Attribute ga : group.getAttributes())
-						innerBuilder.buildInnerAttribute(listLayout, ga);
+						innerBuilder.buildInnerAttribute(layout, ga);
 				}
 				else
 				{
-					innerBuilder.buildInnerAttribute(listLayout, itemAttribute);
+					SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
+					
+					innerBuilder.buildInnerAttribute(layout, itemAttribute);
 				}
 				
 				Control remove = null;

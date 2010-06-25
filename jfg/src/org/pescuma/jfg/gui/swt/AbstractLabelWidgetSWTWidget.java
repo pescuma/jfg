@@ -36,7 +36,7 @@ abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
 		if (attribName != null)
 			attribName = data.textTranslator.fieldName(attribName);
 		
-		if (attribName != null)
+		if (attribName != null && !attribName.isEmpty())
 		{
 			Composite[] parents = layout.getParentsForLabelWidget(attrib.getName());
 			if (parents[0] != null)

@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.pescuma.jfg.model.ann.ReadOnly;
-
 class TestClass extends ObjectWithListener
 {
 	static enum TestEnum
@@ -26,7 +24,7 @@ class TestClass extends ObjectWithListener
 	private File file;
 	private String path;
 	
-	@ReadOnly
+//	@ReadOnly
 	public final List<TestSub> subs = new ArrayList<TestSub>();
 	public final List<String> names = new ArrayList<String>();
 	

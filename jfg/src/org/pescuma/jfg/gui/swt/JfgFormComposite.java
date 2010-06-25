@@ -42,6 +42,7 @@ public class JfgFormComposite extends Composite
 	private final GuiCopyManager copyManager;
 	private final BaseGuiListenerManager listenerManager = new BaseGuiListenerManager();
 	private int initializing = 0;
+	private SWTLayoutBuilder layout;
 	private boolean layoutInitialized = false;
 	private boolean postponeFinishInitialize = false;
 	
@@ -111,10 +112,13 @@ public class JfgFormComposite extends Composite
 	{
 		if (!layoutInitialized)
 		{
-			data.layout.init(this, new Runnable() {
+			layout = data.createLayoutFor(null, this, new Runnable() {
 				@Override
 				public void run()
 				{
+					if (postponeFinishInitialize)
+						return;
+					
 					layout();
 					
 					LayoutEvent event = new LayoutEvent(JfgFormComposite.this);
@@ -125,10 +129,10 @@ public class JfgFormComposite extends Composite
 					for (LayoutListener l : layoutListeners)
 						l.layoutChanged(event);
 				}
-			}, data);
+			});
 			layoutInitialized = true;
 		}
-		return data.layout;
+		return layout;
 	}
 	
 	private void startInitialize()
