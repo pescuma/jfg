@@ -59,14 +59,9 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
 		return layoutListener;
 	}
 	
-	protected Composite getParent()
-	{
-		return parent;
-	}
-	
 	public Composite[] getParentsForLabelWidget(String attributeName)
 	{
-		return new Composite[] { getParent(), getParent() };
+		return new Composite[] { parent, parent };
 	}
 	
 	public void addLabelWidget(String attributeName, Label label, Control widget, boolean wantToFillVertical)
@@ -97,7 +92,12 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
 	
 	private Composite createFullRowComposite()
 	{
-		Composite composite = data.componentFactory.createComposite(getParent(), SWT.NONE);
+		return createFullRowComposite(parent);
+	}
+	
+	protected Composite createFullRowComposite(Composite compositeParent)
+	{
+		Composite composite = data.componentFactory.createComposite(compositeParent, SWT.NONE);
 		setupHorizontalComposite(composite, 2);
 		return composite;
 	}
