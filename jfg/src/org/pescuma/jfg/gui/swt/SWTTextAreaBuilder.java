@@ -14,16 +14,7 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
-import org.pescuma.jfg.AttributeValueRange;
 
 public class SWTTextAreaBuilder implements SWTWidgetBuilder
 {
@@ -35,118 +26,6 @@ public class SWTTextAreaBuilder implements SWTWidgetBuilder
 	
 	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractWidgetSWTWidget(attrib, data) {
-			
-			private Text text;
-			private Color background;
-			
-			@Override
-			protected Control createWidget(Composite parent)
-			{
-				Group group = null;
-				if (attrib.getName() != null)
-				{
-					group = data.componentFactory.createGroup(parent, SWT.NONE);
-					group.setText(data.textTranslator.fieldName(attrib.getName()));
-					group.setLayout(new GridLayout(1, false));
-				}
-				
-				text = data.componentFactory.createText(group == null ? parent : group, (attrib.canWrite() ? SWT.NONE
-						: SWT.READ_ONLY)
-						| SWT.MULTI | SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
-				text.addListener(SWT.Modify, getModifyListener());
-				text.addListener(SWT.Dispose, getDisposeListener());
-				
-				GridData data = new GridData(GridData.FILL_BOTH);
-				data.minimumHeight = 70;
-				text.setLayoutData(data);
-				
-				if (attrib.canWrite())
-					setTextLimit(attrib, text);
-				
-				background = text.getBackground();
-				
-				return group == null ? text : group;
-			}
-			
-			@Override
-			public boolean wantToFillVertical()
-			{
-				return true;
-			}
-			
-			@Override
-			public Object getValue()
-			{
-				return convertToObject(text.getText());
-			}
-			
-			private boolean canBeNull()
-			{
-				AttributeValueRange range = attrib.getValueRange();
-				if (range == null)
-					return true;
-				
-				return range.canBeNull();
-			}
-			
-			@Override
-			public void setValue(Object value)
-			{
-				int caretPosition = text.getCaretPosition();
-				text.setText(convertToString(value));
-				text.setSelection(caretPosition);
-			}
-			
-			@Override
-			protected void markField()
-			{
-				super.markField();
-				
-				text.setBackground(data.createBackgroundColor(text, background));
-			}
-			
-			@Override
-			protected void unmarkField()
-			{
-				super.unmarkField();
-				
-				text.setBackground(background);
-			}
-			
-			@Override
-			public void setEnabled(boolean enabled)
-			{
-				super.setEnabled(enabled);
-				
-				text.setEnabled(enabled);
-			}
-			
-			private String convertToString(Object value)
-			{
-				if (value == null)
-					return "";
-				else
-					return value.toString();
-			}
-			
-			private Object convertToObject(String value)
-			{
-				if (value == null && !canBeNull())
-					return "";
-				return value;
-			}
-			
-			private void setTextLimit(Attribute attrib, Text text)
-			{
-				AttributeValueRange range = attrib.getValueRange();
-				if (range == null)
-					return;
-				
-				Object max = range.getMax();
-				if (max != null && (max instanceof Number))
-					text.setTextLimit(((Number) max).intValue());
-			}
-		};
+		return new TextAreaSWTWidget(attrib, data);
 	}
 }

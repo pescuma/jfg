@@ -20,10 +20,8 @@ import static org.pescuma.jfg.StringUtils.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
@@ -34,27 +32,33 @@ import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
 import org.pescuma.jfg.gui.SimpleTextTranslator;
 import org.pescuma.jfg.gui.TextTranslator;
+import org.pescuma.jfg.gui.WidgetFormater;
+import org.pescuma.jfg.gui.WidgetValidator;
 
 public final class JfgFormData
 {
-	// Some presets
+	// Object/gui syncronization constants 
 	public static final int SYNC_GUI = 1;
 	public static final int SYNC_GUI_BATCH = 2;
 	public static final int SYNC_GUI_FAST = 3;
 	public static final int SYNC_GUI_NO_DELAY = 4;
 	public static final int DIALOG = 16;
 	
+	// Layout hint constants
+	public static final int HORIZONTAL_FILL = 1;
+	public static final int HORIZONTAL_SHRINK = 2;
+	public static final int VERTICAL_FILL = 1 << 4;
+	public static final int VERTICAL_SHRINK = 2 << 4;
+	public static final int HORIZONTAL_HINT_MASK = 0x0F;
+	public static final int VERTICAL_HINT_MASK = 0xF0;
+	
 	public Map<Object, SWTWidgetBuilder> builders = new HashMap<Object, SWTWidgetBuilder>();
 	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
 	public List<SWTAttributeFilter> attributeFilters = new ArrayList<SWTAttributeFilter>();
 	
-	public Map<String, String> fieldTypes = new HashMap<String, String>();
-	public Set<String> fieldsToHide = new HashSet<String>();
-	
 	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory();
 	
-	public SWTLayoutBuilder layout = new SWTSimpleFormBuilder();
-	public Map<String, SWTLayoutBuilder> perAttributeLayout = new HashMap<String, SWTLayoutBuilder>();
+	public SWTLayoutBuilder layout = new SimpleFormLayout();
 	
 	public int maxAttributeSubLevels = 1;
 	
@@ -121,13 +125,16 @@ public final class JfgFormData
 		builders.put("directory", new SWTDirectoryBuilder());
 		builders.put("image", new SWTImageBuilder());
 		builders.put("webcam", new SWTImageBuilder());
-		builders.put("list_objects", new SWTObjectListBuilder());
+		builders.put("inline_obj_list", new SWTObjectListBuilder());
 		builders.put("group", new SWTGroupBuilder());
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
 			{
-				return fieldTypes.get(attrib.getName());
+				FieldConfig config = fieldsConfig.get(attrib.getName());
+				if (config == null)
+					return null;
+				return config.type;
 			}
 		});
 		
@@ -240,22 +247,29 @@ public final class JfgFormData
 		});
 		
 		attributeFilters.add(new SWTAttributeFilter() {
-			public boolean hideAttribute(Attribute attrib)
+			public Boolean hideAttribute(Attribute attrib)
 			{
-				if (showReadOnly || attrib.canWrite())
-					return false;
+				FieldConfig config = fieldsConfig.get(attrib.getName());
+				if (config == null || config.visible == null)
+					return null;
+				return !config.visible;
+			}
+		});
+		
+		attributeFilters.add(new SWTAttributeFilter() {
+			public Boolean hideAttribute(Attribute attrib)
+			{
+				// Check for groups and show then if they exist
 				
 				SWTWidgetBuilder builder = getBuilderFor(attrib);
 				
+				AttributeGroup group = null;
+				
 				if (builder instanceof SWTGroupBuilder)
 				{
-					AttributeGroup group = attrib.asGroup();
+					group = attrib.asGroup();
 					if (group == null)
-						return true;
-					
-					for (Attribute ga : group.getAttributes())
-						if (!hideAttribute(ga))
-							return false;
+						return Boolean.TRUE;
 				}
 				else if (builder instanceof SWTObjectListBuilder)
 				{
@@ -264,23 +278,31 @@ public final class JfgFormData
 					// Have to create a new element to inspect
 					Attribute item = list.createNewElement();
 					
-					AttributeGroup group = item.asGroup();
+					group = item.asGroup();
 					if (group == null)
-						return !item.canWrite();
-					
-					for (Attribute ga : group.getAttributes())
-						if (!hideAttribute(ga))
-							return false;
+						return null;
+				}
+				else
+				{
+					return null;
 				}
 				
-				return true;
+				for (Attribute ga : group.getAttributes())
+					if (!JfgFormData.this.hideAttribute(ga))
+						return Boolean.FALSE;
+				
+				// Hide because no internal attribute is shown
+				return Boolean.TRUE;
 			}
 		});
 		
 		attributeFilters.add(new SWTAttributeFilter() {
-			public boolean hideAttribute(Attribute attrib)
+			public Boolean hideAttribute(Attribute attrib)
 			{
-				return fieldsToHide.contains(attrib.getName());
+				if (!showReadOnly && !attrib.canWrite())
+					return Boolean.TRUE;
+				
+				return null;
 			}
 		});
 		
@@ -349,11 +371,117 @@ public final class JfgFormData
 	
 	public SWTLayoutBuilder createLayoutFor(String attributeName, Composite root, Runnable layoutListener)
 	{
-		SWTLayoutBuilder ret = perAttributeLayout.get(attributeName);
+		SWTLayoutBuilder ret = null;
+		
+		FieldConfig config = fieldsConfig.get(attributeName);
+		if (config != null)
+			ret = config.layout;
+		
 		if (ret == null)
 			ret = layout;
+		
 		ret = ret.clone();
 		ret.init(root, layoutListener, this);
 		return ret;
+	}
+	
+	public boolean hideAttribute(Attribute attrib)
+	{
+		for (SWTAttributeFilter filter : attributeFilters)
+		{
+			Boolean hide = filter.hideAttribute(attrib);
+			if (hide != null)
+				return hide;
+		}
+		
+		return false;
+	}
+	
+	public static class FieldConfig
+	{
+		public Boolean visible;
+		public String type;
+		public SWTWidgetBuilder builder;
+		public Boolean showLabel;
+		public int layoutHint;
+		public SWTLayoutBuilder layout;
+		public boolean showNameAsShadowText = false;
+		public String shadowText;
+		public WidgetValidator validator;
+		public WidgetFormater formater;
+		
+		public FieldConfig setVisible(boolean visible)
+		{
+			this.visible = visible;
+			return this;
+		}
+		
+		public FieldConfig setType(String type)
+		{
+			this.type = type;
+			return this;
+		}
+		
+		public FieldConfig setBuilder(SWTWidgetBuilder builder)
+		{
+			this.builder = builder;
+			return this;
+		}
+		
+		public FieldConfig setLayoutHint(int layoutHint)
+		{
+			this.layoutHint = layoutHint;
+			return this;
+		}
+		
+		public FieldConfig setLayout(SWTLayoutBuilder layout)
+		{
+			this.layout = layout;
+			return this;
+		}
+		
+		public FieldConfig setValidator(WidgetValidator validator)
+		{
+			this.validator = validator;
+			return this;
+		}
+		
+		public FieldConfig setFormater(WidgetFormater formater)
+		{
+			this.formater = formater;
+			return this;
+		}
+		
+		public FieldConfig setShadowText(String shadowText)
+		{
+			this.shadowText = shadowText;
+			return this;
+		}
+		
+		public FieldConfig showLabel(boolean showLabel)
+		{
+			this.showLabel = showLabel;
+			return this;
+		}
+		
+		public FieldConfig showNameAsShadowText()
+		{
+			this.showNameAsShadowText = true;
+			this.showLabel = false;
+			return this;
+		}
+	}
+	
+	public final Map<String, FieldConfig> fieldsConfig = new HashMap<String, FieldConfig>();
+	
+	public FieldConfig configure(String fieldName)
+	{
+		FieldConfig config = fieldsConfig.get(fieldName);
+		if (config == null)
+		{
+			config = new FieldConfig();
+			fieldsConfig.put(fieldName, config);
+		}
+		return config;
 	}
 }

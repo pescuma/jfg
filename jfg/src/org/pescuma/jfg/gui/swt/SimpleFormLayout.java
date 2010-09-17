@@ -15,7 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import static org.eclipse.swt.layout.GridData.*;
-import static org.pescuma.jfg.gui.swt.SWTHelper.*;
+import static org.pescuma.jfg.gui.swt.SWTUtils.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
+public class SimpleFormLayout implements SWTLayoutBuilder, Cloneable
 {
 	private Composite parent;
 	private Runnable layoutListener;
@@ -64,10 +64,10 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
 		return new Composite[] { parent, parent };
 	}
 	
-	public void addLabelWidget(String attributeName, Label label, Control widget, boolean wantToFillVertical)
+	public void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints)
 	{
 		label.setLayoutData(new GridData(HORIZONTAL_ALIGN_END));
-		widget.setLayoutData(new GridData(wantToFillVertical ? FILL_BOTH : FILL_HORIZONTAL));
+		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
 	}
 	
 	public Composite getParentForWidget(String attributeName)
@@ -75,9 +75,9 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
 		return createFullRowComposite();
 	}
 	
-	public void addWidget(String attributeName, Control widget, boolean wantToFillVertical)
+	public void addWidget(String attributeName, Control widget, int layoutHints)
 	{
-		widget.setLayoutData(new GridData(wantToFillVertical ? FILL_BOTH : FILL_HORIZONTAL));
+		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
 	}
 	
 	public Group addGroup(String groupName)
@@ -114,11 +114,11 @@ public class SWTSimpleFormBuilder implements SWTLayoutBuilder, Cloneable
 	}
 	
 	@Override
-	public SWTSimpleFormBuilder clone()
+	public SimpleFormLayout clone()
 	{
 		try
 		{
-			return (SWTSimpleFormBuilder) super.clone();
+			return (SimpleFormLayout) super.clone();
 		}
 		catch (CloneNotSupportedException e)
 		{

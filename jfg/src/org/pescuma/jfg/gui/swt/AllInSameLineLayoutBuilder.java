@@ -15,7 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import static org.eclipse.swt.layout.GridData.*;
-import static org.pescuma.jfg.gui.swt.SWTHelper.*;
+import static org.pescuma.jfg.gui.swt.SWTUtils.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-public class SWTAllInSameLineBuilder implements SWTLayoutBuilder, Cloneable
+public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 {
 	private Composite parent;
 	private Runnable layoutListener;
@@ -71,10 +71,11 @@ public class SWTAllInSameLineBuilder implements SWTLayoutBuilder, Cloneable
 		return new Composite[] { parent, parent };
 	}
 	
-	public void addLabelWidget(String attributeName, Label label, Control widget, boolean wantToFillVertical)
+	public void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints)
 	{
 		label.setLayoutData(new GridData(HORIZONTAL_ALIGN_END));
-		widget.setLayoutData(new GridData(wantToFillVertical ? FILL_BOTH : FILL_HORIZONTAL));
+		
+		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
 		
 		updateColumns(2);
 	}
@@ -84,9 +85,9 @@ public class SWTAllInSameLineBuilder implements SWTLayoutBuilder, Cloneable
 		return parent;
 	}
 	
-	public void addWidget(String attributeName, Control widget, boolean wantToFillVertical)
+	public void addWidget(String attributeName, Control widget, int layoutHints)
 	{
-		widget.setLayoutData(new GridData(wantToFillVertical ? FILL_BOTH : FILL_HORIZONTAL));
+		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
 		
 		updateColumns(1);
 	}
@@ -117,11 +118,11 @@ public class SWTAllInSameLineBuilder implements SWTLayoutBuilder, Cloneable
 	}
 	
 	@Override
-	public SWTAllInSameLineBuilder clone()
+	public AllInSameLineLayoutBuilder clone()
 	{
 		try
 		{
-			return (SWTAllInSameLineBuilder) super.clone();
+			return (AllInSameLineLayoutBuilder) super.clone();
 		}
 		catch (CloneNotSupportedException e)
 		{

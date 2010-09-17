@@ -14,10 +14,6 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeValueRange;
@@ -32,73 +28,35 @@ public class SWTTextBuilder implements SWTWidgetBuilder
 	
 	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractLabelWidgetSWTWidget(attrib, data) {
-			
-			private Text text;
-			private Color background;
-			
-			@Override
-			protected Control createWidget(Composite parent)
+		return new TextSWTWidget(attrib, data) {
+			protected int getAdditionalTextStyle()
 			{
-				text = data.componentFactory.createText(parent, (attrib.canWrite() ? SWT.NONE : SWT.READ_ONLY)
-						| getAdditionalTextStyle());
-				text.addListener(SWT.Modify, getModifyListener());
-				text.addListener(SWT.Dispose, getDisposeListener());
-				
-				if (attrib.canWrite())
-				{
-					addValidation(text, getType(attrib.getType()));
-					setTextLimit(attrib, text);
-				}
-				
-				background = text.getBackground();
-				
-				return text;
+				return SWTTextBuilder.this.getAdditionalTextStyle();
 			}
 			
-			public Object getValue()
+			protected void addValidation(Text text, Object type)
 			{
-				return convertToObject(text.getText(), getType(attrib.getType()), canBeNull());
+				SWTTextBuilder.this.addValidation(text, type);
 			}
 			
-			private boolean canBeNull()
+			protected String convertToString(Text text, Object value, Object type)
 			{
-				AttributeValueRange range = attrib.getValueRange();
-				if (range == null)
-					return true;
-				
-				return range.canBeNull();
+				return SWTTextBuilder.this.convertToString(text, value, type);
 			}
 			
-			public void setValue(Object value)
+			protected Object convertToObject(String value, Object type, boolean canBeNull)
 			{
-				int caretPosition = text.getCaretPosition();
-				text.setText(convertToString(text, value, getType(attrib.getType())));
-				text.setSelection(caretPosition);
+				return SWTTextBuilder.this.convertToObject(value, type, canBeNull);
 			}
 			
-			@Override
-			protected void markField()
+			protected Object getType(Object type)
 			{
-				super.markField();
-				
-				text.setBackground(data.createBackgroundColor(text, background));
+				return SWTTextBuilder.this.getType(type);
 			}
 			
-			@Override
-			protected void unmarkField()
+			protected void setTextLimit(Attribute attrib, Text text)
 			{
-				super.unmarkField();
-				
-				text.setBackground(background);
-			}
-			
-			@Override
-			public void setEnabled(boolean enabled)
-			{
-				super.setEnabled(enabled);
-				
-				text.setEnabled(enabled);
+				SWTTextBuilder.this.setTextLimit(attrib, text);
 			}
 		};
 	}

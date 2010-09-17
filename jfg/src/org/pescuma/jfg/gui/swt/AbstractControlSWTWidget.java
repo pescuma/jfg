@@ -18,9 +18,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.pescuma.jfg.Attribute;
 
-abstract class AbstractWidgetSWTWidget extends AbstractSWTWidget
+abstract class AbstractControlSWTWidget extends AbstractSWTWidget
 {
-	public AbstractWidgetSWTWidget(Attribute attrib, JfgFormData data)
+	public AbstractControlSWTWidget(Attribute attrib, JfgFormData data)
 	{
 		super(attrib, data);
 	}
@@ -34,15 +34,10 @@ abstract class AbstractWidgetSWTWidget extends AbstractSWTWidget
 		
 		Control widget = createWidget(parent);
 		
-		layout.addWidget(attrib.getName(), widget, wantToFillVertical());
+		layout.addWidget(attrib.getName(), widget, createLayoutHints(attrib));
 		
 		addAttributeListener();
 	}
-	
+
 	protected abstract Control createWidget(Composite parent);
-	
-	protected boolean wantToFillVertical()
-	{
-		return false;
-	}
 }

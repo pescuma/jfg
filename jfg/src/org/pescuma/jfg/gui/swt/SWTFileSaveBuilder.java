@@ -14,8 +14,9 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import java.io.File;
+import static org.pescuma.jfg.gui.swt.FileUtils.*;
 
+import java.io.File;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
@@ -45,12 +46,12 @@ public class SWTFileSaveBuilder extends SWTFileBuilder
 		
 		if (file.isDirectory())
 		{
-			dialog.setFilterPath(file.getAbsolutePath());
+			dialog.setFilterPath(getFullPath(file));
 		}
 		else
 		{
 			if (file.getParent() != null)
-				dialog.setFilterPath(file.getParent());
+				dialog.setFilterPath(getFullPath(file.getParentFile()));
 			dialog.setFileName(file.getName());
 		}
 		

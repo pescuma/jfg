@@ -39,7 +39,7 @@ public class WebcamDialog
 		// Create the form
 		JfgFormData data = new JfgFormData(JfgFormData.SYNC_GUI);
 		data.showReadOnly = true;
-		data.fieldTypes.put(TestClass.class.getName() + ".nome", "text_area");
+		data.configure(TestClass.class.getName() + ".nome").setType("text_area");
 		
 		final JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

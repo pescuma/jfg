@@ -34,6 +34,8 @@ import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
 import org.pescuma.jfg.gui.GuiWidgetList;
+import org.pescuma.jfg.gui.TextBasedGuiWidget;
+import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
 public class JfgFormComposite extends Composite
 {
@@ -238,9 +240,8 @@ public class JfgFormComposite extends Composite
 		if (!builder.accept(attrib))
 			throw new IllegalArgumentException("Wrong configuration");
 		
-		for (SWTAttributeFilter filter : data.attributeFilters)
-			if (filter.hideAttribute(attrib))
-				return;
+		if (data.hideAttribute(attrib))
+			return;
 		
 		SWTGuiWidget.InnerBuilder innerBuilder = new SWTGuiWidget.InnerBuilder() {
 			@Override
@@ -262,6 +263,28 @@ public class JfgFormComposite extends Composite
 		
 		final SWTGuiWidget widget = builder.build(attrib, data);
 		widget.init(layout, innerBuilder, copyManager);
+		
+		FieldConfig config = data.fieldsConfig.get(attrib.getName());
+		if (config != null)
+		{
+			if (config.showNameAsShadowText && config.shadowText == null)
+			{
+				String attribDescription = attrib.getName();
+				if (attribDescription != null)
+					attribDescription = data.textTranslator.fieldName(attribDescription);
+				widget.setShadowText(attribDescription);		
+			}
+			else
+			{
+				widget.setShadowText(config.shadowText);
+			}
+			
+			widget.setValidator(config.validator);
+			
+			if (widget instanceof TextBasedGuiWidget)
+				((TextBasedGuiWidget) widget).setFormater(config.formater);
+		}
+		
 		widgets.add(attrib, widget);
 		
 		widget.addDisposeListener(new DisposeListener() {

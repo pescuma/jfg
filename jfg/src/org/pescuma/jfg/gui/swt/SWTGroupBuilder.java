@@ -14,11 +14,7 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import org.eclipse.swt.widgets.Group;
 import org.pescuma.jfg.Attribute;
-import org.pescuma.jfg.AttributeGroup;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class SWTGroupBuilder implements SWTWidgetBuilder
 {
@@ -36,43 +32,6 @@ public class SWTGroupBuilder implements SWTWidgetBuilder
 //			System.err.println("[JFG] Creating GUI for read/write object. "
 //					+ "I'll only change the object in place and will not check for changes in it!");
 		
-		return new AbstractSWTWidget(attrib, data) {
-			private Group frame;
-			
-			@Override
-			protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
-			{
-				if (!innerBuilder.canBuildInnerAttribute())
-					return;
-				
-				AttributeGroup group = attrib.asGroup();
-				
-				frame = layout.addGroup(group.getName());
-				
-				SWTLayoutBuilder innerLayout = data.createLayoutFor(group.getName(), frame, layout.getLayoutListener());
-				
-				for (Attribute ga : group.getAttributes())
-					innerBuilder.buildInnerAttribute(innerLayout, ga);
-			}
-			
-			@Override
-			public Object getValue()
-			{
-				return attrib.getValue();
-			}
-			
-			@Override
-			public void setValue(Object value)
-			{
-				if (value != attrib.getValue())
-					throw new NotImplementedException();
-			}
-			
-			@Override
-			public void setEnabled(boolean enabled)
-			{
-				frame.setEnabled(enabled);
-			}
-		};
+		return new FrameSWTWidget(attrib, data);
 	}
 }

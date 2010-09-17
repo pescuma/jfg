@@ -24,6 +24,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.gui.GuiCopyManager;
+import org.pescuma.jfg.gui.WidgetValidator;
+import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
 abstract class AbstractSWTWidget implements SWTGuiWidget
 {
@@ -35,6 +37,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected AttributeListener attributeListener;
 	private GuiCopyManager manager;
 	private final List<DisposeListener> disposeListeners = new LinkedList<DisposeListener>();
+	protected WidgetValidator validator;
 	
 	public AbstractSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -99,7 +102,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 			return;
 		
 		if (data.markFieldsWhithUncommitedChanges)
-			markField();
+			markFieldAsUncommited();
 		
 		manager.guiChanged(this);
 	}
@@ -128,7 +131,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		guiToAttribute();
 		
 		if (data.markFieldsWhithUncommitedChanges)
-			unmarkField();
+			unmarkFieldAsUncommited();
 		
 		ignoreToGUI = false;
 	}
@@ -145,7 +148,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		attibuteToGUI();
 		
 		if (data.markFieldsWhithUncommitedChanges)
-			unmarkField();
+			unmarkFieldAsUncommited();
 		
 		ignoreToAttribute = false;
 	}
@@ -155,11 +158,11 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		setValue(attrib.getValue());
 	}
 	
-	protected void markField()
+	protected void markFieldAsUncommited()
 	{
 	}
 	
-	protected void unmarkField()
+	protected void unmarkFieldAsUncommited()
 	{
 	}
 	
@@ -178,4 +181,43 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		disposeListeners.add(listener);
 	}
 	
+	@Override
+	public void setShadowText(String text)
+	{
+	}
+	
+	@Override
+	public void setValidator(WidgetValidator validator)
+	{
+		this.validator = validator;
+	}
+	
+	@Override
+	public int getDefaultLayoutHint()
+	{
+		return 0;
+	}
+	
+	protected int createLayoutHints(Attribute attrib)
+	{
+		int defaultLayoutHint = getDefaultLayoutHint();
+		
+		FieldConfig config = data.fieldsConfig.get(attrib.getName());
+		if (config == null)
+			return defaultLayoutHint;
+		
+		int ret = 0;
+		
+		if ((config.layoutHint & JfgFormData.HORIZONTAL_HINT_MASK) != 0)
+			ret += config.layoutHint & JfgFormData.HORIZONTAL_HINT_MASK;
+		else
+			ret += defaultLayoutHint & JfgFormData.HORIZONTAL_HINT_MASK;
+		
+		if ((config.layoutHint & JfgFormData.VERTICAL_HINT_MASK) != 0)
+			ret += config.layoutHint & JfgFormData.VERTICAL_HINT_MASK;
+		else
+			ret += defaultLayoutHint & JfgFormData.VERTICAL_HINT_MASK;
+		
+		return ret;
+	}
 }

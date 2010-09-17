@@ -16,10 +16,10 @@ public interface SWTLayoutBuilder
 	Runnable getLayoutListener();
 	
 	Composite[] getParentsForLabelWidget(String attributeName);
-	void addLabelWidget(String attributeName, Label label, Control widget, boolean wantToFillVertical);
+	void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints);
 	
 	Composite getParentForWidget(String attributeName);
-	void addWidget(String attributeName, Control widget, boolean wantToFillVertical);
+	void addWidget(String attributeName, Control widget, int layoutHints);
 	
 	Group addGroup(String groupName);
 	ListBuilder addList(String attributeName);

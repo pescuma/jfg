@@ -14,11 +14,13 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import static org.eclipse.swt.layout.GridData.*;
+
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
-class SWTHelper
+class SWTUtils
 {
 	public static GridLayout createBorderlessGridLayout(int numColumns, boolean makeColumnsEqualWidth)
 	{
@@ -38,4 +40,15 @@ class SWTHelper
 		
 		return composite;
 	}
+	
+	public static int layoutHintsToGridDataStyle(int layoutHints)
+	{
+		int style = 0;
+		if ((layoutHints & JfgFormData.HORIZONTAL_SHRINK) == 0)
+			style += FILL_HORIZONTAL;
+		if ((layoutHints & JfgFormData.VERTICAL_FILL) != 0)
+			style += FILL_VERTICAL;
+		return style;
+	}
+	
 }

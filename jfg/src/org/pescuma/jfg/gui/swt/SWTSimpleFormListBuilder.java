@@ -15,7 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import static org.eclipse.swt.layout.GridData.*;
-import static org.pescuma.jfg.gui.swt.SWTHelper.*;
+import static org.pescuma.jfg.gui.swt.SWTUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;

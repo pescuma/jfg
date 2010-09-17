@@ -24,6 +24,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * Factory to allow a simple global customization of widgets
+ */
 public interface SWTComponentFactory
 {
 	Text createText(Composite parent, int style);

@@ -14,10 +14,10 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import static org.pescuma.jfg.gui.swt.SWTHelper.*;
+import static org.pescuma.jfg.gui.swt.FileUtils.*;
+import static org.pescuma.jfg.gui.swt.SWTUtils.*;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -34,6 +34,148 @@ import org.pescuma.jfg.AttributeValueRange;
 
 public class SWTFileBuilder implements SWTWidgetBuilder
 {
+	private static abstract class FileSWTWidget extends AbstractLabelControlSWTWidget
+	{
+		private Text text;
+		private Color background;
+		private Button select;
+		
+		private FileSWTWidget(Attribute attrib, JfgFormData data)
+		{
+			super(attrib, data);
+		}
+		
+		@Override
+		protected Control createWidget(Composite parent)
+		{
+			Control ret;
+			
+			if (attrib.canWrite())
+			{
+				Composite composite = data.componentFactory.createComposite(parent, SWT.NONE);
+				composite.setLayout(createBorderlessGridLayout(2, false));
+				
+				text = data.componentFactory.createText(composite, SWT.NONE);
+				
+				select = data.componentFactory.createButton(composite, SWT.PUSH | SWT.FLAT);
+				select.setText(data.textTranslator.translate("FileWidget:Select"));
+				select.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event)
+					{
+						String sel = openDialog(attrib, text);
+						if (sel != null)
+							text.setText(sel);
+					}
+				});
+				
+				ret = composite;
+			}
+			else
+			{
+				text = data.componentFactory.createText(parent, SWT.READ_ONLY);
+				
+				ret = text;
+			}
+			
+			text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			text.addListener(SWT.Modify, getModifyListener());
+			text.addListener(SWT.Dispose, getDisposeListener());
+			setTextLimit(attrib, text);
+			
+			background = text.getBackground();
+			
+			return ret;
+		}
+		
+		private void setTextLimit(Attribute attrib, Text text)
+		{
+			AttributeValueRange range = attrib.getValueRange();
+			if (range == null)
+				return;
+			
+			Object max = range.getMax();
+			if (max != null && (max instanceof Number))
+				text.setTextLimit(((Number) max).intValue());
+		}
+		
+		public Object getValue()
+		{
+			String str = text.getText().trim();
+			if (str.isEmpty() && canBeNull())
+				return null;
+			
+			if (str.isEmpty())
+				str = ".";
+			File file = new File(str);
+			
+			if (attrib.getType() == String.class)
+				return getFullPath(file);
+			else
+				return file;
+		}
+		
+		private boolean canBeNull()
+		{
+			AttributeValueRange range = attrib.getValueRange();
+			if (range == null)
+				return true;
+			
+			return range.canBeNull();
+		}
+		
+		public void setValue(Object value)
+		{
+			int caretPosition = text.getCaretPosition();
+			text.setText(convertToString(value));
+			text.setSelection(caretPosition);
+		}
+		
+		@Override
+		protected void markFieldAsUncommited()
+		{
+			super.markFieldAsUncommited();
+			
+			text.setBackground(data.createBackgroundColor(text, background));
+		}
+		
+		@Override
+		protected void unmarkFieldAsUncommited()
+		{
+			super.unmarkFieldAsUncommited();
+			
+			text.setBackground(background);
+		}
+		
+		@Override
+		public void setEnabled(boolean enabled)
+		{
+			super.setEnabled(enabled);
+			
+			text.setEnabled(enabled);
+			
+			if (select != null)
+				select.setEnabled(enabled);
+		}
+		
+		protected String convertToString(Object value)
+		{
+			if (value == null)
+			{
+				return "";
+			}
+			else if (value instanceof File)
+			{
+				return getFullPath((File) value);
+			}
+			else
+			{
+				return value.toString();
+			}
+		}
+		
+		protected abstract String openDialog(Attribute attrib, Text text);
+	}
+	
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
@@ -42,153 +184,13 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 	
 	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-		return new AbstractLabelWidgetSWTWidget(attrib, data) {
-			
-			private Text text;
-			private Color background;
-			private Button select;
-			
+		return new FileSWTWidget(attrib, data) {
 			@Override
-			protected Control createWidget(Composite parent)
+			protected String openDialog(Attribute attrib, Text text)
 			{
-				Control ret;
-				
-				if (attrib.canWrite())
-				{
-					Composite composite = data.componentFactory.createComposite(parent, SWT.NONE);
-					composite.setLayout(createBorderlessGridLayout(2, false));
-					
-					text = data.componentFactory.createText(composite, SWT.NONE);
-					
-					select = data.componentFactory.createButton(composite, SWT.PUSH | SWT.FLAT);
-					select.setText(data.textTranslator.translate("FileWidget:Select"));
-					select.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event)
-						{
-							String sel = openDialog(attrib, text);
-							if (sel != null)
-								text.setText(sel);
-						}
-					});
-					
-					ret = composite;
-				}
-				else
-				{
-					text = data.componentFactory.createText(parent, SWT.READ_ONLY);
-					
-					ret = text;
-				}
-				
-				text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				text.addListener(SWT.Modify, getModifyListener());
-				text.addListener(SWT.Dispose, getDisposeListener());
-				setTextLimit(attrib, text);
-				
-				background = text.getBackground();
-				
-				return ret;
+				return SWTFileBuilder.this.openDialog(attrib, text);
 			}
-			
-			private void setTextLimit(Attribute attrib, Text text)
-			{
-				AttributeValueRange range = attrib.getValueRange();
-				if (range == null)
-					return;
-				
-				Object max = range.getMax();
-				if (max != null && (max instanceof Number))
-					text.setTextLimit(((Number) max).intValue());
-			}
-			
-			public Object getValue()
-			{
-				String str = text.getText().trim();
-				if (str.isEmpty() && canBeNull())
-					return null;
-				
-				if (str.isEmpty())
-					str = ".";
-				File file = new File(str);
-				
-				if (attrib.getType() == String.class)
-					return getFullPath(file);
-				else
-					return file;
-			}
-			
-			private boolean canBeNull()
-			{
-				AttributeValueRange range = attrib.getValueRange();
-				if (range == null)
-					return true;
-				
-				return range.canBeNull();
-			}
-			
-			public void setValue(Object value)
-			{
-				int caretPosition = text.getCaretPosition();
-				text.setText(convertToString(value));
-				text.setSelection(caretPosition);
-			}
-			
-			@Override
-			protected void markField()
-			{
-				super.markField();
-				
-				text.setBackground(data.createBackgroundColor(text, background));
-			}
-			
-			@Override
-			protected void unmarkField()
-			{
-				super.unmarkField();
-				
-				text.setBackground(background);
-			}
-			
-			@Override
-			public void setEnabled(boolean enabled)
-			{
-				super.setEnabled(enabled);
-				
-				text.setEnabled(enabled);
-				
-				if (select != null)
-					select.setEnabled(enabled);
-			}
-			
 		};
-	}
-	
-	protected String convertToString(Object value)
-	{
-		if (value == null)
-		{
-			return "";
-		}
-		else if (value instanceof File)
-		{
-			return getFullPath((File) value);
-		}
-		else
-		{
-			return value.toString();
-		}
-	}
-	
-	protected String getFullPath(File file)
-	{
-		try
-		{
-			return file.getCanonicalPath();
-		}
-		catch (IOException e)
-		{
-			return file.getAbsolutePath();
-		}
 	}
 	
 	protected String openDialog(Attribute attrib, Text text)

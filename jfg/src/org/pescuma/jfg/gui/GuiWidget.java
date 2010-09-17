@@ -25,4 +25,8 @@ public interface GuiWidget
 	Object getValue();
 	
 	void setValue(Object value);
+	
+	void setValidator(WidgetValidator validator);
+	
+	void setShadowText(String text);
 }

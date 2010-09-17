@@ -18,6 +18,6 @@ import org.pescuma.jfg.Attribute;
 
 public interface SWTAttributeFilter
 {
-	boolean hideAttribute(Attribute attrib);
-	
+	// @return true to show (and not test further), false to hide (and not test further), null to test next filter
+	Boolean hideAttribute(Attribute attrib);
 }

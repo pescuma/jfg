@@ -19,12 +19,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.pescuma.jfg.Attribute;
+import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
+abstract class AbstractLabelControlSWTWidget extends AbstractSWTWidget
 {
 	private Label name;
 	
-	public AbstractLabelWidgetSWTWidget(Attribute attrib, JfgFormData data)
+	public AbstractLabelControlSWTWidget(Attribute attrib, JfgFormData data)
 	{
 		super(attrib, data);
 	}
@@ -32,17 +33,29 @@ abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 	{
-		String attribName = attrib.getName();
-		if (attribName != null)
-			attribName = data.textTranslator.fieldName(attribName);
+		boolean showLabel = true;
 		
-		if (attribName != null && !attribName.isEmpty())
+		FieldConfig config = data.fieldsConfig.get(attrib.getName());
+		if (config != null && config.showLabel != null)
+			showLabel = config.showLabel;
+		
+		String attribDescription = null;
+		if (showLabel)
+		{
+			attribDescription = attrib.getName();
+			if (attribDescription != null)
+				attribDescription = data.textTranslator.fieldName(attribDescription);
+			
+			showLabel = (attribDescription != null && !attribDescription.isEmpty());
+		}
+		
+		if (showLabel)
 		{
 			Composite[] parents = layout.getParentsForLabelWidget(attrib.getName());
 			if (parents[0] != null)
 			{
 				name = data.componentFactory.createLabel(parents[0], SWT.NONE);
-				name.setText(attribName + ":");
+				name.setText(attribDescription + ":");
 			}
 			
 			if (parents[1] == null)
@@ -50,7 +63,7 @@ abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
 			
 			Control widget = createWidget(parents[1]);
 			
-			layout.addLabelWidget(attrib.getName(), name, widget, wantToFillVertical());
+			layout.addLabelWidget(attrib.getName(), name, widget, createLayoutHints(attrib));
 		}
 		else
 		{
@@ -61,18 +74,13 @@ abstract class AbstractLabelWidgetSWTWidget extends AbstractSWTWidget
 			
 			Control widget = createWidget(parent);
 			
-			layout.addWidget(attrib.getName(), widget, wantToFillVertical());
+			layout.addWidget(attrib.getName(), widget, createLayoutHints(attrib));
 		}
 		
 		addAttributeListener();
 	}
 	
 	protected abstract Control createWidget(Composite parent);
-	
-	protected boolean wantToFillVertical()
-	{
-		return false;
-	}
 	
 	@Override
 	public void setEnabled(boolean enabled)

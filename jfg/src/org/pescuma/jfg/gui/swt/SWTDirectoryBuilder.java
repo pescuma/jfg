@@ -14,6 +14,8 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import static org.pescuma.jfg.gui.swt.FileUtils.*;
+
 import java.io.File;
 
 import org.eclipse.swt.widgets.DirectoryDialog;

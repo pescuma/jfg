@@ -27,9 +27,9 @@ public class SimpleWithFieldSpecForm
 		
 		// Create the form
 		JfgFormData data = new JfgFormData();
-		data.fieldTypes.put(TestClass.class.getName() + ".password", "text");
-		data.fieldTypes.put(TestClass.class.getName() + ".name", "password");
-		data.fieldTypes.put(TestClass.class.getName() + ".file", "file_save");
+		data.configure(TestClass.class.getName() + ".password").setType("text");
+		data.configure(TestClass.class.getName() + ".name").setType("password");
+		data.configure(TestClass.class.getName() + ".file").setType("file_save");
 		
 		JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
