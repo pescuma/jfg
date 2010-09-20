@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
+import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -36,6 +37,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	private final List<Item> items = new ArrayList<Item>();
 	private Composite frame;
 	private Color background;
+	private boolean empty = true;
 	
 	InlineObjectListSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -51,7 +53,8 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 	{
-		if (!innerBuilder.canBuildInnerAttribute())
+		empty = !innerBuilder.canBuildInnerAttribute();
+		if (empty)
 			return;
 		
 		this.innerBuilder = innerBuilder;
@@ -68,7 +71,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 				@Override
 				public void handleEvent(Event event)
 				{
-					buildAttributeInsideList(list.createNewElement());
+					buildAttributeInsideList(list.createNewEmptyElement(), true);
 					onWidgetModify();
 				}
 			};
@@ -78,26 +81,13 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		}
 	}
 	
-	private void buildAttributeInsideList(final Attribute itemAttribute)
+	protected void buildAttributeInsideList(Attribute itemAttribute, boolean addingNew)
 	{
 		final Item item = new Item();
 		
 		Composite composite = listLayout.startListItem(list.getName());
 		
-		AttributeGroup group = itemAttribute.asGroup();
-		if (group != null)
-		{
-			SWTLayoutBuilder layout = data.createLayoutFor(group.getName(), composite, listLayout.getLayoutListener());
-			
-			for (Attribute ga : group.getAttributes())
-				innerBuilder.buildInnerAttribute(layout, ga);
-		}
-		else
-		{
-			SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
-			
-			innerBuilder.buildInnerAttribute(layout, itemAttribute);
-		}
+		buildInnerAttribute(composite, itemAttribute, addingNew);
 		
 		Control remove = null;
 		if (list.canWrite())
@@ -121,9 +111,48 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		items.add(item);
 	}
 	
+	private void buildInnerAttribute(Composite composite, Attribute itemAttribute, boolean addingNew)
+	{
+		// If someone set the type, lets build it
+		FieldConfig config = data.fieldsConfig.get(itemAttribute.getName());
+		if (config != null && config.type != null)
+		{
+			SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
+			innerBuilder.buildInnerAttribute(layout, itemAttribute);
+			return;
+		}
+		
+		if (addingNew && itemAttribute.getValue() == null)
+		{
+			// Lets try to create one here
+			Object val = list.createNewElementInstance();
+			if (val != null)
+				itemAttribute.setValue(val);
+		}
+		
+		// Else, if we can get a group from it, let's use it
+		AttributeGroup group = itemAttribute.asGroup();
+		if (group != null)
+		{
+			SWTLayoutBuilder layout = data.createLayoutFor(group.getName(), composite, listLayout.getLayoutListener());
+			
+			for (Attribute ga : group.getAttributes())
+				innerBuilder.buildInnerAttribute(layout, ga);
+			
+			return;
+		}
+		
+		// Else try the default way
+		SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
+		innerBuilder.buildInnerAttribute(layout, itemAttribute);
+	}
+	
 	@Override
 	protected boolean canCopyToAttribute()
 	{
+		if (empty)
+			return false;
+		
 		return list.canWrite();
 	}
 	
@@ -136,6 +165,9 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	public void setValue(Object value)
 	{
+		if (empty)
+			return;
+		
 		if (value != attrib.getValue())
 			throw new NotImplementedException();
 	}
@@ -143,6 +175,9 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void attibuteToGUI()
 	{
+		if (empty)
+			return;
+		
 		for (int i = 0; i < items.size(); i++)
 		{
 			Item item = items.get(i);
@@ -160,7 +195,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 			int index = indexOf(a);
 			if (index < 0)
 			{
-				buildAttributeInsideList(a);
+				buildAttributeInsideList(a, false);
 				index = items.size() - 1;
 			}
 			if (index != i)
@@ -178,6 +213,9 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void guiToAttribute()
 	{
+		if (empty)
+			return;
+		
 		for (int i = 0; i < list.size(); i++)
 		{
 			if (indexOf(list.get(i)) < 0)
@@ -217,12 +255,18 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	public void setEnabled(boolean enabled)
 	{
+		if (empty)
+			return;
+		
 		frame.setEnabled(enabled);
 	}
 	
 	@Override
 	protected void markFieldAsUncommited()
 	{
+		if (empty)
+			return;
+		
 		super.markFieldAsUncommited();
 		
 		frame.setBackground(data.createBackgroundColor(frame, background));
@@ -231,6 +275,9 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void unmarkFieldAsUncommited()
 	{
+		if (empty)
+			return;
+		
 		super.unmarkFieldAsUncommited();
 		
 		frame.setBackground(background);

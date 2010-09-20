@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
-import org.pescuma.jfg.AttributeValueRange;
 import org.pescuma.jfg.gui.TextBasedGuiWidget;
 import org.pescuma.jfg.gui.WidgetFormater;
 import org.pescuma.jfg.gui.WidgetValidator;
@@ -57,15 +56,6 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 	public Object getValue()
 	{
 		return convertToObject(text.getText(), getType(attrib.getType()), canBeNull());
-	}
-	
-	private boolean canBeNull()
-	{
-		AttributeValueRange range = attrib.getValueRange();
-		if (range == null)
-			return true;
-		
-		return range.canBeNull();
 	}
 	
 	public void setValue(Object value)

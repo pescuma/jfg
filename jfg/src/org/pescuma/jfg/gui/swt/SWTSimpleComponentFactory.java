@@ -81,4 +81,5 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 		
 		return addMore;
 	}
+	
 }

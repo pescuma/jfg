@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeListener;
+import org.pescuma.jfg.AttributeValueRange;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
@@ -219,5 +220,14 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 			ret += defaultLayoutHint & JfgFormData.VERTICAL_HINT_MASK;
 		
 		return ret;
+	}
+	
+	protected boolean canBeNull()
+	{
+		AttributeValueRange range = attrib.getValueRange();
+		if (range == null)
+			return true;
+		
+		return range.canBeNull();
 	}
 }

@@ -78,15 +78,6 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 		return convertToObject(text.getText());
 	}
 	
-	private boolean canBeNull()
-	{
-		AttributeValueRange range = attrib.getValueRange();
-		if (range == null)
-			return true;
-		
-		return range.canBeNull();
-	}
-	
 	@Override
 	public void setValue(Object value)
 	{

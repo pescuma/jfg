@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Ricardo Pescuma Domenecci
+ * Copyright 2008 Ricardo Pescuma Domenecci
  * 
  * This file is part of jfg.
  * 
@@ -12,24 +12,26 @@
  * You should have received a copy of the GNU Lesser General Public License along with jfg. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.pescuma.jfg;
+package org.pescuma.jfg.gui.swt;
 
-public interface AttributeList
+import org.pescuma.jfg.Attribute;
+
+public class SWTObjectComboBuilder implements SWTWidgetBuilder
 {
-	String getName();
-	Object getElementType();
-
-	int size();
-	Attribute get(int index);
-	int indexOf(Attribute attrib);
+	public boolean accept(Attribute attrib)
+	{
+		Object type = attrib.getType();
+		if ("object_combo".equals(type))
+			return true;
+		
+		if (type instanceof Class<?>)
+			return true;
+		
+		return false;
+	}
 	
-	boolean canWrite();
-	Attribute createNewEmptyElement();
-	Object createNewElementInstance();
-	void add(int index, Attribute item);
-	void remove(int index);
-	
-	boolean canListen();
-	void addListener(AttributeListener listener);
-	void removeListener(AttributeListener listener);
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	{
+		return new ObjectComboSWTWidget(attrib, data);
+	}
 }

@@ -4,14 +4,12 @@ import static org.pescuma.jfg.reflect.ReflectionUtils.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
@@ -27,7 +25,7 @@ public class ReflectionList implements AttributeList
 	@SuppressWarnings("unchecked")
 	private final List list;
 	private final ReflectionData data;
-	private final Map<Object, Attribute> attributes = new HashMap<Object, Attribute>();
+	private final List<ReflectionListAttribute> attributes = new ArrayList<ReflectionListAttribute>();
 	private boolean canWrite;
 	
 	public ReflectionList(String name, List<?> list, Class<?> elementType)
@@ -47,6 +45,9 @@ public class ReflectionList implements AttributeList
 		this.data = data;
 		this.elementType = elementType;
 		this.canWrite = canChangeList;
+		
+		for (int i = 0; i < list.size(); i++)
+			attributes.add(null);
 	}
 	
 	public ReflectionList(String name, Field field, Method getter, Method setter, Object obj, ReflectionData data)
@@ -61,6 +62,9 @@ public class ReflectionList implements AttributeList
 		this.data = data;
 		this.elementType = findElementType(field, getter);
 		this.canWrite = !ReflectionUtils.isReadOnly(field, getter, setter);
+		
+		for (int i = 0; i < list.size(); i++)
+			attributes.add(null);
 	}
 	
 	private Class<?> findElementType(Field field, Method method)
@@ -137,27 +141,20 @@ public class ReflectionList implements AttributeList
 	@Override
 	public Attribute get(int index)
 	{
-		Object obj = list.get(index);
-		
-		Attribute attrib = attributes.get(obj);
+		ReflectionListAttribute attrib = attributes.get(index);
 		if (attrib == null)
 		{
-			attrib = new ReflectionListAttribute(obj);
-			attributes.put(obj, attrib);
+			Object obj = list.get(index);
+			attrib = new ReflectionListAttribute(obj, true, obj == null ? elementType : obj.getClass());
+			attributes.set(index, attrib);
 		}
-		
 		return attrib;
 	}
 	
 	@Override
 	public int indexOf(Attribute attrib)
 	{
-		for (Entry<Object, Attribute> entry : attributes.entrySet())
-		{
-			if (entry.getValue() == attrib)
-				return list.indexOf(entry.getKey());
-		}
-		return -1;
+		return attributes.indexOf(attrib);
 	}
 	
 	@Override
@@ -167,12 +164,18 @@ public class ReflectionList implements AttributeList
 	}
 	
 	@Override
-	public Attribute createNewElement()
+	public Attribute createNewEmptyElement()
+	{
+		return new ReflectionListAttribute(null, false, elementType);
+	}
+	
+	@Override
+	public Object createNewElementInstance()
 	{
 		Object obj = newInstance(elementType);
 		if (obj == null)
 			throw new ReflectionAttributeException("Could not create new object of class " + elementType.getName());
-		return new ReflectionListAttribute(obj);
+		return obj;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -186,9 +189,12 @@ public class ReflectionList implements AttributeList
 		if (!(item instanceof ReflectionListAttribute))
 			throw new IllegalArgumentException("Wrong item type");
 		
-		Object obj = item.getValue();
-		attributes.put(obj, item);
+		ReflectionListAttribute rla = (ReflectionListAttribute) item;
+		Object obj = rla.getValue();
+		
+		attributes.add(index, rla);
 		list.add(index, obj);
+		rla.connected = true;
 	}
 	
 	@Override
@@ -197,9 +203,9 @@ public class ReflectionList implements AttributeList
 		if (!canWrite())
 			throw new ReflectionAttributeException("Field is ready-only");
 		
-		Object obj = list.remove(index);
-		if (obj != null)
-			attributes.remove(obj);
+		list.remove(index);
+		ReflectionListAttribute item = attributes.remove(index);
+		item.connected = false;
 	}
 	
 	@Override
@@ -223,11 +229,13 @@ public class ReflectionList implements AttributeList
 	{
 		private Object obj;
 		private final Class<?> type;
+		private boolean connected;
 		
-		public ReflectionListAttribute(Object obj)
+		public ReflectionListAttribute(Object obj, boolean connected, Class<?> type)
 		{
 			this.obj = obj;
-			this.type = obj.getClass();
+			this.connected = connected;
+			this.type = type;
 		}
 		
 		@Override
@@ -294,16 +302,18 @@ public class ReflectionList implements AttributeList
 		@SuppressWarnings("unchecked")
 		public void setValue(Object value)
 		{
-			if (value == null)
-				throw new ReflectionAttributeException("Field does not allow null");
 			if (!type.isInstance(value))
 				throw new ReflectionAttributeException("Invalid value type");
 			
-			int index = list.indexOf(obj);
-			if (index < 0)
-				throw new ReflectionAttributeException("This object was removed from the list");
+			if (connected)
+			{
+				int index = attributes.indexOf(this);
+				if (index < 0)
+					throw new ReflectionAttributeException("This object was removed from the list");
+				
+				list.set(index, value);
+			}
 			
-			list.set(index, value);
 			obj = value;
 		}
 		
@@ -330,6 +340,8 @@ public class ReflectionList implements AttributeList
 			if (type.isPrimitive())
 				return null;
 			if (data.ignoreForAsGroup(type.getName()))
+				return null;
+			if (obj == null)
 				return null;
 			
 			return new ReflectionGroup(getName(), obj, data);

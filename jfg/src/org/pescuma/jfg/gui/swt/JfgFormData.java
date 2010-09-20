@@ -19,6 +19,8 @@ import static org.pescuma.jfg.StringUtils.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +111,9 @@ public final class JfgFormData
 		builders.put(Enum.class, new SWTComboBuilder());
 		builders.put(File.class, new SWTFileBuilder());
 		builders.put(Image.class, new SWTImageBuilder());
-		builders.put(List.class, new SWTObjectListBuilder());
+		builders.put(List.class, new SWTInlineObjectListBuilder());
+		builders.put(Date.class, new SWTDateBuilder(true, true));
+		builders.put(Calendar.class, new SWTDateBuilder(true, true));
 		
 		builders.put("text", new SWTTextBuilder());
 		builders.put("text_area", new SWTTextAreaBuilder());
@@ -125,8 +129,12 @@ public final class JfgFormData
 		builders.put("directory", new SWTDirectoryBuilder());
 		builders.put("image", new SWTImageBuilder());
 		builders.put("webcam", new SWTImageBuilder());
-		builders.put("inline_obj_list", new SWTObjectListBuilder());
+		builders.put("inline_obj_list", new SWTInlineObjectListBuilder());
+		builders.put("object_combo", new SWTObjectComboBuilder());
 		builders.put("group", new SWTGroupBuilder());
+		builders.put("date", new SWTDateBuilder(true, false));
+		builders.put("time", new SWTDateBuilder(false, true));
+		builders.put("datetime", new SWTDateBuilder(true, true));
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			public Object getTypeFor(Attribute attrib)
@@ -271,12 +279,13 @@ public final class JfgFormData
 					if (group == null)
 						return Boolean.TRUE;
 				}
-				else if (builder instanceof SWTObjectListBuilder)
+				else if (builder instanceof SWTInlineObjectListBuilder)
 				{
 					AttributeList list = attrib.asList();
 					
 					// Have to create a new element to inspect
-					Attribute item = list.createNewElement();
+					Attribute item = list.createNewEmptyElement();
+					item.setValue(list.createNewElementInstance());
 					
 					group = item.asGroup();
 					if (group == null)
@@ -409,6 +418,7 @@ public final class JfgFormData
 		public String shadowText;
 		public WidgetValidator validator;
 		public WidgetFormater formater;
+		public Object widgetData;
 		
 		public FieldConfig setVisible(boolean visible)
 		{
@@ -470,6 +480,13 @@ public final class JfgFormData
 			this.showLabel = false;
 			return this;
 		}
+		
+		public FieldConfig setWidgetData(Object widgetData)
+		{
+			this.widgetData = widgetData;
+			return this;
+		}
+		
 	}
 	
 	public final Map<String, FieldConfig> fieldsConfig = new HashMap<String, FieldConfig>();

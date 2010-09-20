@@ -14,7 +14,8 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -23,16 +24,28 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
+import org.pescuma.jfg.gui.ReferenceListGuiWidget;
+import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-class ComboSWTWidget extends AbstractLabelControlSWTWidget
+class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements ReferenceListGuiWidget
 {
 	private Combo combo;
 	private Text text;
 	private Color background;
+	private final List<Object> options = new ArrayList<Object>();
+	private DescriptionGetter toDescription;
+	private List<Object> comboObjects;
 	
-	ComboSWTWidget(Attribute attrib, JfgFormData data)
+	ObjectComboSWTWidget(Attribute attrib, JfgFormData data)
 	{
 		super(attrib, data);
+		
+		FieldConfig config = data.fieldsConfig.get(attrib.getName());
+		if (config != null && config.widgetData != null)
+		{
+			ReferenceListGuiWidget.Data widgetData = (ReferenceListGuiWidget.Data) config.widgetData;
+			setObjects(widgetData.objects, widgetData.toDescription);
+		}
 	}
 	
 	@Override
@@ -63,40 +76,35 @@ class ComboSWTWidget extends AbstractLabelControlSWTWidget
 	
 	private void fill()
 	{
-		if (canBeNull())
-			combo.add(data.textTranslator.translate("ComboWidget:None"));
+		combo.removeAll();
 		
-		for (Object object : getPossibleValues())
-			combo.add(convertToString(object, attrib.getType()));
+		comboObjects = new ArrayList<Object>();
+		
+		if (canBeNull())
+		{
+			comboObjects.add(null);
+			combo.add(data.textTranslator.translate("ComboWidget:None"));
+		}
+		
+		for (Object obj : options)
+		{
+			comboObjects.add(obj);
+			combo.add(toDescription.getDescription(obj));
+		}
 	}
 	
 	public Object getValue()
 	{
 		if (attrib.canWrite())
-			return getObject(combo.getSelectionIndex());
+		{
+			int index = combo.getSelectionIndex();
+			if (index < 0)
+				return null;
+			
+			return comboObjects.get(index);
+		}
 		else
 			return attrib.getValue();
-	}
-	
-	private Object getObject(int index)
-	{
-		int i = 0;
-		
-		if (canBeNull())
-		{
-			if (i == index)
-				return null;
-			i++;
-		}
-		
-		for (Object object : getPossibleValues())
-		{
-			if (i == index)
-				return object;
-			i++;
-		}
-		
-		throw new IllegalArgumentException();
 	}
 	
 	public void setValue(Object value)
@@ -110,20 +118,15 @@ class ComboSWTWidget extends AbstractLabelControlSWTWidget
 	private int getIndex(Object value)
 	{
 		int i = 0;
-		
-		if (canBeNull())
+		for (Object obj : comboObjects)
 		{
-			if (value == null)
+			if (obj == value)
 				return i;
-			i++;
+			++i;
 		}
 		
-		for (Object object : getPossibleValues())
-		{
-			if (object == value)
-				return i;
-			i++;
-		}
+		if (value == null)
+			return -1;
 		
 		throw new IllegalArgumentException();
 	}
@@ -131,7 +134,7 @@ class ComboSWTWidget extends AbstractLabelControlSWTWidget
 	private String convertToString(Object value, Object type)
 	{
 		if (value == null)
-			return data.textTranslator.translate("ComboWidget:null");
+			return data.textTranslator.translate("ComboWidget:None");
 		
 		if (type instanceof Class<?>)
 		{
@@ -141,11 +144,6 @@ class ComboSWTWidget extends AbstractLabelControlSWTWidget
 		}
 		
 		return value.toString();
-	}
-	
-	private Collection<?> getPossibleValues()
-	{
-		return attrib.getValueRange().getPossibleValues();
 	}
 	
 	@Override
@@ -191,5 +189,26 @@ class ComboSWTWidget extends AbstractLabelControlSWTWidget
 		{
 			text.setEnabled(enabled);
 		}
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setObjects(List objects, DescriptionGetter toDescription)
+	{
+		this.options.clear();
+		this.options.addAll(objects);
+		this.toDescription = toDescription;
+		
+		if (this.toDescription == null)
+			this.toDescription = new DescriptionGetter() {
+				@Override
+				public String getDescription(Object obj)
+				{
+					return obj.toString();
+				}
+			};
+		
+		if (combo != null)
+			fill();
 	}
 }

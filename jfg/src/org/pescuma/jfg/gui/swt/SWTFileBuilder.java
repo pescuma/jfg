@@ -114,15 +114,6 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 				return file;
 		}
 		
-		private boolean canBeNull()
-		{
-			AttributeValueRange range = attrib.getValueRange();
-			if (range == null)
-				return true;
-			
-			return range.canBeNull();
-		}
-		
 		public void setValue(Object value)
 		{
 			int caretPosition = text.getCaretPosition();

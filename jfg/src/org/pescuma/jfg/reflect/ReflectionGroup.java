@@ -73,6 +73,9 @@ public class ReflectionGroup implements AttributeGroup
 	
 	public ReflectionGroup(String name, Object obj, ReflectionData data)
 	{
+		if (obj == null)
+			throw new IllegalArgumentException();
+		
 		this.obj = obj;
 		this.data = data;
 		useStatic = (obj instanceof Class<?>);

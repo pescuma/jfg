@@ -14,27 +14,38 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import java.util.List;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.pescuma.jfg.Attribute;
 
-public class SWTObjectListBuilder implements SWTWidgetBuilder
+public class SWTDateBuilder implements SWTWidgetBuilder
 {
+	private final boolean showDate;
+	private final boolean showTime;
+	
+	public SWTDateBuilder(boolean showDate, boolean showTime)
+	{
+		this.showDate = showDate;
+		this.showTime = showTime;
+	}
+	
 	public boolean accept(Attribute attrib)
 	{
-		if (attrib.canWrite())
-			return false;
-		
 		Object type = attrib.getType();
-		return type == List.class || "inline_obj_list".equals(type);
+		
+		if (showDate && !showTime && "date".equals(type))
+			return true;
+		if (!showDate && showTime && "time".equals(type))
+			return true;
+		if (showDate && showTime && "datetime".equals(type))
+			return true;
+		
+		return type == Date.class || type == Calendar.class;
 	}
 	
 	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
-//		if (attrib.canWrite())
-//			System.out.println("[JFG] Creating GUI for read/write object. "
-//					+ "I'll only change the object in place and will not check for changes in it!");
-		
-		return new InlineObjectListSWTWidget(attrib, data);
+		return new DateSWTWidget(attrib, data, showDate, showTime);
 	}
 }
