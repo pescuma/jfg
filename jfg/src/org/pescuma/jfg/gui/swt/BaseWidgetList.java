@@ -62,6 +62,7 @@ class BaseWidgetList implements GuiWidgetList, Iterable<AttributeWidgetPair>
 		return widgets.size();
 	}
 	
+	@Override
 	public Iterator<AttributeWidgetPair> iterator()
 	{
 		return widgets.iterator();
@@ -72,6 +73,7 @@ class BaseWidgetList implements GuiWidgetList, Iterable<AttributeWidgetPair>
 		return widgets;
 	}
 	
+	@Override
 	public GuiWidget getWidget(Attribute attribute)
 	{
 		for (AttributeWidgetPair aw : widgets)
@@ -82,6 +84,7 @@ class BaseWidgetList implements GuiWidgetList, Iterable<AttributeWidgetPair>
 		return null;
 	}
 	
+	@Override
 	public GuiWidget getWidget(String attributeName)
 	{
 		for (AttributeWidgetPair aw : widgets)
@@ -100,5 +103,10 @@ class BaseWidgetList implements GuiWidgetList, Iterable<AttributeWidgetPair>
 				return aw.attrib;
 		}
 		return null;
+	}
+	
+	public void addAll(BaseWidgetList newWidgets)
+	{
+		widgets.addAll(newWidgets.widgets);
 	}
 }

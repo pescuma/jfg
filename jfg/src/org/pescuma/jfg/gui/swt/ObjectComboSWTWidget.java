@@ -93,13 +93,14 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		}
 	}
 	
+	@Override
 	public Object getValue()
 	{
 		if (attrib.canWrite())
 		{
 			int index = combo.getSelectionIndex();
 			if (index < 0)
-				return null;
+				return fixNull(null);
 			
 			return comboObjects.get(index);
 		}
@@ -107,12 +108,26 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 			return attrib.getValue();
 	}
 	
+	@Override
 	public void setValue(Object value)
 	{
 		if (attrib.canWrite())
+		{
+			value = fixNull(value);
 			combo.select(getIndex(value));
+		}
 		else
+		{
 			text.setText(convertToString(value, attrib.getType()));
+		}
+	}
+	
+	private Object fixNull(Object value)
+	{
+		if (!canBeNull() && comboObjects.size() > 0)
+			return comboObjects.get(0);
+		else
+			return null;
 	}
 	
 	private int getIndex(Object value)
@@ -192,7 +207,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setObjects(List objects, DescriptionGetter toDescription)
 	{
 		this.options.clear();

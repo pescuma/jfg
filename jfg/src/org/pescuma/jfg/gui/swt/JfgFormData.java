@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
@@ -60,7 +61,7 @@ public final class JfgFormData
 	
 	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory();
 	
-	public SWTLayoutBuilder layout = new SimpleFormLayout();
+	public SWTLayoutBuilder layout = new OneAttributePerLineFormLayout();
 	
 	public int maxAttributeSubLevels = 1;
 	
@@ -413,6 +414,7 @@ public final class JfgFormData
 		public SWTWidgetBuilder builder;
 		public Boolean showLabel;
 		public int layoutHint;
+		public int heightHint = SWT.DEFAULT;
 		public SWTLayoutBuilder layout;
 		public boolean showNameAsShadowText = false;
 		public String shadowText;
@@ -438,9 +440,18 @@ public final class JfgFormData
 			return this;
 		}
 		
+		/**
+		 * @param layoutHint JfgFormData.HORIZONTAL_* or JfgFormData.VERTICAL_*
+		 */
 		public FieldConfig setLayoutHint(int layoutHint)
 		{
 			this.layoutHint = layoutHint;
+			return this;
+		}
+		
+		public FieldConfig setHeightHint(int heightHint)
+		{
+			this.heightHint = heightHint;
 			return this;
 		}
 		

@@ -25,26 +25,26 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-public class SimpleFormLayout implements SWTLayoutBuilder, Cloneable
+public class OneAttributePerLineFormLayout implements SWTLayoutBuilder, Cloneable
 {
 	private Composite parent;
 	private Runnable layoutListener;
 	private JfgFormData data;
 	
 	@Override
-	public void init(Composite root, Runnable layoutListener, JfgFormData data)
+	public void init(Composite parent, Runnable layoutListener, JfgFormData data)
 	{
-		if (parent != null)
+		if (this.parent != null)
 			throw new IllegalStateException("Already initialized. Create a new one!");
 		
-		this.parent = root;
+		this.parent = parent;
 		this.layoutListener = layoutListener;
 		this.data = data;
 		
-		GridLayout layout = (GridLayout) parent.getLayout();
+		GridLayout layout = (GridLayout) this.parent.getLayout();
 		
 		if (layout == null)
-			parent.setLayout(createBorderlessGridLayout(2, false));
+			this.parent.setLayout(createBorderlessGridLayout(2, false));
 		
 		else if (!(layout instanceof GridLayout))
 			throw new IllegalArgumentException("SWTSimpleFormBuilder needs a GridLayout");
@@ -59,66 +59,69 @@ public class SimpleFormLayout implements SWTLayoutBuilder, Cloneable
 		return layoutListener;
 	}
 	
+	@Override
 	public Composite[] getParentsForLabelWidget(String attributeName)
 	{
 		return new Composite[] { parent, parent };
 	}
 	
-	public void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints)
+	@Override
+	public void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints, int heightHint)
 	{
-		label.setLayoutData(new GridData(HORIZONTAL_ALIGN_END));
-		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
+		GridData gd = new GridData(HORIZONTAL_ALIGN_END);
+		gd.heightHint = heightHint;
+		label.setLayoutData(gd);
+		
+		gd = new GridData(layoutHintsToGridDataStyle(layoutHints));
+		gd.heightHint = heightHint;
+		widget.setLayoutData(gd);
 	}
 	
+	@Override
 	public Composite getParentForWidget(String attributeName)
 	{
-		return createFullRowComposite();
+		return parent;
 	}
 	
-	public void addWidget(String attributeName, Control widget, int layoutHints)
+	@Override
+	public void addWidget(String attributeName, Control widget, int layoutHints, int heightHint)
 	{
-		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
+		GridData gd = new GridData(layoutHintsToGridDataStyle(layoutHints));
+		gd.heightHint = heightHint;
+		gd.horizontalSpan = 2;
+		widget.setLayoutData(gd);
 	}
 	
-	public Group addGroup(String groupName)
+	@Override
+	public Group addGroup(String groupName, int layoutHints, int heightHint)
 	{
-		Group frame = data.componentFactory.createGroup(createFullRowComposite(), SWT.NONE);
-		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Group frame = data.componentFactory.createGroup(parent, SWT.NONE);
 		frame.setLayout(new GridLayout(2, false));
 		frame.setText(data.textTranslator.groupName(groupName));
+		
+		addWidget(groupName, frame, layoutHints, heightHint);
 		
 		return frame;
 	}
 	
-	private Composite createFullRowComposite()
-	{
-		return createFullRowComposite(parent);
-	}
-	
-	protected Composite createFullRowComposite(Composite compositeParent)
-	{
-		Composite composite = data.componentFactory.createComposite(compositeParent, SWT.NONE);
-		setupHorizontalComposite(composite, 2);
-		return composite;
-	}
-	
 	@Override
-	public ListBuilder addList(String attributeName)
+	public ListBuilder addList(String attributeName, int layoutHints, int heightHint)
 	{
-		Group frame = data.componentFactory.createGroup(createFullRowComposite(), SWT.NONE);
-		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Group frame = data.componentFactory.createGroup(parent, SWT.NONE);
 		frame.setLayout(new GridLayout(2, false));
 		frame.setText(data.textTranslator.fieldName(attributeName));
+		
+		addWidget(attributeName, frame, layoutHints, heightHint);
 		
 		return new SWTSimpleFormListBuilder(attributeName, frame, layoutListener, data);
 	}
 	
 	@Override
-	public SimpleFormLayout clone()
+	public OneAttributePerLineFormLayout clone()
 	{
 		try
 		{
-			return (SimpleFormLayout) super.clone();
+			return (OneAttributePerLineFormLayout) super.clone();
 		}
 		catch (CloneNotSupportedException e)
 		{

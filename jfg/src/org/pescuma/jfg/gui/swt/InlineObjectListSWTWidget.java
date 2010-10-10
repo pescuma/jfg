@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
@@ -60,7 +61,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		this.innerBuilder = innerBuilder;
 		list = attrib.asList();
 		
-		listLayout = layout.addList(list.getName());
+		listLayout = layout.addList(list.getName(), createLayoutHints(attrib), createHeightHint(attrib));
 		frame = listLayout.getContents();
 		background = frame.getBackground();
 		
@@ -281,5 +282,20 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		super.unmarkFieldAsUncommited();
 		
 		frame.setBackground(background);
+	}
+	
+	@Override
+	public void copyToGUI()
+	{
+		Shell shell = frame.getShell();
+		try
+		{
+			shell.setRedraw(false);
+			super.copyToGUI();
+		}
+		finally
+		{
+			shell.setRedraw(true);
+		}
 	}
 }

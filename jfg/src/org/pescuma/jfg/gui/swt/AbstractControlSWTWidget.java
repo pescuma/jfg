@@ -34,7 +34,7 @@ abstract class AbstractControlSWTWidget extends AbstractSWTWidget
 		
 		Control widget = createWidget(parent);
 		
-		layout.addWidget(attrib.getName(), widget, createLayoutHints(attrib));
+		layout.addWidget(attrib.getName(), widget, createLayoutHints(attrib), createHeightHint(attrib));
 		
 		addAttributeListener();
 	}

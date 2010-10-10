@@ -63,7 +63,7 @@ abstract class AbstractLabelControlSWTWidget extends AbstractSWTWidget
 			
 			Control widget = createWidget(parents[1]);
 			
-			layout.addLabelWidget(attrib.getName(), name, widget, createLayoutHints(attrib));
+			layout.addLabelWidget(attrib.getName(), name, widget, createLayoutHints(attrib), createHeightHint(attrib));
 		}
 		else
 		{
@@ -74,7 +74,7 @@ abstract class AbstractLabelControlSWTWidget extends AbstractSWTWidget
 			
 			Control widget = createWidget(parent);
 			
-			layout.addWidget(attrib.getName(), widget, createLayoutHints(attrib));
+			layout.addWidget(attrib.getName(), widget, createLayoutHints(attrib), createHeightHint(attrib));
 		}
 		
 		addAttributeListener();

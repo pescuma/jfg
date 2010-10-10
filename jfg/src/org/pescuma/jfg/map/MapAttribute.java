@@ -63,6 +63,7 @@ public class MapAttribute implements Attribute
 			};
 	}
 	
+	@Override
 	public String getName()
 	{
 		if (key == null)
@@ -70,27 +71,32 @@ public class MapAttribute implements Attribute
 		return "map." + key.toString();
 	}
 	
+	@Override
 	public Object getType()
 	{
 		return type;
 	}
 	
+	@Override
 	public AttributeValueRange getValueRange()
 	{
 		return attributeValueRange;
 	}
 	
+	@Override
 	public boolean canWrite()
 	{
 		return (type != Map.class);
 	}
 	
+	@Override
 	public Object getValue()
 	{
 		return map.get(key);
 	}
 	
-	@SuppressWarnings("unchecked")
+	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setValue(Object obj)
 	{
 		if (!canWrite())
@@ -101,6 +107,7 @@ public class MapAttribute implements Attribute
 		((Map) map).put(key, obj);
 	}
 	
+	@Override
 	public AttributeGroup asGroup()
 	{
 		if (type != Map.class)
@@ -113,21 +120,25 @@ public class MapAttribute implements Attribute
 		return new MapGroup(getName(), value, externalType);
 	}
 	
+	@Override
 	public AttributeList asList()
 	{
 		return null;
 	}
 	
+	@Override
 	public boolean canListen()
 	{
 		return false;
 	}
 	
+	@Override
 	public void addListener(AttributeListener listener)
 	{
 		throw new MapAttributeException("Can't add listener");
 	}
 	
+	@Override
 	public void removeListener(AttributeListener listener)
 	{
 		throw new MapAttributeException("Can't remove listener");

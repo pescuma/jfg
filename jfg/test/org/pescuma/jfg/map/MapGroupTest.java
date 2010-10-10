@@ -21,18 +21,16 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-
 import org.junit.Test;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeValueRange;
-import org.pescuma.jfg.map.MapAttributeException;
-import org.pescuma.jfg.map.MapGroup;
 
 public class MapGroupTest
 {
 	private AttributeListener dummyListener = new AttributeListener() {
+		@Override
 		public void onChange()
 		{
 		}
@@ -54,15 +52,15 @@ public class MapGroupTest
 		assertEquals(3, attributes.size());
 		
 		Iterator<Attribute> it = attributes.iterator();
-		Attribute attrib = (Attribute) it.next();
+		Attribute attrib = it.next();
 		assertAttribute(attrib, "abc", String.class, true, false);
 		assertGetSet(attrib, map, "abc", "123", "aa", "xy");
 		
-		attrib = (Attribute) it.next();
+		attrib = it.next();
 		assertAttribute(attrib, "d", Integer.class, true, false);
 		assertGetSet(attrib, map, "d", Integer.valueOf(1), Integer.valueOf(4), Integer.valueOf(10));
 		
-		attrib = (Attribute) it.next();
+		attrib = it.next();
 		assertAttribute(attrib, "c", String.class, true, true);
 		assertGetSet(attrib, map, "c", null, "aa", "xy");
 	}
@@ -83,15 +81,15 @@ public class MapGroupTest
 		assertEquals(3, attributes.size());
 		
 		Iterator<Attribute> it = attributes.iterator();
-		Attribute attrib = (Attribute) it.next();
+		Attribute attrib = it.next();
 		assertAttribute(attrib, "abc", String.class, true, false);
 		assertGetSet(attrib, map, "abc", "123", "aa", "xy");
 		
-		attrib = (Attribute) it.next();
+		attrib = it.next();
 		assertAttribute(attrib, "d", String.class, true, false);
 		assertGetSet(attrib, map, "d", Integer.valueOf(1), "aa", "xy");
 		
-		attrib = (Attribute) it.next();
+		attrib = it.next();
 		assertAttribute(attrib, "c", String.class, true, true);
 		assertGetSet(attrib, map, "c", null, "aa", "xy");
 	}
@@ -119,15 +117,15 @@ public class MapGroupTest
 		assertEquals(4, attributes.size());
 		
 		Iterator<Attribute> it = attributes.iterator();
-		Attribute attrib = (Attribute) it.next();
+		Attribute attrib = it.next();
 		assertAttribute(attrib, "abc", String.class, true, false);
 		assertGetSet(attrib, map, "abc", "123", "aa", "xy");
 		
-		attrib = (Attribute) it.next();
+		attrib = it.next();
 		assertAttribute(attrib, "d", Integer.class, true, false);
 		assertGetSet(attrib, map, "d", Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3));
 		
-		attrib = (Attribute) it.next();
+		attrib = it.next();
 		assertAttribute(attrib, "x", Map.class, false, false);
 		{
 			AttributeGroup group2 = attrib.asGroup();
@@ -138,20 +136,20 @@ public class MapGroupTest
 			assertEquals(3, attributes2.size());
 			
 			Iterator<Attribute> it2 = attributes2.iterator();
-			Attribute attrib2 = (Attribute) it2.next();
+			Attribute attrib2 = it2.next();
 			assertAttribute(attrib2, "u", String.class, true, true);
 			assertGetSet(attrib2, map2, "u", null, "aa", "xy");
 			
-			attrib2 = (Attribute) it2.next();
+			attrib2 = it2.next();
 			assertAttribute(attrib2, "v", String.class, true, false);
 			assertGetSet(attrib2, map2, "v", "Zzzzz", "aa", "xy");
 			
-			attrib2 = (Attribute) it2.next();
+			attrib2 = it2.next();
 			assertAttribute(attrib2, "t", Float.class, true, false);
 			assertGetSet(attrib2, map2, "t", Float.valueOf(4), Float.valueOf(5), Float.valueOf(49999999999f));
 		}
 		
-		attrib = (Attribute) it.next();
+		attrib = it.next();
 		assertAttribute(attrib, "c", String.class, true, true);
 		assertGetSet(attrib, map, "c", null, "aa", "xy");
 	}
@@ -225,7 +223,7 @@ public class MapGroupTest
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void assertGetSet(Attribute attrib, Map map, Object key, Object value0, Object value1, Object value2)
 	{
 		assertEquals(value0, attrib.getValue());

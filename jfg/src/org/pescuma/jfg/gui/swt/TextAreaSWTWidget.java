@@ -14,8 +14,6 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import static org.pescuma.jfg.gui.swt.JfgFormData.*;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
@@ -40,11 +38,13 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 	@Override
 	protected Control createWidget(Composite parent)
 	{
+		String description = data.textTranslator.fieldName(attrib.getName());
+		
 		Group group = null;
-		if (attrib.getName() != null)
+		if (!description.isEmpty())
 		{
 			group = data.componentFactory.createGroup(parent, SWT.NONE);
-			group.setText(data.textTranslator.fieldName(attrib.getName()));
+			group.setText(description);
 			group.setLayout(new GridLayout(1, false));
 		}
 		
@@ -54,9 +54,8 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 		text.addListener(SWT.Modify, getModifyListener());
 		text.addListener(SWT.Dispose, getDisposeListener());
 		
-		GridData data = new GridData(GridData.FILL_BOTH);
-		data.minimumHeight = 70;
-		text.setLayoutData(data);
+		if (group != null)
+			text.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		if (attrib.canWrite())
 			setTextLimit(attrib, text);
@@ -67,9 +66,9 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 	}
 	
 	@Override
-	public int getDefaultLayoutHint()
+	protected int getDefaultHeightHint()
 	{
-		return VERTICAL_FILL;
+		return 70;
 	}
 	
 	@Override

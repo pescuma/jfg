@@ -10,7 +10,8 @@ public interface SWTGuiWidget extends GuiWidget
 	interface InnerBuilder
 	{
 		boolean canBuildInnerAttribute();
-		void buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib);
+		
+		GuiWidget buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib);
 	}
 	
 	void init(SWTLayoutBuilder layout, InnerBuilder innerBuilder, GuiCopyManager manager);

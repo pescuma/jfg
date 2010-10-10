@@ -86,6 +86,7 @@ public class JfgFormComposite extends Composite
 			postponeFinishInitialize = true;
 			
 			root.addListener(SWT.Show, new Listener() {
+				@Override
 				public void handleEvent(Event event)
 				{
 					postponeFinishInitialize = false;
@@ -229,19 +230,19 @@ public class JfgFormComposite extends Composite
 		finishInitialize();
 	}
 	
-	private void addAttribute(SWTLayoutBuilder layout, SWTWidgetBuilder builder, Attribute attrib,
+	private SWTGuiWidget addAttribute(SWTLayoutBuilder layout, SWTWidgetBuilder builder, Attribute attrib,
 			final int currentLevel)
 	{
 		if (builder == null)
 			builder = data.getBuilderFor(attrib);
 		if (builder == null)
-			return;
+			return null;
 		
 		if (!builder.accept(attrib))
 			throw new IllegalArgumentException("Wrong configuration");
 		
 		if (data.hideAttribute(attrib))
-			return;
+			return null;
 		
 		SWTGuiWidget.InnerBuilder innerBuilder = new SWTGuiWidget.InnerBuilder() {
 			@Override
@@ -251,13 +252,15 @@ public class JfgFormComposite extends Composite
 			}
 			
 			@Override
-			public void buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib)
+			public SWTGuiWidget buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib)
 			{
 				Set<AttributeWidgetPair> filter = new HashSet<AttributeWidgetPair>(widgets.getWidgetList());
 				
 				startInitialize();
-				addAttribute(layout, null, attrib, currentLevel + 1);
+				SWTGuiWidget ret = addAttribute(layout, null, attrib, currentLevel + 1);
 				finishInitialize(filter);
+				
+				return ret;
 			}
 		};
 		
@@ -272,7 +275,7 @@ public class JfgFormComposite extends Composite
 				String attribDescription = attrib.getName();
 				if (attribDescription != null)
 					attribDescription = data.textTranslator.fieldName(attribDescription);
-				widget.setShadowText(attribDescription);		
+				widget.setShadowText(attribDescription);
 			}
 			else
 			{
@@ -295,6 +298,8 @@ public class JfgFormComposite extends Composite
 					throw new IllegalStateException();
 			}
 		});
+		
+		return widget;
 	}
 	
 	private void addAttributes(SWTLayoutBuilder layout, AttributeGroup group, int currentLevel)

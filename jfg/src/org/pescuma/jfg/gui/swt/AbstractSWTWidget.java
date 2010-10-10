@@ -17,6 +17,7 @@ package org.pescuma.jfg.gui.swt;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Event;
@@ -28,7 +29,7 @@ import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-abstract class AbstractSWTWidget implements SWTGuiWidget
+public abstract class AbstractSWTWidget implements SWTGuiWidget
 {
 	protected final Attribute attrib;
 	protected final JfgFormData data;
@@ -51,6 +52,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		return attrib.canWrite();
 	}
 	
+	@Override
 	public void init(SWTLayoutBuilder layout, InnerBuilder innerBuilder, GuiCopyManager aManager)
 	{
 		manager = aManager;
@@ -64,6 +66,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		if (attrib.canListen())
 		{
 			attributeListener = new AttributeListener() {
+				@Override
 				public void onChange()
 				{
 					if (ignoreToGUI)
@@ -85,6 +88,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected Listener getModifyListener()
 	{
 		return new Listener() {
+			@Override
 			public void handleEvent(Event event)
 			{
 				onWidgetModify();
@@ -111,6 +115,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected Listener getDisposeListener()
 	{
 		return new Listener() {
+			@Override
 			public void handleEvent(Event event)
 			{
 				if (attrib.canListen())
@@ -122,6 +127,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		};
 	}
 	
+	@Override
 	public void copyToModel()
 	{
 		if (!canCopyToAttribute())
@@ -142,6 +148,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		attrib.setValue(getValue());
 	}
 	
+	@Override
 	public void copyToGUI()
 	{
 		ignoreToAttribute = true;
@@ -172,6 +179,7 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 		return attrib;
 	}
 	
+	@Override
 	public void setEnabled(boolean enabled)
 	{
 	}
@@ -220,6 +228,20 @@ abstract class AbstractSWTWidget implements SWTGuiWidget
 			ret += defaultLayoutHint & JfgFormData.VERTICAL_HINT_MASK;
 		
 		return ret;
+	}
+	
+	protected int createHeightHint(Attribute attrib)
+	{
+		FieldConfig config = data.fieldsConfig.get(attrib.getName());
+		if (config == null || config.heightHint < 1)
+			return getDefaultHeightHint();
+		
+		return config.heightHint;
+	}
+	
+	protected int getDefaultHeightHint()
+	{
+		return SWT.DEFAULT;
 	}
 	
 	protected boolean canBeNull()

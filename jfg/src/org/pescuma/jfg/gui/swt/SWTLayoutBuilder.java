@@ -12,17 +12,17 @@ import org.eclipse.swt.widgets.Label;
  */
 public interface SWTLayoutBuilder
 {
-	void init(Composite root, Runnable layoutListener, JfgFormData data);
+	void init(Composite parent, Runnable layoutListener, JfgFormData data);
 	Runnable getLayoutListener();
 	
 	Composite[] getParentsForLabelWidget(String attributeName);
-	void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints);
+	void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints, int heightHint);
 	
 	Composite getParentForWidget(String attributeName);
-	void addWidget(String attributeName, Control widget, int layoutHints);
+	void addWidget(String attributeName, Control widget, int layoutHints, int heightHint);
 	
-	Group addGroup(String groupName);
-	ListBuilder addList(String attributeName);
+	Group addGroup(String groupName, int layoutHints, int heightHint);
+	ListBuilder addList(String attributeName, int layoutHints, int heightHint);
 	
 	// To use one model as a factory
 	SWTLayoutBuilder clone();

@@ -47,6 +47,7 @@ public class ReflectionGroup implements AttributeGroup
 	private final List<AttributeListener> listeners = new ArrayList<AttributeListener>();
 	
 	private final MemberFilter memberFilter = new MemberFilter() {
+		@Override
 		public boolean accept(Member member)
 		{
 			if (useStatic != Modifier.isStatic(member.getModifiers()))
@@ -102,18 +103,19 @@ public class ReflectionGroup implements AttributeGroup
 			return obj;
 	}
 	
+	@Override
 	public String getName()
 	{
 		return name;
 	}
 	
-	@SuppressWarnings("unchecked")
+	@Override
 	public Collection<Attribute> getAttributes()
 	{
 		if (attributes == null)
 			loadAttributes();
 		
-		return (Collection) attributes;
+		return attributes;
 	}
 	
 	private class FieldAndName
@@ -233,6 +235,7 @@ public class ReflectionGroup implements AttributeGroup
 		}
 	}
 	
+	@Override
 	public boolean canListen()
 	{
 		if (attributes == null)
@@ -249,6 +252,7 @@ public class ReflectionGroup implements AttributeGroup
 		}
 	}
 	
+	@Override
 	public void addListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
@@ -259,6 +263,7 @@ public class ReflectionGroup implements AttributeGroup
 			Class<?> interfaceClass = addListener.getParameterTypes()[0];
 			
 			listener = wrapListener(interfaceClass, new AttributeListener() {
+				@Override
 				public void onChange()
 				{
 					notifyChange();
@@ -271,6 +276,7 @@ public class ReflectionGroup implements AttributeGroup
 		listeners.add(attributeListener);
 	}
 	
+	@Override
 	public void removeListener(AttributeListener attributeListener)
 	{
 		if (!canListen())

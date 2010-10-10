@@ -22,7 +22,7 @@ public class ReflectionList implements AttributeList
 {
 	private final String name;
 	private final Class<?> elementType;
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private final List list;
 	private final ReflectionData data;
 	private final List<ReflectionListAttribute> attributes = new ArrayList<ReflectionListAttribute>();
@@ -45,9 +45,6 @@ public class ReflectionList implements AttributeList
 		this.data = data;
 		this.elementType = elementType;
 		this.canWrite = canChangeList;
-		
-		for (int i = 0; i < list.size(); i++)
-			attributes.add(null);
 	}
 	
 	public ReflectionList(String name, Field field, Method getter, Method setter, Object obj, ReflectionData data)
@@ -62,9 +59,33 @@ public class ReflectionList implements AttributeList
 		this.data = data;
 		this.elementType = findElementType(field, getter);
 		this.canWrite = !ReflectionUtils.isReadOnly(field, getter, setter);
+	}
+	
+	private void updateAtributesList()
+	{
+		int listSise = list.size();
 		
-		for (int i = 0; i < list.size(); i++)
-			attributes.add(null);
+		int attributesSize = attributes.size();
+		if (attributesSize > listSise)
+		{
+			for (int i = listSise; i < attributesSize; i++)
+				attributes.remove(listSise);
+		}
+		else
+		{
+			for (int i = attributesSize; i < listSise; i++)
+				attributes.add(null);
+		}
+		
+		for (int i = 0; i < listSise; i++)
+		{
+			ReflectionListAttribute attrib = attributes.get(i);
+			if (attrib != null && attrib.obj != list.get(i))
+			{
+				attrib.connected = false;
+				attributes.set(i, null);
+			}
+		}
 	}
 	
 	private Class<?> findElementType(Field field, Method method)
@@ -141,6 +162,8 @@ public class ReflectionList implements AttributeList
 	@Override
 	public Attribute get(int index)
 	{
+		updateAtributesList();
+		
 		ReflectionListAttribute attrib = attributes.get(index);
 		if (attrib == null)
 		{
@@ -154,6 +177,8 @@ public class ReflectionList implements AttributeList
 	@Override
 	public int indexOf(Attribute attrib)
 	{
+		updateAtributesList();
+		
 		return attributes.indexOf(attrib);
 	}
 	
@@ -189,6 +214,8 @@ public class ReflectionList implements AttributeList
 		if (!(item instanceof ReflectionListAttribute))
 			throw new IllegalArgumentException("Wrong item type");
 		
+		updateAtributesList();
+		
 		ReflectionListAttribute rla = (ReflectionListAttribute) item;
 		Object obj = rla.getValue();
 		
@@ -202,6 +229,8 @@ public class ReflectionList implements AttributeList
 	{
 		if (!canWrite())
 			throw new ReflectionAttributeException("Field is ready-only");
+		
+		updateAtributesList();
 		
 		list.remove(index);
 		ReflectionListAttribute item = attributes.remove(index);

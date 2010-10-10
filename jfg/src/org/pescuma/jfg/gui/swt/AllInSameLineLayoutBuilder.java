@@ -66,53 +66,62 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 		return layoutListener;
 	}
 	
+	@Override
 	public Composite[] getParentsForLabelWidget(String attributeName)
 	{
 		return new Composite[] { parent, parent };
 	}
 	
-	public void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints)
+	@Override
+	public void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints, int heightHint)
 	{
-		label.setLayoutData(new GridData(HORIZONTAL_ALIGN_END));
+		GridData gd = new GridData(HORIZONTAL_ALIGN_END);
+		gd.heightHint = heightHint;
+		label.setLayoutData(gd);
 		
-		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
+		gd = new GridData(layoutHintsToGridDataStyle(layoutHints));
+		gd.heightHint = heightHint;
+		widget.setLayoutData(gd);
 		
 		updateColumns(2);
 	}
 	
+	@Override
 	public Composite getParentForWidget(String attributeName)
 	{
 		return parent;
 	}
 	
-	public void addWidget(String attributeName, Control widget, int layoutHints)
+	@Override
+	public void addWidget(String attributeName, Control widget, int layoutHints, int heightHint)
 	{
-		widget.setLayoutData(new GridData(layoutHintsToGridDataStyle(layoutHints)));
+		GridData gd = new GridData(layoutHintsToGridDataStyle(layoutHints));
+		gd.heightHint = heightHint;
+		widget.setLayoutData(gd);
 		
 		updateColumns(1);
 	}
 	
-	public Group addGroup(String groupName)
+	@Override
+	public Group addGroup(String groupName, int layoutHints, int heightHint)
 	{
 		Group frame = data.componentFactory.createGroup(parent, SWT.NONE);
-		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		frame.setLayout(new GridLayout(2, false));
 		frame.setText(data.textTranslator.groupName(groupName));
 		
-		updateColumns(1);
+		addWidget(groupName, frame, layoutHints, heightHint);
 		
 		return frame;
 	}
 	
 	@Override
-	public ListBuilder addList(String attributeName)
+	public ListBuilder addList(String attributeName, int layoutHints, int heightHint)
 	{
 		Group frame = data.componentFactory.createGroup(parent, SWT.NONE);
-		frame.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		frame.setLayout(new GridLayout(2, false));
 		frame.setText(data.textTranslator.fieldName(attributeName));
 		
-		updateColumns(1);
+		addWidget(attributeName, frame, layoutHints, heightHint);
 		
 		return new SWTSimpleFormListBuilder(attributeName, frame, layoutListener, data);
 	}
