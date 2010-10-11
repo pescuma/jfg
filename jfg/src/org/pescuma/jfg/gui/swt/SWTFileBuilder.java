@@ -60,6 +60,7 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 				select = data.componentFactory.createButton(composite, SWT.PUSH | SWT.FLAT);
 				select.setText(data.textTranslator.translate("FileWidget:Select"));
 				select.addListener(SWT.Selection, new Listener() {
+					@Override
 					public void handleEvent(Event event)
 					{
 						String sel = openDialog(attrib, text);
@@ -98,6 +99,7 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 				text.setTextLimit(((Number) max).intValue());
 		}
 		
+		@Override
 		public Object getValue()
 		{
 			String str = text.getText().trim();
@@ -114,6 +116,7 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 				return file;
 		}
 		
+		@Override
 		public void setValue(Object value)
 		{
 			int caretPosition = text.getCaretPosition();
@@ -122,19 +125,9 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 		}
 		
 		@Override
-		protected void markFieldAsUncommited()
+		protected void updateColor()
 		{
-			super.markFieldAsUncommited();
-			
-			text.setBackground(data.createBackgroundColor(text, background));
-		}
-		
-		@Override
-		protected void unmarkFieldAsUncommited()
-		{
-			super.unmarkFieldAsUncommited();
-			
-			text.setBackground(background);
+			text.setBackground(createColor(text, background));
 		}
 		
 		@Override
@@ -167,12 +160,14 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 		protected abstract String openDialog(Attribute attrib, Text text);
 	}
 	
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
 		return type == File.class || type == String.class || "file".equals(type) || "file_open".equals(type);
 	}
 	
+	@Override
 	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
 	{
 		return new FileSWTWidget(attrib, data) {

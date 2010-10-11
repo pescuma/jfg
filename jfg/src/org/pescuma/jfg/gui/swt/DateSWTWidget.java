@@ -87,6 +87,7 @@ class DateSWTWidget extends AbstractLabelControlSWTWidget
 		}
 	}
 	
+	@Override
 	public Object getValue()
 	{
 		if (attrib.canWrite())
@@ -110,6 +111,7 @@ class DateSWTWidget extends AbstractLabelControlSWTWidget
 			return attrib.getValue();
 	}
 	
+	@Override
 	public void setValue(Object value)
 	{
 		Calendar calendar = toCalendar(value, false);
@@ -153,25 +155,12 @@ class DateSWTWidget extends AbstractLabelControlSWTWidget
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		super.markFieldAsUncommited();
-		
 		if (date != null)
-			date.setBackground(data.createBackgroundColor(date, background));
+			date.setBackground(createColor(date, background));
 		if (time != null)
-			time.setBackground(data.createBackgroundColor(date, background));
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		super.unmarkFieldAsUncommited();
-		
-		if (date != null)
-			date.setBackground(background);
-		if (time != null)
-			time.setBackground(background);
+			time.setBackground(createColor(date, background));
 	}
 	
 	@Override

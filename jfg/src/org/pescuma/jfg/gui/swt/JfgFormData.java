@@ -138,6 +138,7 @@ public final class JfgFormData
 		builders.put("datetime", new SWTDateBuilder(true, true));
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
+			@Override
 			public Object getTypeFor(Attribute attrib)
 			{
 				FieldConfig config = fieldsConfig.get(attrib.getName());
@@ -148,6 +149,7 @@ public final class JfgFormData
 		});
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
+			@Override
 			public Object getTypeFor(Attribute attrib)
 			{
 				String name = getSimpleName(attrib);
@@ -201,6 +203,7 @@ public final class JfgFormData
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			private SWTComboBuilder comboBuilder = new SWTComboBuilder();
 			
+			@Override
 			public Object getTypeFor(Attribute attrib)
 			{
 				if (comboBuilder.accept(attrib))
@@ -213,6 +216,7 @@ public final class JfgFormData
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			private SWTScaleBuilder scaleBuilder = new SWTScaleBuilder();
 			
+			@Override
 			public Object getTypeFor(Attribute attrib)
 			{
 				if (scaleBuilder.accept(attrib))
@@ -223,6 +227,7 @@ public final class JfgFormData
 		});
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
+			@Override
 			public Object getTypeFor(Attribute attrib)
 			{
 				Object type = attrib.getType();
@@ -243,6 +248,7 @@ public final class JfgFormData
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
 			private SWTGroupBuilder groupBuilder = new SWTGroupBuilder();
 			
+			@Override
 			public Object getTypeFor(Attribute attrib)
 			{
 				if (builders.containsKey(attrib.getType()))
@@ -256,6 +262,7 @@ public final class JfgFormData
 		});
 		
 		attributeFilters.add(new SWTAttributeFilter() {
+			@Override
 			public Boolean hideAttribute(Attribute attrib)
 			{
 				FieldConfig config = fieldsConfig.get(attrib.getName());
@@ -266,6 +273,7 @@ public final class JfgFormData
 		});
 		
 		attributeFilters.add(new SWTAttributeFilter() {
+			@Override
 			public Boolean hideAttribute(Attribute attrib)
 			{
 				// Check for groups and show then if they exist
@@ -307,6 +315,7 @@ public final class JfgFormData
 		});
 		
 		attributeFilters.add(new SWTAttributeFilter() {
+			@Override
 			public Boolean hideAttribute(Attribute attrib)
 			{
 				if (!showReadOnly && !attrib.canWrite())
@@ -366,7 +375,7 @@ public final class JfgFormData
 		return attrib.getType();
 	}
 	
-	public Color createBackgroundColor(Widget ctrl, Color background)
+	public Color createUncommitedBackgroundColor(Widget ctrl, Color background)
 	{
 		int r = background.getRed();
 		int g = background.getGreen();
@@ -377,6 +386,26 @@ public final class JfgFormData
 			b += 40;
 		b = max(0, min(255, b));
 		return new Color(ctrl.getDisplay(), r, g, b);
+	}
+	
+	public Color createInvalidBackgroundColor(Widget ctrl, Color background)
+	{
+		int r = background.getRed();
+		int g = background.getGreen();
+		int b = background.getBlue();
+		
+		int add = Math.max(0, 25 - Math.min(g, b));
+		
+		return new Color(ctrl.getDisplay(), r + add, g + add - 25, b + add - 25);
+	}
+	
+	public Color createUncommitedInvalidBackgroundColor(Widget ctrl, Color background)
+	{
+		Color uncommitedColor = createUncommitedBackgroundColor(ctrl, background);
+		Color invalidColor = createInvalidBackgroundColor(ctrl, background);
+		return new Color(ctrl.getDisplay(), (uncommitedColor.getRed() + invalidColor.getRed()) / 2,
+				(uncommitedColor.getGreen() + invalidColor.getGreen()) / 2,
+				(uncommitedColor.getBlue() + invalidColor.getBlue()) / 2);
 	}
 	
 	public SWTLayoutBuilder createLayoutFor(String attributeName, Composite root, Runnable layoutListener)
@@ -418,9 +447,9 @@ public final class JfgFormData
 		public SWTLayoutBuilder layout;
 		public boolean showNameAsShadowText = false;
 		public String shadowText;
-		public WidgetValidator validator;
 		public WidgetFormater formater;
 		public Object widgetData;
+		public WidgetValidator[] validators;
 		
 		public FieldConfig setVisible(boolean visible)
 		{
@@ -461,12 +490,6 @@ public final class JfgFormData
 			return this;
 		}
 		
-		public FieldConfig setValidator(WidgetValidator validator)
-		{
-			this.validator = validator;
-			return this;
-		}
-		
 		public FieldConfig setFormater(WidgetFormater formater)
 		{
 			this.formater = formater;
@@ -498,9 +521,19 @@ public final class JfgFormData
 			return this;
 		}
 		
+		public FieldConfig validateWith(WidgetValidator... validators)
+		{
+			this.validators = validators;
+			return this;
+		}
 	}
 	
 	public final Map<String, FieldConfig> fieldsConfig = new HashMap<String, FieldConfig>();
+	
+	public FieldConfig configure(Class<?> cls, String fieldName)
+	{
+		return configure(cls.getName() + "." + fieldName);
+	}
 	
 	public FieldConfig configure(String fieldName)
 	{

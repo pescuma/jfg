@@ -5,12 +5,11 @@ import static org.pescuma.jfg.reflect.ReflectionUtils.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.pescuma.jfg.AbstractAttributeValueRange;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
@@ -282,31 +281,7 @@ public class ReflectionList implements AttributeList
 		@Override
 		public AttributeValueRange getValueRange()
 		{
-			return new AttributeValueRange() {
-				@Override
-				public Collection<?> getPossibleValues()
-				{
-					return null;
-				}
-				
-				@Override
-				public Object getMin()
-				{
-					return null;
-				}
-				
-				@Override
-				public Object getMax()
-				{
-					return null;
-				}
-				
-				@Override
-				public Comparator<?> getComparator()
-				{
-					return null;
-				}
-				
+			return new AbstractAttributeValueRange() {
 				@Override
 				public boolean canBeNull()
 				{

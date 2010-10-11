@@ -49,8 +49,7 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 		}
 		
 		text = data.componentFactory.createText(group == null ? parent : group, (attrib.canWrite() ? SWT.NONE
-				: SWT.READ_ONLY)
-				| SWT.MULTI | SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
+				: SWT.READ_ONLY) | SWT.MULTI | SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
 		text.addListener(SWT.Modify, getModifyListener());
 		text.addListener(SWT.Dispose, getDisposeListener());
 		
@@ -86,19 +85,9 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		super.markFieldAsUncommited();
-		
-		text.setBackground(data.createBackgroundColor(text, background));
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		super.unmarkFieldAsUncommited();
-		
-		text.setBackground(background);
+		text.setBackground(createColor(text, background));
 	}
 	
 	@Override

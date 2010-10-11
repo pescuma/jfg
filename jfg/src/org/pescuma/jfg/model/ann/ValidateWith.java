@@ -5,9 +5,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.pescuma.jfg.gui.WidgetValidator;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.FIELD })
-public @interface ListOf
+public @interface ValidateWith
 {
-	Class<?>[] value();
+	Class<WidgetValidator>[] value();
 }

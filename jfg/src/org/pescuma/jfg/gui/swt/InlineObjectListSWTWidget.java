@@ -263,25 +263,9 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		if (empty)
-			return;
-		
-		super.markFieldAsUncommited();
-		
-		frame.setBackground(data.createBackgroundColor(frame, background));
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		if (empty)
-			return;
-		
-		super.unmarkFieldAsUncommited();
-		
-		frame.setBackground(background);
+		frame.setBackground(createColor(frame, background));
 	}
 	
 	@Override

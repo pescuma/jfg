@@ -25,16 +25,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeValueRange;
+import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.model.ann.CompareWith;
 import org.pescuma.jfg.model.ann.NotNull;
 import org.pescuma.jfg.model.ann.Range;
+import org.pescuma.jfg.model.ann.ValidateWith;
 
 public class ReflectionAttribute implements Attribute
 {
@@ -76,12 +80,14 @@ public class ReflectionAttribute implements Attribute
 		useStatic = (obj instanceof Class<?>);
 		
 		final MemberFilter simpleMemberField = new MemberFilter() {
+			@Override
 			public boolean accept(Member member)
 			{
 				return useStatic == Modifier.isStatic(member.getModifiers());
 			}
 		};
 		final MemberFilter memberFilter = new MemberFilter() {
+			@Override
 			public boolean accept(Member member)
 			{
 				if (useStatic != Modifier.isStatic(member.getModifiers()))
@@ -185,6 +191,7 @@ public class ReflectionAttribute implements Attribute
 		double maxf = Double.POSITIVE_INFINITY;
 		boolean canBeNull = true;
 		Class<? extends Comparator<?>> comparator = null;
+		Set<Class<WidgetValidator>> validators = new LinkedHashSet<Class<WidgetValidator>>();
 		
 		void addFrom(AnnotatedElement element)
 		{
@@ -206,6 +213,38 @@ public class ReflectionAttribute implements Attribute
 			CompareWith comp = element.getAnnotation(CompareWith.class);
 			if (comp != null && comparator == null)
 				comparator = comp.value();
+			
+			ValidateWith validators = element.getAnnotation(ValidateWith.class);
+			if (validators != null)
+			{
+				for (Class<WidgetValidator> vs : validators.value())
+					this.validators.add(vs);
+			}
+		}
+		
+		WidgetValidator[] instantiateValidators()
+		{
+			if (validators.size() < 1)
+				return null;
+			
+			List<WidgetValidator> vs = new ArrayList<WidgetValidator>();
+			for (Class<WidgetValidator> validatorClass : validators)
+			{
+				WidgetValidator validator = ReflectionUtils.newInstance(validatorClass);
+				
+				if (validator == null)
+				{
+					System.err.println("[JFG] Failed to instanciate " + validatorClass.getName());
+					continue;
+				}
+				
+				vs.add(validator);
+			}
+			
+			if (vs.size() < 1)
+				return null;
+			
+			return vs.toArray(new WidgetValidator[vs.size()]);
 		}
 	}
 	
@@ -253,13 +292,17 @@ public class ReflectionAttribute implements Attribute
 		else
 			values = null;
 		
+		final WidgetValidator[] validators = range.instantiateValidators();
+		
 		return new AttributeValueRange() {
 			
+			@Override
 			public boolean canBeNull()
 			{
 				return range.canBeNull;
 			}
 			
+			@Override
 			public Comparator<?> getComparator()
 			{
 				if (range.comparator != null)
@@ -268,19 +311,28 @@ public class ReflectionAttribute implements Attribute
 				return null;
 			}
 			
+			@Override
 			public Object getMax()
 			{
 				return max;
 			}
 			
+			@Override
 			public Object getMin()
 			{
 				return min;
 			}
 			
+			@Override
 			public Collection<Object> getPossibleValues()
 			{
 				return values;
+			}
+			
+			@Override
+			public WidgetValidator[] getValidators()
+			{
+				return validators;
 			}
 		};
 	}
@@ -307,21 +359,25 @@ public class ReflectionAttribute implements Attribute
 			removeListener.setAccessible(true);
 	}
 	
+	@Override
 	public String getName()
 	{
 		return name;
 	}
 	
+	@Override
 	public Object getType()
 	{
 		return type;
 	}
 	
+	@Override
 	public AttributeValueRange getValueRange()
 	{
 		return attributeValueRange;
 	}
 	
+	@Override
 	public AttributeGroup asGroup()
 	{
 		if (type.isPrimitive())
@@ -337,6 +393,7 @@ public class ReflectionAttribute implements Attribute
 		return new ReflectionGroup(getName(), value, data);
 	}
 	
+	@Override
 	public AttributeList asList()
 	{
 		if (!List.class.isAssignableFrom(type))
@@ -350,11 +407,13 @@ public class ReflectionAttribute implements Attribute
 		return new ReflectionList(getName(), nonFilteredField, nonFilteredGetter, nonFilteredSetter, value, data);
 	}
 	
+	@Override
 	public boolean canWrite()
 	{
 		return canWrite;
 	}
 	
+	@Override
 	public Object getValue()
 	{
 		if (getter != null)
@@ -371,6 +430,7 @@ public class ReflectionAttribute implements Attribute
 		}
 	}
 	
+	@Override
 	public void setValue(Object value)
 	{
 		if (!canWrite())
@@ -392,6 +452,7 @@ public class ReflectionAttribute implements Attribute
 		}
 	}
 	
+	@Override
 	public boolean canListen()
 	{
 		return (addListener != null && removeListener != null) || (parent != null && parent.canListen());
@@ -405,6 +466,7 @@ public class ReflectionAttribute implements Attribute
 		}
 	}
 	
+	@Override
 	public void addListener(AttributeListener attributeListener)
 	{
 		if (!canListen())
@@ -415,6 +477,7 @@ public class ReflectionAttribute implements Attribute
 			if (addListener != null)
 			{
 				listener = wrapListener(addListener.getParameterTypes()[0], new AttributeListener() {
+					@Override
 					public void onChange()
 					{
 						notifyChange();
@@ -428,6 +491,7 @@ public class ReflectionAttribute implements Attribute
 				listener = new AttributeListener() {
 					Object oldValue = getValue();
 					
+					@Override
 					public void onChange()
 					{
 						Object newValue = getValue();
@@ -447,6 +511,7 @@ public class ReflectionAttribute implements Attribute
 		listeners.add(attributeListener);
 	}
 	
+	@Override
 	public void removeListener(AttributeListener attributeListener)
 	{
 		if (!canListen())

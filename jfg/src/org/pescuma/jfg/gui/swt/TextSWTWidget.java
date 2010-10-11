@@ -22,7 +22,6 @@ import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.TextBasedGuiWidget;
 import org.pescuma.jfg.gui.WidgetFormater;
-import org.pescuma.jfg.gui.WidgetValidator;
 
 abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements TextBasedGuiWidget
 {
@@ -53,11 +52,13 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 		return text;
 	}
 	
+	@Override
 	public Object getValue()
 	{
 		return convertToObject(text.getText(), getType(attrib.getType()), canBeNull());
 	}
 	
+	@Override
 	public void setValue(Object value)
 	{
 		int caretPosition = text.getCaretPosition();
@@ -66,19 +67,9 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		super.markFieldAsUncommited();
-		
-		text.setBackground(data.createBackgroundColor(text, background));
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		super.unmarkFieldAsUncommited();
-		
-		text.setBackground(background);
+		text.setBackground(createColor(text, background));
 	}
 	
 	@Override
@@ -105,12 +96,6 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 	public void setShadowText(String shadowText)
 	{
 		this.text.setMessage(shadowText == null ? "" : shadowText);
-	}
-	
-	@Override
-	public void setValidator(WidgetValidator validator)
-	{
-		super.setValidator(validator);
 	}
 	
 	@Override

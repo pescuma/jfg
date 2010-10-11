@@ -14,12 +14,17 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
@@ -39,7 +44,15 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected AttributeListener attributeListener;
 	private GuiCopyManager manager;
 	private final List<DisposeListener> disposeListeners = new LinkedList<DisposeListener>();
-	protected WidgetValidator validator;
+	protected WidgetValidator[] validators;
+	protected final WidgetMarks marks = new WidgetMarks();
+	protected final Collection<WidgetValidator> validationErrors = new ArrayList<WidgetValidator>();
+	
+	protected class WidgetMarks
+	{
+		boolean uncommited = false;
+		boolean invalid = false;
+	}
 	
 	public AbstractSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -98,18 +111,46 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	
 	protected void onWidgetModify()
 	{
+		if (validate())
+			markFieldAsValid();
+		else
+			markFieldAsInvalid();
+		
+		if (ignoreToAttribute)
+			return;
+		
 		manager.guiUpdated(this);
 		
 		if (!canCopyToAttribute())
-			return;
-		
-		if (ignoreToAttribute)
 			return;
 		
 		if (data.markFieldsWhithUncommitedChanges)
 			markFieldAsUncommited();
 		
 		manager.guiChanged(this);
+	}
+	
+	protected boolean validate()
+	{
+		validationErrors.clear();
+		
+		if (validators == null || validators.length < 1)
+			return true;
+		
+		Object value = getValue();
+		for (WidgetValidator validator : validators)
+		{
+			if (!validator.isValid(attrib, value))
+				validationErrors.add(validator);
+		}
+		
+		return validationErrors.size() < 1;
+	}
+	
+	@Override
+	public Collection<WidgetValidator> getValidationErrors()
+	{
+		return Collections.unmodifiableCollection(validationErrors);
 	}
 	
 	protected Listener getDisposeListener()
@@ -138,7 +179,7 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 		guiToAttribute();
 		
 		if (data.markFieldsWhithUncommitedChanges)
-			unmarkFieldAsUncommited();
+			markFieldAsCommited();
 		
 		ignoreToGUI = false;
 	}
@@ -156,7 +197,7 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 		attibuteToGUI();
 		
 		if (data.markFieldsWhithUncommitedChanges)
-			unmarkFieldAsUncommited();
+			markFieldAsCommited();
 		
 		ignoreToAttribute = false;
 	}
@@ -166,12 +207,45 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 		setValue(attrib.getValue());
 	}
 	
+	protected void markFieldAsInvalid()
+	{
+		marks.invalid = true;
+		
+		updateColor();
+	}
+	
+	protected void markFieldAsValid()
+	{
+		marks.invalid = false;
+		updateColor();
+	}
+	
 	protected void markFieldAsUncommited()
+	{
+		marks.uncommited = true;
+		updateColor();
+	}
+	
+	protected void markFieldAsCommited()
+	{
+		marks.uncommited = false;
+		updateColor();
+	}
+	
+	protected void updateColor()
 	{
 	}
 	
-	protected void unmarkFieldAsUncommited()
+	protected Color createColor(Control widget, Color background)
 	{
+		if (marks.invalid && marks.uncommited)
+			return data.createUncommitedInvalidBackgroundColor(widget, background);
+		else if (marks.uncommited)
+			return data.createUncommitedBackgroundColor(widget, background);
+		else if (marks.invalid)
+			return data.createInvalidBackgroundColor(widget, background);
+		else
+			return background;
 	}
 	
 	public Attribute getAttribute()
@@ -196,9 +270,9 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	}
 	
 	@Override
-	public void setValidator(WidgetValidator validator)
+	public void setValidators(WidgetValidator... validators)
 	{
-		this.validator = validator;
+		this.validators = validators;
 	}
 	
 	@Override

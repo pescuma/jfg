@@ -48,6 +48,7 @@ class CheckboxSWTWidget extends AbstractControlSWTWidget
 		if (!attrib.canWrite())
 		{
 			checkbox.addListener(SWT.Selection, new Listener() {
+				@Override
 				public void handleEvent(Event event)
 				{
 					copyToGUI();
@@ -60,30 +61,22 @@ class CheckboxSWTWidget extends AbstractControlSWTWidget
 		return checkbox;
 	}
 	
+	@Override
 	public Object getValue()
 	{
 		return checkbox.getSelection() ? Boolean.TRUE : Boolean.FALSE;
 	}
 	
+	@Override
 	public void setValue(Object value)
 	{
 		checkbox.setSelection((Boolean) value);
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		super.markFieldAsUncommited();
-		
-		checkbox.setBackground(data.createBackgroundColor(checkbox, background));
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		super.unmarkFieldAsUncommited();
-		
-		checkbox.setBackground(background);
+		checkbox.setBackground(createColor(checkbox, background));
 	}
 	
 	@Override

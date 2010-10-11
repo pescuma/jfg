@@ -42,9 +42,8 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 	private WebcamControl webcam;
 	private SplitButton buttom;
 	private Image snapshot;
-	private final Color[] colors = new Color[4];
-	private Color background;
-	private boolean marked = false;
+	private final Color[] colors = new Color[2];
+	private final Color backgrounds[] = new Color[3];
 	
 	private final Listener showWebcamListener = new Listener() {
 		@Override
@@ -108,16 +107,16 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 		layout.marginWidth = 2;
 		webcamBorder.setLayout(layout);
 		
-		colors[0] = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW);
-		colors[1] = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
+		backgrounds[0] = colors[0] = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW);
+		backgrounds[1] = colors[1] = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);
 		webcamBorder.addPaintListener(new PaintListener() {
 			@Override
 			public void paintControl(PaintEvent e)
 			{
-				e.gc.setForeground(colors[marked ? 2 : 0]);
+				e.gc.setForeground(colors[0]);
 				e.gc.drawRectangle(0, 0, webcamBorder.getSize().x - 1, webcamBorder.getSize().y - 1);
 				
-				e.gc.setForeground(colors[marked ? 3 : 1]);
+				e.gc.setForeground(colors[1]);
 				e.gc.drawRectangle(1, 1, webcamBorder.getSize().x - 3, webcamBorder.getSize().y - 3);
 			}
 		});
@@ -127,7 +126,7 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 		webcam.addListener(SWT.Dispose, getDisposeListener());
 		//webcam.setCropImage(false);
 		
-		background = webcam.getBackground();
+		backgrounds[2] = webcam.getBackground();
 		
 		if (attrib.canWrite())
 		{
@@ -154,29 +153,11 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		super.markFieldAsUncommited();
-		
-		if (colors[2] == null)
-			colors[2] = data.createBackgroundColor(webcam, colors[0]);
-		if (colors[3] == null)
-			colors[3] = data.createBackgroundColor(webcam, colors[1]);
-		
-		marked = true;
-		
-		webcam.setBackground(colors[3]);
-		webcamBorder.redraw();
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		super.unmarkFieldAsUncommited();
-		
-		marked = false;
-		
-		webcam.setBackground(background);
+		colors[0] = createColor(webcam, backgrounds[0]);
+		colors[1] = createColor(webcam, backgrounds[1]);
+		webcam.setBackground(createColor(webcam, backgrounds[2]));
 		webcamBorder.redraw();
 	}
 	

@@ -17,6 +17,8 @@ package org.pescuma.jfg;
 import java.util.Collection;
 import java.util.Comparator;
 
+import org.pescuma.jfg.gui.WidgetValidator;
+
 public interface AttributeValueRange
 {
 	Comparator<?> getComparator();
@@ -27,4 +29,5 @@ public interface AttributeValueRange
 	
 	boolean canBeNull();
 	
+	WidgetValidator[] getValidators();
 }

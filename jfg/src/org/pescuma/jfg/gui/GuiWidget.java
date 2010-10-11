@@ -14,6 +14,9 @@
 
 package org.pescuma.jfg.gui;
 
+import java.util.Collection;
+
+
 public interface GuiWidget
 {
 	void copyToGUI();
@@ -26,7 +29,9 @@ public interface GuiWidget
 	
 	void setValue(Object value);
 	
-	void setValidator(WidgetValidator validator);
+	void setValidators(WidgetValidator... validator);
 	
 	void setShadowText(String text);
+	
+	Collection<WidgetValidator> getValidationErrors();
 }

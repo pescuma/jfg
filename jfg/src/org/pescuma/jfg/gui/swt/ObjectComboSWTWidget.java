@@ -162,32 +162,15 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		super.markFieldAsUncommited();
-		
 		if (attrib.canWrite())
 		{
-			combo.setBackground(data.createBackgroundColor(combo, background));
+			combo.setBackground(createColor(combo, background));
 		}
 		else
 		{
-			text.setBackground(data.createBackgroundColor(text, background));
-		}
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		super.unmarkFieldAsUncommited();
-		
-		if (attrib.canWrite())
-		{
-			combo.setBackground(background);
-		}
-		else
-		{
-			text.setBackground(background);
+			text.setBackground(createColor(text, background));
 		}
 	}
 	

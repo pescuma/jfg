@@ -56,6 +56,7 @@ class ScaleSWTWidget extends AbstractLabelControlSWTWidget
 		if (!attrib.canWrite())
 		{
 			scale.addListener(SWT.Selection, new Listener() {
+				@Override
 				public void handleEvent(Event event)
 				{
 					copyToGUI();
@@ -103,6 +104,7 @@ class ScaleSWTWidget extends AbstractLabelControlSWTWidget
 		}
 	}
 	
+	@Override
 	public Object getValue()
 	{
 		return convertToObject(scale.getSelection());
@@ -140,6 +142,7 @@ class ScaleSWTWidget extends AbstractLabelControlSWTWidget
 		}
 	}
 	
+	@Override
 	public void setValue(Object value)
 	{
 		scale.setSelection(convertToInt(value));
@@ -180,19 +183,9 @@ class ScaleSWTWidget extends AbstractLabelControlSWTWidget
 	}
 	
 	@Override
-	protected void markFieldAsUncommited()
+	protected void updateColor()
 	{
-		super.markFieldAsUncommited();
-		
-		scale.setBackground(data.createBackgroundColor(scale, background));
-	}
-	
-	@Override
-	protected void unmarkFieldAsUncommited()
-	{
-		super.unmarkFieldAsUncommited();
-		
-		scale.setBackground(background);
+		scale.setBackground(createColor(scale, background));
 	}
 	
 	@Override

@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.gui.swt.JfgFormComposite;
 import org.pescuma.jfg.gui.swt.JfgFormData;
 import org.pescuma.jfg.reflect.ReflectionGroup;
+import org.pescuma.jfg.validators.NotEmptyValidator;
 
 public class WebcamDialog
 {
@@ -39,7 +40,8 @@ public class WebcamDialog
 		// Create the form
 		JfgFormData data = new JfgFormData(JfgFormData.SYNC_GUI);
 		data.showReadOnly = true;
-		data.configure(TestClass.class.getName() + ".nome").setType("text_area");
+		data.configure(TestClass.class, "name").setType("text_area");
+		data.configure(TestClass.class, "img2").validateWith(new NotEmptyValidator());
 		
 		final JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -50,6 +52,7 @@ public class WebcamDialog
 		// Add an ok button
 		Button ok = new Button(shell, SWT.PUSH);
 		ok.addListener(SWT.Selection, new Listener() {
+			@Override
 			public void handleEvent(Event event)
 			{
 				form.copyToModel();

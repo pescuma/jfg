@@ -15,6 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,11 +31,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
+import org.pescuma.jfg.AttributeValueRange;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
 import org.pescuma.jfg.gui.GuiWidgetList;
 import org.pescuma.jfg.gui.TextBasedGuiWidget;
+import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
 public class JfgFormComposite extends Composite
@@ -266,8 +269,27 @@ public class JfgFormComposite extends Composite
 		
 		final SWTGuiWidget widget = builder.build(attrib, data);
 		widget.init(layout, innerBuilder, copyManager);
+		configureWidget(widget, attrib);
 		
+		widgets.add(attrib, widget);
+		
+		widget.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e)
+			{
+				if (!widgets.remove(widget))
+					throw new IllegalStateException();
+			}
+		});
+		
+		return widget;
+	}
+	
+	private void configureWidget(final SWTGuiWidget widget, Attribute attrib)
+	{
 		FieldConfig config = data.fieldsConfig.get(attrib.getName());
+		AttributeValueRange range = attrib.getValueRange();
+		
 		if (config != null)
 		{
 			if (config.showNameAsShadowText && config.shadowText == null)
@@ -282,24 +304,17 @@ public class JfgFormComposite extends Composite
 				widget.setShadowText(config.shadowText);
 			}
 			
-			widget.setValidator(config.validator);
-			
 			if (widget instanceof TextBasedGuiWidget)
 				((TextBasedGuiWidget) widget).setFormater(config.formater);
 		}
 		
-		widgets.add(attrib, widget);
-		
-		widget.addDisposeListener(new DisposeListener() {
-			@Override
-			public void widgetDisposed(DisposeEvent e)
-			{
-				if (!widgets.remove(widget))
-					throw new IllegalStateException();
-			}
-		});
-		
-		return widget;
+		List<WidgetValidator> validators = new ArrayList<WidgetValidator>();
+		if (config != null && config.validators != null)
+			validators.addAll(Arrays.asList(config.validators));
+		if (range != null && range.getValidators() != null)
+			validators.addAll(Arrays.asList(range.getValidators()));
+		if (validators.size() > 0)
+			widget.setValidators(validators.toArray(new WidgetValidator[validators.size()]));
 	}
 	
 	private void addAttributes(SWTLayoutBuilder layout, AttributeGroup group, int currentLevel)

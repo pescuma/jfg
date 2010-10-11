@@ -17,29 +17,42 @@ package org.pescuma.jfg;
 import java.util.Collection;
 import java.util.Comparator;
 
+import org.pescuma.jfg.gui.WidgetValidator;
+
 public abstract class AbstractAttributeValueRange implements AttributeValueRange
 {
+	@Override
 	public Comparator<Object> getComparator()
 	{
 		return null;
 	}
 	
+	@Override
 	public Object getMax()
 	{
 		return null;
 	}
 	
+	@Override
 	public Object getMin()
 	{
 		return null;
 	}
 	
+	@Override
 	public boolean canBeNull()
 	{
 		return true;
 	}
 	
+	@Override
 	public Collection<Object> getPossibleValues()
+	{
+		return null;
+	}
+	
+	@Override
+	public WidgetValidator[] getValidators()
 	{
 		return null;
 	}
