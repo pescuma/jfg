@@ -21,6 +21,7 @@ import org.pescuma.jfg.AttributeValueRange;
 
 public class SWTComboBuilder implements SWTWidgetBuilder
 {
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		AttributeValueRange range = attrib.getValueRange();
@@ -31,7 +32,8 @@ public class SWTComboBuilder implements SWTWidgetBuilder
 		return values != null && values.size() > 0;
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new ComboSWTWidget(attrib, data);
 	}

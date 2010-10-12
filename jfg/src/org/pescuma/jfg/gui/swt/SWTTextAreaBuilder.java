@@ -18,13 +18,15 @@ import org.pescuma.jfg.Attribute;
 
 public class SWTTextAreaBuilder implements SWTWidgetBuilder
 {
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
 		return type == String.class || "text_area".equals(type);
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new TextAreaSWTWidget(attrib, data);
 	}

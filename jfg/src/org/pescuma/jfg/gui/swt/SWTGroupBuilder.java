@@ -18,6 +18,7 @@ import org.pescuma.jfg.Attribute;
 
 public class SWTGroupBuilder implements SWTWidgetBuilder
 {
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		if (attrib.canWrite())
@@ -26,11 +27,15 @@ public class SWTGroupBuilder implements SWTWidgetBuilder
 		return attrib.asGroup() != null;
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
-//		if (attrib.canWrite())
-//			System.err.println("[JFG] Creating GUI for read/write object. "
-//					+ "I'll only change the object in place and will not check for changes in it!");
+		if (!innerBuilder.canBuildInnerAttribute())
+			return null;
+		
+		if (attrib.canWrite())
+			System.err.println("[JFG] Creating GUI for read/write object. "
+					+ "I'll only change the object in place and will not check for changes in it!");
 		
 		return new FrameSWTWidget(attrib, data);
 	}

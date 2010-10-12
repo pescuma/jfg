@@ -30,6 +30,7 @@ public class SWTDateBuilder implements SWTWidgetBuilder
 		this.showTime = showTime;
 	}
 	
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
@@ -44,7 +45,8 @@ public class SWTDateBuilder implements SWTWidgetBuilder
 		return type == Date.class || type == Calendar.class;
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new DateSWTWidget(attrib, data, showDate, showTime);
 	}

@@ -18,15 +18,21 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.TextBasedGuiWidget;
 import org.pescuma.jfg.gui.WidgetFormater;
+import org.pescuma.jfg.gui.WidgetFormater.TextAndPos;
 
 abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements TextBasedGuiWidget
 {
 	private Text text;
 	private Color background;
+	private Listener formaterListener;
+	private WidgetFormater formater;
+	private boolean ignoreFormat = false;
 	
 	TextSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -99,7 +105,51 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 	}
 	
 	@Override
-	public void setFormater(WidgetFormater formater)
+	public void setFormater(final WidgetFormater formater)
 	{
+		if (formaterListener != null)
+		{
+			text.removeListener(SWT.Modify, formaterListener);
+			formaterListener = null;
+		}
+		
+		this.formater = formater;
+		
+		if (formater != null)
+		{
+			formaterListener = new Listener() {
+				@Override
+				public void handleEvent(Event event)
+				{
+					formatText();
+				}
+			};
+			text.addListener(SWT.Modify, formaterListener);
+			
+			formatText();
+		}
+	}
+	
+	private void formatText()
+	{
+		if (formater == null || ignoreFormat)
+			return;
+		
+		TextAndPos actual = new TextAndPos();
+		actual.text = text.getText();
+		actual.caretPos = text.getCaretPosition();
+		
+		TextAndPos formated = formater.format(attrib, actual);
+		
+		ignoreFormat = true;
+		
+		boolean changedText = !formated.text.equals(actual.text);
+		if (changedText)
+			text.setText(formated.text);
+		
+		if (changedText || formated.caretPos != actual.caretPos)
+			text.setSelection(formated.caretPos);
+		
+		ignoreFormat = false;
 	}
 }

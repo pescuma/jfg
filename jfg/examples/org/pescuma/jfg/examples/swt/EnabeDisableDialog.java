@@ -1,6 +1,5 @@
 package org.pescuma.jfg.examples.swt;
 
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -11,7 +10,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
-import org.pescuma.jfg.gui.GuiWidgetList;
 import org.pescuma.jfg.gui.swt.JfgFormComposite;
 import org.pescuma.jfg.gui.swt.JfgFormData;
 import org.pescuma.jfg.reflect.ReflectionGroup;
@@ -35,17 +33,19 @@ public class EnabeDisableDialog
 		form.addContentsFrom(new ReflectionGroup(obj));
 		
 		form.addGuiUpdateListener(TestClass.class.getName() + ".a", new GuiUpdateListener() {
-			public void onGuiUpdated(GuiWidget widget, GuiWidgetList widgets)
+			@Override
+			public void onGuiUpdated(GuiWidget widget)
 			{
 				int a = (Integer) widget.getValue();
-				widgets.getWidget(TestClass.class.getName() + ".b").setEnabled(a > 0);
-				widgets.getWidget(TestClass.class.getName() + ".b").setValue(a + 1);
+				form.getWidgets().findChild(TestClass.class.getName() + ".b").setEnabled(a > 0);
+				form.getWidgets().findChild(TestClass.class.getName() + ".b").setValue(a + 1);
 			}
 		});
 		
 		// Add an ok button
 		Button ok = new Button(shell, SWT.PUSH);
 		ok.addListener(SWT.Selection, new Listener() {
+			@Override
 			public void handleEvent(Event event)
 			{
 				form.copyToModel();

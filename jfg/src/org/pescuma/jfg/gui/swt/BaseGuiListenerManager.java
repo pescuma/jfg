@@ -21,45 +21,43 @@ import java.util.Map;
 
 import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
-import org.pescuma.jfg.gui.GuiWidgetList;
-
 
 class BaseGuiListenerManager
 {
 	private Map<String, List<GuiUpdateListener>> listeners = new HashMap<String, List<GuiUpdateListener>>();
 	
-	public void addListener(String id, GuiUpdateListener listener)
+	public void addListener(String attributeName, GuiUpdateListener listener)
 	{
-		List<GuiUpdateListener> list = listeners.get(id);
+		List<GuiUpdateListener> list = listeners.get(attributeName);
 		if (list == null)
 		{
 			list = new ArrayList<GuiUpdateListener>();
-			listeners.put(id, list);
+			listeners.put(attributeName, list);
 		}
 		
 		list.add(listener);
 	}
 	
-	public void removeListener(String id, GuiUpdateListener listener)
+	public void removeListener(String attributeName, GuiUpdateListener listener)
 	{
-		List<GuiUpdateListener> list = listeners.get(id);
+		List<GuiUpdateListener> list = listeners.get(attributeName);
 		if (list == null)
 			return;
 		
 		list.remove(listener);
 	}
 	
-	public void notifyChange(String id, GuiWidget widget, GuiWidgetList widgets)
+	public void notifyChange(String attributeName, GuiWidget widget)
 	{
-		List<GuiUpdateListener> list = listeners.get(id);
+		List<GuiUpdateListener> list = listeners.get(attributeName);
 		if (list != null)
 			for (GuiUpdateListener listener : list)
-				listener.onGuiUpdated(widget, widgets);
+				listener.onGuiUpdated(widget);
 		
 		list = listeners.get(null);
 		if (list != null)
 			for (GuiUpdateListener listener : list)
-				listener.onGuiUpdated(widget, widgets);
+				listener.onGuiUpdated(widget);
 	}
 	
 }

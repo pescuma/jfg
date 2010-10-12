@@ -14,21 +14,28 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeValueRange;
 import org.pescuma.jfg.gui.GuiCopyManager;
+import org.pescuma.jfg.gui.GuiWidget;
+import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-public abstract class AbstractSWTWidget implements SWTGuiWidget
+public abstract class SingleSWTWidget implements SWTGuiWidget
 {
 	protected final Attribute attrib;
 	protected final JfgFormData data;
@@ -38,8 +45,17 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected AttributeListener attributeListener;
 	private GuiCopyManager manager;
 	private final List<DisposeListener> disposeListeners = new LinkedList<DisposeListener>();
+	protected WidgetValidator[] validators;
+	protected final WidgetMarks marks = new WidgetMarks();
+	protected final Collection<ValidationError> validationErrors = new ArrayList<ValidationError>();
 	
-	public AbstractSWTWidget(Attribute attrib, JfgFormData data)
+	protected class WidgetMarks
+	{
+		boolean uncommited = false;
+		boolean invalid = false;
+	}
+	
+	public SingleSWTWidget(Attribute attrib, JfgFormData data)
 	{
 		this.attrib = attrib;
 		this.data = data;
@@ -83,6 +99,71 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 		manager.modelChanged(this);
 	}
 	
+	protected Listener getModifyListener()
+	{
+		return new Listener() {
+			@Override
+			public void handleEvent(Event event)
+			{
+				onWidgetModify();
+			}
+		};
+	}
+	
+	protected void onWidgetModify()
+	{
+		validate();
+		
+		if (ignoreToAttribute)
+			return;
+		
+		manager.guiUpdated(this);
+		
+		if (!canCopyToAttribute())
+			return;
+		
+		if (data.markFieldsWhithUncommitedChanges)
+			markFieldAsUncommited();
+		
+		manager.guiChanged(this);
+	}
+	
+	protected void validate()
+	{
+		if (testValidation())
+			markFieldAsValid();
+		else
+			markFieldAsInvalid();
+	}
+	
+	protected boolean testValidation()
+	{
+		validationErrors.clear();
+		
+		if (validators == null || validators.length < 1)
+			return true;
+		
+		Object value = getValue();
+		for (WidgetValidator validator : validators)
+		{
+			if (!validator.isValid(attrib, value))
+			{
+				ValidationError ve = new ValidationError();
+				ve.attribute = attrib;
+				ve.validator = validator;
+				validationErrors.add(ve);
+			}
+		}
+		
+		return validationErrors.size() < 1;
+	}
+	
+	@Override
+	public Collection<ValidationError> getValidationErrors()
+	{
+		return Collections.unmodifiableCollection(validationErrors);
+	}
+	
 	protected Listener getDisposeListener()
 	{
 		return new Listener() {
@@ -99,15 +180,112 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	}
 	
 	@Override
+	public void copyToModel()
+	{
+		if (!canCopyToAttribute())
+			return;
+		
+		ignoreToGUI = true;
+		
+		guiToAttribute();
+		
+		if (data.markFieldsWhithUncommitedChanges)
+			markFieldAsCommited();
+		
+		ignoreToGUI = false;
+	}
+	
+	protected void guiToAttribute()
+	{
+		attrib.setValue(getValue());
+	}
+	
+	@Override
+	public void copyToGUI()
+	{
+		ignoreToAttribute = true;
+		
+		attibuteToGUI();
+		
+		if (data.markFieldsWhithUncommitedChanges)
+			markFieldAsCommited();
+		
+		ignoreToAttribute = false;
+	}
+	
+	protected void attibuteToGUI()
+	{
+		setValue(attrib.getValue());
+	}
+	
+	protected void markFieldAsInvalid()
+	{
+		marks.invalid = true;
+		
+		updateColor();
+	}
+	
+	protected void markFieldAsValid()
+	{
+		marks.invalid = false;
+		updateColor();
+	}
+	
+	protected void markFieldAsUncommited()
+	{
+		marks.uncommited = true;
+		updateColor();
+	}
+	
+	protected void markFieldAsCommited()
+	{
+		marks.uncommited = false;
+		updateColor();
+	}
+	
+	protected void updateColor()
+	{
+	}
+	
+	protected Color createColor(Control widget, Color background)
+	{
+		if (marks.invalid && marks.uncommited)
+			return data.createUncommitedInvalidBackgroundColor(widget, background);
+		else if (marks.uncommited)
+			return data.createUncommitedBackgroundColor(widget, background);
+		else if (marks.invalid)
+			return data.createInvalidBackgroundColor(widget, background);
+		else
+			return background;
+	}
+	
+	@Override
 	public Attribute getAttribute()
 	{
 		return attrib;
 	}
 	
 	@Override
+	public void setEnabled(boolean enabled)
+	{
+	}
+	
+	@Override
 	public void addDisposeListener(DisposeListener listener)
 	{
 		disposeListeners.add(listener);
+	}
+	
+	@Override
+	public void setShadowText(String text)
+	{
+	}
+	
+	@Override
+	public void setValidators(WidgetValidator... validators)
+	{
+		this.validators = validators;
+		validate();
 	}
 	
 	@Override
@@ -160,5 +338,35 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 			return true;
 		
 		return range.canBeNull();
+	}
+	
+	@Override
+	public Collection<GuiWidget> getChildren()
+	{
+		return Collections.emptyList();
+	}
+	
+	@Override
+	public GuiWidget getChild(String attributeName)
+	{
+		return null;
+	}
+	
+	@Override
+	public Collection<GuiWidget> getChildren(String attributeName)
+	{
+		return null;
+	}
+	
+	@Override
+	public GuiWidget findChild(String attributeName)
+	{
+		return null;
+	}
+	
+	@Override
+	public Collection<GuiWidget> findChildren(String attributeName)
+	{
+		return null;
 	}
 }

@@ -15,8 +15,12 @@
 package org.pescuma.jfg.gui.swt;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -26,11 +30,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
+import org.pescuma.jfg.gui.GuiWidget;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-class InlineObjectListSWTWidget extends AbstractSWTWidget
+class InlineObjectListSWTWidget extends SingleSWTWidget
 {
 	private SWTLayoutBuilder.ListBuilder listLayout;
 	private InnerBuilder innerBuilder;
@@ -38,7 +43,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	private final List<Item> items = new ArrayList<Item>();
 	private Composite frame;
 	private Color background;
-	private boolean empty = true;
+	protected final List<SWTGuiWidget> children = new ArrayList<SWTGuiWidget>();
 	
 	InlineObjectListSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -54,10 +59,6 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 	{
-		empty = !innerBuilder.canBuildInnerAttribute();
-		if (empty)
-			return;
-		
 		this.innerBuilder = innerBuilder;
 		list = attrib.asList();
 		
@@ -119,7 +120,11 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		if (config != null && config.type != null)
 		{
 			SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
-			innerBuilder.buildInnerAttribute(layout, itemAttribute);
+			
+			innerBuilder.startBuilding();
+			addWidget(innerBuilder.buildInnerAttribute(layout, itemAttribute));
+			innerBuilder.finishBuilding();
+			
 			return;
 		}
 		
@@ -137,23 +142,25 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		{
 			SWTLayoutBuilder layout = data.createLayoutFor(group.getName(), composite, listLayout.getLayoutListener());
 			
+			innerBuilder.startBuilding();
 			for (Attribute ga : group.getAttributes())
-				innerBuilder.buildInnerAttribute(layout, ga);
+				addWidget(innerBuilder.buildInnerAttribute(layout, ga));
+			innerBuilder.finishBuilding();
 			
 			return;
 		}
 		
 		// Else try the default way
 		SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
-		innerBuilder.buildInnerAttribute(layout, itemAttribute);
+		
+		innerBuilder.startBuilding();
+		addWidget(innerBuilder.buildInnerAttribute(layout, itemAttribute));
+		innerBuilder.finishBuilding();
 	}
 	
 	@Override
 	protected boolean canCopyToAttribute()
 	{
-		if (empty)
-			return false;
-		
 		return list.canWrite();
 	}
 	
@@ -166,9 +173,6 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	public void setValue(Object value)
 	{
-		if (empty)
-			return;
-		
 		if (value != attrib.getValue())
 			throw new NotImplementedException();
 	}
@@ -176,9 +180,6 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void attibuteToGUI()
 	{
-		if (empty)
-			return;
-		
 		for (int i = 0; i < items.size(); i++)
 		{
 			Item item = items.get(i);
@@ -214,9 +215,6 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void guiToAttribute()
 	{
-		if (empty)
-			return;
-		
 		for (int i = 0; i < list.size(); i++)
 		{
 			if (indexOf(list.get(i)) < 0)
@@ -256,10 +254,10 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	@Override
 	public void setEnabled(boolean enabled)
 	{
-		if (empty)
-			return;
-		
 		frame.setEnabled(enabled);
+		
+		for (GuiWidget widget : children)
+			widget.setEnabled(enabled);
 	}
 	
 	@Override
@@ -276,10 +274,70 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		{
 			shell.setRedraw(false);
 			super.copyToGUI();
+			
+			for (GuiWidget child : children)
+				child.copyToGUI();
 		}
 		finally
 		{
 			shell.setRedraw(true);
 		}
+	}
+	
+	@Override
+	public void copyToModel()
+	{
+		super.copyToModel();
+		
+		for (GuiWidget child : children)
+			child.copyToModel();
+	}
+	
+	public void addWidget(final SWTGuiWidget widget)
+	{
+		if (widget == null)
+			return;
+		
+		children.add(widget);
+		
+		widget.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e)
+			{
+				if (!children.remove(widget))
+					throw new IllegalStateException();
+			}
+		});
+	}
+	
+	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Collection<GuiWidget> getChildren()
+	{
+		return Collections.unmodifiableList((List) children);
+	}
+	
+	@Override
+	public GuiWidget getChild(String attributeName)
+	{
+		return new ChildManipulationLogic(this).getChild(attributeName);
+	}
+	
+	@Override
+	public Collection<GuiWidget> getChildren(String attributeName)
+	{
+		return new ChildManipulationLogic(this).getChildren(attributeName);
+	}
+	
+	@Override
+	public GuiWidget findChild(String attributeName)
+	{
+		return new ChildManipulationLogic(this).findChild(attributeName);
+	}
+	
+	@Override
+	public Collection<GuiWidget> findChildren(String attributeName)
+	{
+		return new ChildManipulationLogic(this).findChildren(attributeName);
 	}
 }

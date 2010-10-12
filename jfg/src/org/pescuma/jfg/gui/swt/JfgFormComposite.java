@@ -16,14 +16,14 @@ package org.pescuma.jfg.gui.swt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.internal.SWTEventListener;
 import org.eclipse.swt.widgets.Composite;
@@ -35,7 +35,6 @@ import org.pescuma.jfg.AttributeValueRange;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
-import org.pescuma.jfg.gui.GuiWidgetList;
 import org.pescuma.jfg.gui.TextBasedGuiWidget;
 import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
@@ -43,7 +42,7 @@ import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 public class JfgFormComposite extends Composite
 {
 	private final JfgFormData data;
-	private final BaseWidgetList widgets = new BaseWidgetList();
+	private final RootSWTWidget widgets;
 	private final GuiCopyManager copyManager;
 	private final BaseGuiListenerManager listenerManager = new BaseGuiListenerManager();
 	private int initializing = 0;
@@ -55,6 +54,7 @@ public class JfgFormComposite extends Composite
 	{
 		super(parent, style);
 		this.data = data;
+		widgets = new RootSWTWidget(data);
 		
 		switch (data.modelUpdateStrategy)
 		{
@@ -99,9 +99,18 @@ public class JfgFormComposite extends Composite
 				}
 			});
 		}
+		
+		for (Entry<String, FieldConfig> entry : data.fieldsConfig.entrySet())
+		{
+			String attributeName = entry.getKey();
+			FieldConfig config = entry.getValue();
+			
+			for (GuiUpdateListener listener : config.guiUpdateListeners)
+				addGuiUpdateListener(attributeName, listener);
+		}
 	}
 	
-	public GuiWidgetList getWidgets()
+	public GuiWidget getWidgets()
 	{
 		return widgets;
 	}
@@ -151,25 +160,28 @@ public class JfgFormComposite extends Composite
 		finishInitialize(null);
 	}
 	
-	private void finishInitialize(Set<AttributeWidgetPair> filter)
+	private void finishInitialize(Set<GuiWidget> filter)
 	{
+		initializing--;
+		
 		if (postponeFinishInitialize)
 			return;
 		
 		copyToGUI(filter);
 		notifyAllListeners(filter);
-		
-		initializing--;
 	}
 	
-	private void notifyAllListeners(Set<AttributeWidgetPair> filter)
+	private void notifyAllListeners(Set<GuiWidget> filter)
 	{
-		for (AttributeWidgetPair aw : widgets)
+		for (GuiWidget widget : widgets.findAllWidgets())
 		{
-			if (filter != null && filter.contains(aw))
+			if (filter != null && filter.contains(widget))
 				continue;
 			
-			listenerManager.notifyChange(aw.attrib.getName(), aw.widget, widgets);
+			if (widget.getAttribute() == null)
+				continue;
+			
+			listenerManager.notifyChange(widget.getAttribute().getName(), widget);
 		}
 	}
 	
@@ -229,13 +241,16 @@ public class JfgFormComposite extends Composite
 	private void addRootAttribute(SWTWidgetBuilder builder, Attribute attrib)
 	{
 		startInitialize();
-		addAttribute(initLayout(), builder, attrib, 0);
+		widgets.addWidget(addAttribute(initLayout(), builder, attrib, 0));
 		finishInitialize();
 	}
 	
 	private SWTGuiWidget addAttribute(SWTLayoutBuilder layout, SWTWidgetBuilder builder, Attribute attrib,
 			final int currentLevel)
 	{
+		if (currentLevel > data.maxAttributeSubLevels)
+			return null;
+		
 		if (builder == null)
 			builder = data.getBuilderFor(attrib);
 		if (builder == null)
@@ -247,42 +262,92 @@ public class JfgFormComposite extends Composite
 		if (data.hideAttribute(attrib))
 			return null;
 		
-		SWTGuiWidget.InnerBuilder innerBuilder = new SWTGuiWidget.InnerBuilder() {
-			@Override
-			public boolean canBuildInnerAttribute()
-			{
-				return currentLevel < data.maxAttributeSubLevels;
-			}
-			
-			@Override
-			public SWTGuiWidget buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib)
-			{
-				Set<AttributeWidgetPair> filter = new HashSet<AttributeWidgetPair>(widgets.getWidgetList());
-				
-				startInitialize();
-				SWTGuiWidget ret = addAttribute(layout, null, attrib, currentLevel + 1);
-				finishInitialize(filter);
-				
-				return ret;
-			}
-		};
+		InnerBuilder innerBuilder = createInnerBuilder(currentLevel + 1);
 		
-		final SWTGuiWidget widget = builder.build(attrib, data);
+		final SWTGuiWidget widget = builder.build(attrib, data, innerBuilder);
+		if (widget == null)
+			return null;
+		
 		widget.init(layout, innerBuilder, copyManager);
 		configureWidget(widget, attrib);
 		
-		widgets.add(attrib, widget);
-		
-		widget.addDisposeListener(new DisposeListener() {
-			@Override
-			public void widgetDisposed(DisposeEvent e)
-			{
-				if (!widgets.remove(widget))
-					throw new IllegalStateException();
-			}
-		});
-		
 		return widget;
+	}
+	
+	private InnerBuilder createInnerBuilder(final int level)
+	{
+		if (level <= data.maxAttributeSubLevels)
+		{
+			return new InnerBuilder() {
+				private boolean building = false;
+				private Set<GuiWidget> filter;
+				
+				@Override
+				public boolean canBuildInnerAttribute()
+				{
+					return true;
+				}
+				
+				@Override
+				public void startBuilding()
+				{
+					if (building)
+						throw new IllegalStateException();
+					
+					building = true;
+					
+					filter = new HashSet<GuiWidget>(widgets.findAllWidgets());
+					startInitialize();
+				}
+				
+				@Override
+				public SWTGuiWidget buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib)
+				{
+					if (!building)
+						throw new IllegalStateException();
+					
+					return addAttribute(layout, null, attrib, level);
+				}
+				
+				@Override
+				public void finishBuilding()
+				{
+					if (!building)
+						throw new IllegalStateException();
+					
+					building = false;
+					
+					finishInitialize(filter);
+					filter = null;
+				}
+			};
+		}
+		else
+		{
+			return new InnerBuilder() {
+				@Override
+				public boolean canBuildInnerAttribute()
+				{
+					return false;
+				}
+				
+				@Override
+				public void startBuilding()
+				{
+				}
+				
+				@Override
+				public SWTGuiWidget buildInnerAttribute(SWTLayoutBuilder layout, Attribute attrib)
+				{
+					return null;
+				}
+				
+				@Override
+				public void finishBuilding()
+				{
+				}
+			};
+		}
 	}
 	
 	private void configureWidget(final SWTGuiWidget widget, Attribute attrib)
@@ -320,7 +385,7 @@ public class JfgFormComposite extends Composite
 	private void addAttributes(SWTLayoutBuilder layout, AttributeGroup group, int currentLevel)
 	{
 		for (Attribute attrib : group.getAttributes())
-			addAttribute(layout, null, attrib, currentLevel);
+			widgets.addWidget(addAttribute(layout, null, attrib, currentLevel));
 	}
 	
 	public void copyToGUI()
@@ -328,33 +393,34 @@ public class JfgFormComposite extends Composite
 		copyToGUI(null);
 	}
 	
-	private void copyToGUI(Set<AttributeWidgetPair> filter)
+	private void copyToGUI(Set<GuiWidget> filter)
 	{
-		Set<AttributeWidgetPair> handled = new HashSet<AttributeWidgetPair>();
+		Set<GuiWidget> handled = new HashSet<GuiWidget>();
+		if (filter != null)
+			handled.addAll(filter);
 		
+		Collection<GuiWidget> allWidgets = widgets.findAllLeafWidgets();
 		int oldSize;
 		do
 		{
-			oldSize = widgets.size();
+			oldSize = allWidgets.size();
 			
-			for (AttributeWidgetPair aw : new ArrayList<AttributeWidgetPair>(widgets.getWidgetList()))
+			for (GuiWidget widget : allWidgets)
 			{
-				if (filter != null && filter.contains(aw))
+				if (handled.contains(widget))
 					continue;
-				if (handled.contains(aw))
-					continue;
-				handled.add(aw);
+				handled.add(widget);
 				
-				aw.widget.copyToGUI();
+				widget.copyToGUI();
 			}
+			allWidgets = widgets.findAllLeafWidgets();
 		}
-		while (oldSize != widgets.size());
+		while (oldSize != allWidgets.size());
 	}
 	
 	public void copyToModel()
 	{
-		for (AttributeWidgetPair aw : widgets)
-			aw.widget.copyToModel();
+		widgets.copyToModel();
 	}
 	
 	void onGuiUpdated(GuiWidget widget)
@@ -362,7 +428,7 @@ public class JfgFormComposite extends Composite
 		if (initializing > 0)
 			return;
 		
-		listenerManager.notifyChange(widgets.getAttribute(widget).getName(), widget, widgets);
+		listenerManager.notifyChange(widget.getAttribute().getName(), widget);
 	}
 	
 	public void addGuiUpdateListener(GuiUpdateListener listener)

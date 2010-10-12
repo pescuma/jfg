@@ -1,10 +1,14 @@
 package org.pescuma.jfg.validators;
 
+import java.util.regex.Pattern;
+
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.WidgetValidator;
 
 public class CEPValidator implements WidgetValidator
 {
+	private static final Pattern re = Pattern.compile("\\d{5}(-?\\d{3})?");
+	
 	@Override
 	public boolean isValid(Attribute attrib, Object value)
 	{
@@ -17,20 +21,7 @@ public class CEPValidator implements WidgetValidator
 		if (text.length() < 1)
 			return true;
 		
-		text = text.replace("-", "");
-		
-		int textLength = text.length();
-		if (textLength != 5 && textLength != 8)
-			return false;
-		
-		for (int i = 0; i < textLength; i++)
-		{
-			char c = text.charAt(i);
-			if (c < '0' || c > '9')
-				return false;
-		}
-		
-		return true;
+		return re.matcher(text).matches();
 	}
 	
 }

@@ -6,8 +6,8 @@ public interface WidgetFormater
 {
 	class TextAndPos
 	{
-		String text;
-		int caretPos;
+		public String text;
+		public int caretPos;
 	}
 	
 	TextAndPos format(Attribute attrib, TextAndPos text);

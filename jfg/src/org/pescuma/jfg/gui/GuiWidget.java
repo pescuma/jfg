@@ -16,22 +16,36 @@ package org.pescuma.jfg.gui;
 
 import java.util.Collection;
 
+import org.pescuma.jfg.Attribute;
 
 public interface GuiWidget
 {
-	void copyToGUI();
+	Attribute getAttribute();
 	
+	void copyToGUI();
 	void copyToModel();
 	
 	void setEnabled(boolean enabled);
 	
 	Object getValue();
-	
 	void setValue(Object value);
 	
 	void setValidators(WidgetValidator... validator);
+	Collection<ValidationError> getValidationErrors();
 	
 	void setShadowText(String text);
 	
-	Collection<WidgetValidator> getValidationErrors();
+	Collection<GuiWidget> getChildren();
+	
+	GuiWidget getChild(String attributeName);
+	Collection<GuiWidget> getChildren(String attributeName);
+	
+	GuiWidget findChild(String attributeName);
+	Collection<GuiWidget> findChildren(String attributeName);
+	
+	public class ValidationError
+	{
+		public Attribute attribute;
+		public WidgetValidator validator;
+	}
 }

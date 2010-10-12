@@ -20,5 +20,5 @@ public interface SWTWidgetBuilder
 {
 	boolean accept(Attribute attrib);
 	
-	SWTGuiWidget build(Attribute attrib, JfgFormData data);
+	SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder);
 }

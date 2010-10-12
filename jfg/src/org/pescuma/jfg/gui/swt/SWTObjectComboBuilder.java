@@ -18,6 +18,7 @@ import org.pescuma.jfg.Attribute;
 
 public class SWTObjectComboBuilder implements SWTWidgetBuilder
 {
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
@@ -30,7 +31,8 @@ public class SWTObjectComboBuilder implements SWTWidgetBuilder
 		return false;
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new ObjectComboSWTWidget(attrib, data);
 	}

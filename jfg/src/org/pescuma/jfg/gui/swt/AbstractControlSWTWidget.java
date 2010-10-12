@@ -18,7 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.pescuma.jfg.Attribute;
 
-abstract class AbstractControlSWTWidget extends AbstractSWTWidget
+abstract class AbstractControlSWTWidget extends SingleSWTWidget
 {
 	public AbstractControlSWTWidget(Attribute attrib, JfgFormData data)
 	{

@@ -20,10 +20,9 @@ import org.pescuma.jfg.AttributeGroup;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-class FrameSWTWidget extends AbstractSWTWidget
+class FrameSWTWidget extends CompositeSWTWidget
 {
 	private Group frame;
-	private boolean empty;
 	
 	FrameSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -33,18 +32,16 @@ class FrameSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 	{
-		empty = !innerBuilder.canBuildInnerAttribute();
-		if (empty)
-			return;
-		
 		AttributeGroup group = attrib.asGroup();
 		
 		frame = layout.addGroup(group.getName(), createLayoutHints(attrib), createHeightHint(attrib));
 		
 		SWTLayoutBuilder innerLayout = data.createLayoutFor(group.getName(), frame, layout.getLayoutListener());
 		
+		innerBuilder.startBuilding();
 		for (Attribute ga : group.getAttributes())
-			innerBuilder.buildInnerAttribute(innerLayout, ga);
+			addWidget(innerBuilder.buildInnerAttribute(innerLayout, ga));
+		innerBuilder.finishBuilding();
 	}
 	
 	@Override
@@ -56,9 +53,6 @@ class FrameSWTWidget extends AbstractSWTWidget
 	@Override
 	public void setValue(Object value)
 	{
-		if (empty)
-			return;
-		
 		if (value != attrib.getValue())
 			throw new NotImplementedException();
 	}
@@ -66,9 +60,9 @@ class FrameSWTWidget extends AbstractSWTWidget
 	@Override
 	public void setEnabled(boolean enabled)
 	{
-		if (empty)
-			return;
-		
 		frame.setEnabled(enabled);
+		
+		super.setEnabled(enabled);
 	}
+	
 }

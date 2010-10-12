@@ -1,10 +1,13 @@
 package org.pescuma.jfg.validators;
 
+import java.util.regex.Pattern;
+
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.WidgetValidator;
 
 public class CPFValidator implements WidgetValidator
 {
+	private static final Pattern re = Pattern.compile("\\d{3}\\.?\\d{3}\\.?\\d{3}-?\\d{2}");
 	
 	@Override
 	public boolean isValid(Attribute attrib, Object value)
@@ -18,18 +21,16 @@ public class CPFValidator implements WidgetValidator
 		if (text.length() < 1)
 			return true;
 		
+		if (!re.matcher(text).matches())
+			return false;
+		
 		text = text.replace(".", "");
 		text = text.replace("-", "");
-		if (text.length() != 11)
-			return false;
 		
 		int[] cpf = new int[11];
 		for (int i = 0; i < cpf.length; i++)
 		{
 			char c = text.charAt(i);
-			if (c < '0' || c > '9')
-				return false;
-			
 			cpf[i] = c - '0';
 		}
 		

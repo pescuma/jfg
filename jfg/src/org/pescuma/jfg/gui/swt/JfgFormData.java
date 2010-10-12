@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
+import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.SimpleTextTranslator;
 import org.pescuma.jfg.gui.TextTranslator;
 import org.pescuma.jfg.gui.WidgetFormater;
@@ -360,7 +361,12 @@ public final class JfgFormData
 	
 	public SWTWidgetBuilder getBuilderFor(Attribute attrib)
 	{
-		return builders.get(getBuilderTypeOf(attrib));
+		Object type = getBuilderTypeOf(attrib);
+		
+		if (type instanceof SWTWidgetBuilder)
+			return (SWTWidgetBuilder) type;
+		else
+			return builders.get(type);
 	}
 	
 	private Object getBuilderTypeOf(Attribute attrib)
@@ -438,18 +444,19 @@ public final class JfgFormData
 	
 	public static class FieldConfig
 	{
-		public Boolean visible;
-		public String type;
-		public SWTWidgetBuilder builder;
-		public Boolean showLabel;
-		public int layoutHint;
-		public int heightHint = SWT.DEFAULT;
-		public SWTLayoutBuilder layout;
-		public boolean showNameAsShadowText = false;
-		public String shadowText;
-		public WidgetFormater formater;
-		public Object widgetData;
-		public WidgetValidator[] validators;
+		Boolean visible;
+		Object type;
+		SWTWidgetBuilder builder;
+		Boolean showLabel;
+		int layoutHint = 0;
+		int heightHint = SWT.DEFAULT;
+		SWTLayoutBuilder layout;
+		boolean showNameAsShadowText = false;
+		String shadowText;
+		WidgetFormater formater;
+		Object widgetData;
+		WidgetValidator[] validators;
+		final List<GuiUpdateListener> guiUpdateListeners = new ArrayList<GuiUpdateListener>();
 		
 		public FieldConfig setVisible(boolean visible)
 		{
@@ -457,7 +464,7 @@ public final class JfgFormData
 			return this;
 		}
 		
-		public FieldConfig setType(String type)
+		public FieldConfig setType(Object type)
 		{
 			this.type = type;
 			return this;
@@ -490,7 +497,7 @@ public final class JfgFormData
 			return this;
 		}
 		
-		public FieldConfig setFormater(WidgetFormater formater)
+		public FieldConfig formateWith(WidgetFormater formater)
 		{
 			this.formater = formater;
 			return this;
@@ -526,6 +533,13 @@ public final class JfgFormData
 			this.validators = validators;
 			return this;
 		}
+		
+		public FieldConfig addGuiUpdateListener(GuiUpdateListener listener)
+		{
+			guiUpdateListeners.add(listener);
+			return this;
+		}
+		
 	}
 	
 	public final Map<String, FieldConfig> fieldsConfig = new HashMap<String, FieldConfig>();

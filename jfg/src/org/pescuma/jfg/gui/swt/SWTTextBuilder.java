@@ -20,40 +20,48 @@ import org.pescuma.jfg.AttributeValueRange;
 
 public class SWTTextBuilder implements SWTWidgetBuilder
 {
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
 		return type == String.class || "text".equals(type);
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new TextSWTWidget(attrib, data) {
+			@Override
 			protected int getAdditionalTextStyle()
 			{
 				return SWTTextBuilder.this.getAdditionalTextStyle();
 			}
 			
+			@Override
 			protected void addValidation(Text text, Object type)
 			{
 				SWTTextBuilder.this.addValidation(text, type);
 			}
 			
+			@Override
 			protected String convertToString(Text text, Object value, Object type)
 			{
 				return SWTTextBuilder.this.convertToString(text, value, type);
 			}
 			
+			@Override
 			protected Object convertToObject(String value, Object type, boolean canBeNull)
 			{
 				return SWTTextBuilder.this.convertToObject(value, type, canBeNull);
 			}
 			
+			@Override
 			protected Object getType(Object type)
 			{
 				return SWTTextBuilder.this.getType(type);
 			}
 			
+			@Override
 			protected void setTextLimit(Attribute attrib, Text text)
 			{
 				SWTTextBuilder.this.setTextLimit(attrib, text);

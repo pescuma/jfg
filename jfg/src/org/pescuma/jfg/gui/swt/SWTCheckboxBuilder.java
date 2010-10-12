@@ -18,13 +18,15 @@ import org.pescuma.jfg.Attribute;
 
 public class SWTCheckboxBuilder implements SWTWidgetBuilder
 {
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
 		return type == Boolean.class || type == boolean.class || "checkbox".equals(type);
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new CheckboxSWTWidget(attrib, data);
 	}

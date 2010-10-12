@@ -27,7 +27,7 @@ public class SWTImageBuilder implements SWTWidgetBuilder
 	}
 	
 	@Override
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new WebcamSWTWidget(attrib, data);
 	};

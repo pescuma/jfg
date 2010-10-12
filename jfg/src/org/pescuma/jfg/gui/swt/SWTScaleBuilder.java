@@ -21,6 +21,7 @@ import org.pescuma.jfg.AttributeValueRange;
 
 public class SWTScaleBuilder implements SWTWidgetBuilder
 {
+	@Override
 	public boolean accept(Attribute attrib)
 	{
 		AttributeValueRange range = attrib.getValueRange();
@@ -31,7 +32,8 @@ public class SWTScaleBuilder implements SWTWidgetBuilder
 		return typeIsNumber(type) || typeIsReal(type) || "scale".equals(type);
 	}
 	
-	public SWTGuiWidget build(Attribute attrib, JfgFormData data)
+	@Override
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
 		return new ScaleSWTWidget(attrib, data);
 	}
