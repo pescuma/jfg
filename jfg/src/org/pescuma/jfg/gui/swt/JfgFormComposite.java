@@ -355,22 +355,23 @@ public class JfgFormComposite extends Composite
 		FieldConfig config = data.fieldsConfig.get(attrib.getName());
 		AttributeValueRange range = attrib.getValueRange();
 		
-		if (config != null)
+		if (config != null && widget instanceof TextBasedGuiWidget)
 		{
+			TextBasedGuiWidget textWidget = (TextBasedGuiWidget) widget;
+			
 			if (config.showNameAsShadowText && config.shadowText == null)
 			{
 				String attribDescription = attrib.getName();
 				if (attribDescription != null)
 					attribDescription = data.textTranslator.fieldName(attribDescription);
-				widget.setShadowText(attribDescription);
+				textWidget.setShadowText(attribDescription);
 			}
 			else
 			{
-				widget.setShadowText(config.shadowText);
+				textWidget.setShadowText(config.shadowText);
 			}
 			
-			if (widget instanceof TextBasedGuiWidget)
-				((TextBasedGuiWidget) widget).setFormater(config.formater);
+			textWidget.setFormater(config.formater);
 		}
 		
 		List<WidgetValidator> validators = new ArrayList<WidgetValidator>();

@@ -2,7 +2,7 @@ package org.pescuma.jfg.gui;
 
 import java.util.List;
 
-public interface ReferenceListGuiWidget extends GuiWidget
+public interface ReferenceGuiWidget extends GuiWidget
 {
 	interface DescriptionGetter
 	{

@@ -33,8 +33,6 @@ public interface GuiWidget
 	void setValidators(WidgetValidator... validator);
 	Collection<ValidationError> getValidationErrors();
 	
-	void setShadowText(String text);
-	
 	Collection<GuiWidget> getChildren();
 	
 	GuiWidget getChild(String attributeName);

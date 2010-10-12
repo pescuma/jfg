@@ -388,9 +388,4 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 		updateButton();
 		return false;
 	}
-	
-	@Override
-	public void setShadowText(String text)
-	{
-	}
 }

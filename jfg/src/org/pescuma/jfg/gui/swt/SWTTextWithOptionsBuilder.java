@@ -14,30 +14,20 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.pescuma.jfg.Attribute;
 
-abstract class AbstractControlSWTWidget extends AbstractSWTWidget
+public class SWTTextWithOptionsBuilder implements SWTWidgetBuilder
 {
-	public AbstractControlSWTWidget(Attribute attrib, JfgFormData data)
+	@Override
+	public boolean accept(Attribute attrib)
 	{
-		super(attrib, data);
+		Object type = attrib.getType();
+		return type == String.class || "text_with_options".equals(type);
 	}
 	
 	@Override
-	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
+	public SWTGuiWidget build(Attribute attrib, JfgFormData data, InnerBuilder innerBuilder)
 	{
-		Composite parent = layout.getParentForWidget(attrib.getName());
-		if (parent == null)
-			throw new IllegalStateException();
-		
-		Control widget = createWidget(parent);
-		
-		layout.addWidget(attrib.getName(), widget, createLayoutHints(attrib), createHeightHint(attrib));
-		
-		addAttributeListener();
+		return new TextWithOptionsSWTWidget(attrib, data);
 	}
-
-	protected abstract Control createWidget(Composite parent);
 }

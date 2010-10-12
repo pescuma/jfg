@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.Label;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-abstract class AbstractLabelControlSWTWidget extends SingleSWTWidget
+abstract class AbstractLabelControlSWTWidget extends AbstractSWTWidget
 {
 	private Label name;
 	

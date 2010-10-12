@@ -35,22 +35,14 @@ public class DigitMaskFormater implements WidgetFormater
 	class BufferAndPos
 	{
 		private StringBuilder text;
-		private int pos;
+		int selectionStart;
+		int selectionEnd;
 		
-		public BufferAndPos(String text, int pos)
+		public BufferAndPos(TextAndPos ret)
 		{
-			this.text = new StringBuilder(text);
-			this.pos = pos;
-		}
-		
-		public int getPos()
-		{
-			return pos;
-		}
-		
-		public void setPos(int pos)
-		{
-			this.pos = pos;
+			this.text = new StringBuilder(ret.text);
+			this.selectionStart = ret.selectionStart;
+			this.selectionEnd = ret.selectionEnd;
 		}
 		
 		public String getText()
@@ -75,12 +67,21 @@ public class DigitMaskFormater implements WidgetFormater
 		
 		public void replace(int start, int end, String string)
 		{
+			selectionStart = updatePosReplace(selectionStart, start, end, string);
+			selectionEnd = updatePosReplace(selectionEnd, start, end, string);
+			
+			text.replace(start, end, string);
+		}
+		
+		private int updatePosReplace(int pos, int start, int end, String string)
+		{
 			if (pos >= end)
 				pos += string.length() - (end - start);
+			
 			else if (pos > start)
 				pos = start + Math.min(string.length(), pos - start);
 			
-			text.replace(start, end, string);
+			return pos;
 		}
 		
 		public void insert(int pos, char character)
@@ -90,8 +91,10 @@ public class DigitMaskFormater implements WidgetFormater
 		
 		public void insert(int pos, String text)
 		{
-			if (pos < this.pos)
-				this.pos += text.length();
+			if (pos < selectionStart)
+				selectionStart += text.length();
+			if (pos < selectionEnd)
+				selectionEnd += text.length();
 			
 			this.text.insert(max(0, pos), text);
 		}
@@ -115,9 +118,10 @@ public class DigitMaskFormater implements WidgetFormater
 	{
 		TextAndPos ret = new TextAndPos();
 		ret.text = tp.text;
-		ret.caretPos = tp.caretPos;
+		ret.selectionStart = tp.selectionStart;
+		ret.selectionEnd = tp.selectionEnd;
 		
-		BufferAndPos text = new BufferAndPos(ret.text, ret.caretPos);
+		BufferAndPos text = new BufferAndPos(ret);
 		
 		String oldSuffix = "";
 		if (allowTextAfter)
@@ -223,12 +227,16 @@ public class DigitMaskFormater implements WidgetFormater
 			String p2 = leftNonDigitText(text.getText());
 			prefix = removeEqualityAtEnd(prefix, p2);
 			
-			text.insert(-1, prefix);
-			text.insert(-1, oldPrefix);
+			text.insert(0, prefix);
+			text.insert(0, oldPrefix);
 			
 			int prefixLen = prefix.length() + oldPrefix.length();
-			if (ret.caretPos < prefixLen)
-				text.setPos(ret.caretPos);
+			
+			if (ret.selectionStart < prefixLen)
+				text.selectionStart = ret.selectionStart;
+			
+			if (ret.selectionEnd < prefixLen)
+				text.selectionEnd = ret.selectionEnd;
 		}
 		else if (allowTextAfter)
 		{
@@ -241,13 +249,18 @@ public class DigitMaskFormater implements WidgetFormater
 			
 			int suffixLen = suffix.length() + oldSuffix.length();
 			
-			int pos = tp.caretPos - tp.text.length();
+			int pos = tp.selectionStart - tp.text.length();
 			if (-pos < suffixLen)
-				text.setPos(text.length() + pos);
+				text.selectionStart = text.length() + pos;
+			
+			pos = tp.selectionEnd - tp.text.length();
+			if (-pos < suffixLen)
+				text.selectionEnd = text.length() + pos;
 		}
 		
 		ret.text = text.getText();
-		ret.caretPos = text.getPos();
+		ret.selectionStart = text.selectionStart;
+		ret.selectionEnd = text.selectionEnd;
 		return ret;
 	}
 	

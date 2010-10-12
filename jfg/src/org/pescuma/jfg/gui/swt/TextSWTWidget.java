@@ -16,6 +16,7 @@ package org.pescuma.jfg.gui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -107,6 +108,9 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 	@Override
 	public void setFormater(final WidgetFormater formater)
 	{
+		if (!attrib.canWrite())
+			return;
+		
 		if (formaterListener != null)
 		{
 			text.removeListener(SWT.Modify, formaterListener);
@@ -137,7 +141,8 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 		
 		TextAndPos actual = new TextAndPos();
 		actual.text = text.getText();
-		actual.caretPos = text.getCaretPosition();
+		actual.selectionStart = text.getSelection().x;
+		actual.selectionEnd = text.getSelection().y;
 		
 		TextAndPos formated = formater.format(attrib, actual);
 		
@@ -147,8 +152,9 @@ abstract class TextSWTWidget extends AbstractLabelControlSWTWidget implements Te
 		if (changedText)
 			text.setText(formated.text);
 		
-		if (changedText || formated.caretPos != actual.caretPos)
-			text.setSelection(formated.caretPos);
+		if (changedText || formated.selectionStart != actual.selectionStart
+				|| formated.selectionEnd != actual.selectionEnd)
+			text.setSelection(new Point(formated.selectionStart, formated.selectionEnd));
 		
 		ignoreFormat = false;
 	}

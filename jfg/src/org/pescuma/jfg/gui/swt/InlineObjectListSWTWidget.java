@@ -15,12 +15,8 @@
 package org.pescuma.jfg.gui.swt;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -30,12 +26,11 @@ import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
-import org.pescuma.jfg.gui.GuiWidget;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-class InlineObjectListSWTWidget extends SingleSWTWidget
+class InlineObjectListSWTWidget extends AbstractSWTWidget
 {
 	private SWTLayoutBuilder.ListBuilder listLayout;
 	private InnerBuilder innerBuilder;
@@ -43,7 +38,6 @@ class InlineObjectListSWTWidget extends SingleSWTWidget
 	private final List<Item> items = new ArrayList<Item>();
 	private Composite frame;
 	private Color background;
-	protected final List<SWTGuiWidget> children = new ArrayList<SWTGuiWidget>();
 	
 	InlineObjectListSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -256,8 +250,7 @@ class InlineObjectListSWTWidget extends SingleSWTWidget
 	{
 		frame.setEnabled(enabled);
 		
-		for (GuiWidget widget : children)
-			widget.setEnabled(enabled);
+		super.setEnabled(enabled);
 	}
 	
 	@Override
@@ -273,71 +266,12 @@ class InlineObjectListSWTWidget extends SingleSWTWidget
 		try
 		{
 			shell.setRedraw(false);
-			super.copyToGUI();
 			
-			for (GuiWidget child : children)
-				child.copyToGUI();
+			super.copyToGUI();
 		}
 		finally
 		{
 			shell.setRedraw(true);
 		}
-	}
-	
-	@Override
-	public void copyToModel()
-	{
-		super.copyToModel();
-		
-		for (GuiWidget child : children)
-			child.copyToModel();
-	}
-	
-	public void addWidget(final SWTGuiWidget widget)
-	{
-		if (widget == null)
-			return;
-		
-		children.add(widget);
-		
-		widget.addDisposeListener(new DisposeListener() {
-			@Override
-			public void widgetDisposed(DisposeEvent e)
-			{
-				if (!children.remove(widget))
-					throw new IllegalStateException();
-			}
-		});
-	}
-	
-	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Collection<GuiWidget> getChildren()
-	{
-		return Collections.unmodifiableList((List) children);
-	}
-	
-	@Override
-	public GuiWidget getChild(String attributeName)
-	{
-		return new ChildManipulationLogic(this).getChild(attributeName);
-	}
-	
-	@Override
-	public Collection<GuiWidget> getChildren(String attributeName)
-	{
-		return new ChildManipulationLogic(this).getChildren(attributeName);
-	}
-	
-	@Override
-	public GuiWidget findChild(String attributeName)
-	{
-		return new ChildManipulationLogic(this).findChild(attributeName);
-	}
-	
-	@Override
-	public Collection<GuiWidget> findChildren(String attributeName)
-	{
-		return new ChildManipulationLogic(this).findChildren(attributeName);
 	}
 }

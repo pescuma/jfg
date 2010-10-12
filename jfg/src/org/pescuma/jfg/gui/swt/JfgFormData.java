@@ -119,6 +119,7 @@ public final class JfgFormData
 		
 		builders.put("text", new SWTTextBuilder());
 		builders.put("text_area", new SWTTextAreaBuilder());
+		builders.put("text_with_options", new SWTTextWithOptionsBuilder());
 		builders.put("number", new SWTNumberBuilder());
 		builders.put("real", new SWTRealBuilder());
 		builders.put("checkbox", new SWTCheckboxBuilder());

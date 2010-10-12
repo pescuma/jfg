@@ -20,7 +20,7 @@ import org.pescuma.jfg.AttributeGroup;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-class FrameSWTWidget extends CompositeSWTWidget
+class FrameSWTWidget extends AbstractSWTWidget
 {
 	private Group frame;
 	

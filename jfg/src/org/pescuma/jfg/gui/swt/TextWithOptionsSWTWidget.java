@@ -19,24 +19,32 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.gui.ReferenceGuiWidget;
+import org.pescuma.jfg.gui.TextBasedGuiWidget;
+import org.pescuma.jfg.gui.WidgetFormater;
+import org.pescuma.jfg.gui.WidgetFormater.TextAndPos;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements ReferenceGuiWidget
+class TextWithOptionsSWTWidget extends AbstractLabelControlSWTWidget implements ReferenceGuiWidget, TextBasedGuiWidget
 {
 	private Combo combo;
 	private Text text;
 	private Color background;
 	private final List<Object> options = new ArrayList<Object>();
 	private DescriptionGetter toDescription;
-	private List<Object> comboObjects;
+	private Listener formaterListener;
+	private WidgetFormater formater;
+	private boolean ignoreFormat = false;
 	
-	ObjectComboSWTWidget(Attribute attrib, JfgFormData data)
+	TextWithOptionsSWTWidget(Attribute attrib, JfgFormData data)
 	{
 		super(attrib, data);
 		
@@ -54,7 +62,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		Control ret;
 		if (attrib.canWrite())
 		{
-			combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
+			combo = data.componentFactory.createCombo(parent, SWT.DROP_DOWN);
 			fill();
 			combo.addListener(SWT.Modify, getModifyListener());
 			combo.addListener(SWT.Dispose, getDisposeListener());
@@ -76,34 +84,15 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 	
 	private void fill()
 	{
-		combo.removeAll();
-		
-		comboObjects = new ArrayList<Object>();
-		
-		if (canBeNull())
-		{
-			comboObjects.add(null);
-			combo.add(data.textTranslator.translate("ComboWidget:None"));
-		}
-		
 		for (Object obj : options)
-		{
-			comboObjects.add(obj);
 			combo.add(toDescription.getDescription(obj));
-		}
 	}
 	
 	@Override
 	public Object getValue()
 	{
 		if (attrib.canWrite())
-		{
-			int index = combo.getSelectionIndex();
-			if (index < 0)
-				return fixNull(null);
-			
-			return comboObjects.get(index);
-		}
+			return combo.getText();
 		else
 			return attrib.getValue();
 	}
@@ -112,44 +101,15 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 	public void setValue(Object value)
 	{
 		if (attrib.canWrite())
-		{
-			value = fixNull(value);
-			combo.select(getIndex(value));
-		}
+			combo.setText(convertToString(value, attrib.getType()));
 		else
-		{
 			text.setText(convertToString(value, attrib.getType()));
-		}
-	}
-	
-	private Object fixNull(Object value)
-	{
-		if (!canBeNull() && comboObjects.size() > 0)
-			return comboObjects.get(0);
-		else
-			return null;
-	}
-	
-	private int getIndex(Object value)
-	{
-		int i = 0;
-		for (Object obj : comboObjects)
-		{
-			if (obj == value)
-				return i;
-			++i;
-		}
-		
-		if (value == null)
-			return -1;
-		
-		throw new IllegalArgumentException();
 	}
 	
 	private String convertToString(Object value, Object type)
 	{
 		if (value == null)
-			return data.textTranslator.translate("ComboWidget:None");
+			return "";
 		
 		if (type instanceof Class<?>)
 		{
@@ -165,13 +125,9 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 	protected void updateColor()
 	{
 		if (attrib.canWrite())
-		{
 			combo.setBackground(createColor(combo, background));
-		}
 		else
-		{
 			text.setBackground(createColor(text, background));
-		}
 	}
 	
 	@Override
@@ -180,13 +136,9 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		super.setEnabled(enabled);
 		
 		if (attrib.canWrite())
-		{
 			combo.setEnabled(enabled);
-		}
 		else
-		{
 			text.setEnabled(enabled);
-		}
 	}
 	
 	@Override
@@ -208,5 +160,72 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		
 		if (combo != null)
 			fill();
+	}
+	
+	@Override
+	public void setShadowText(String shadowText)
+	{
+		if (attrib.canWrite())
+		{
+			// Combo does not support setMessage
+		}
+		else
+		{
+			text.setMessage(shadowText == null ? "" : shadowText);
+		}
+	}
+	
+	@Override
+	public void setFormater(final WidgetFormater formater)
+	{
+		if (!attrib.canWrite())
+			return;
+		
+		if (formaterListener != null)
+		{
+			combo.removeListener(SWT.Modify, formaterListener);
+			formaterListener = null;
+		}
+		
+		this.formater = formater;
+		
+		if (formater != null)
+		{
+			formaterListener = new Listener() {
+				@Override
+				public void handleEvent(Event event)
+				{
+					formatText();
+				}
+			};
+			combo.addListener(SWT.Modify, formaterListener);
+			
+			formatText();
+		}
+	}
+	
+	private void formatText()
+	{
+		if (formater == null || ignoreFormat)
+			return;
+		
+		TextAndPos actual = new TextAndPos();
+		actual.text = combo.getText();
+		actual.selectionStart = combo.getSelection().x;
+		actual.selectionEnd = combo.getSelection().y;
+		
+		TextAndPos formated = formater.format(attrib, actual);
+		
+		ignoreFormat = true;
+		
+		boolean changedText = !formated.text.equals(actual.text);
+		if (changedText)
+			combo.setText(formated.text);
+		
+		if (changedText || formated.selectionStart != actual.selectionStart
+				|| formated.selectionEnd != actual.selectionEnd)
+			combo.setSelection(new Point(formated.selectionStart, formated.selectionEnd));
+		
+		ignoreFormat = false;
 	}
 }
