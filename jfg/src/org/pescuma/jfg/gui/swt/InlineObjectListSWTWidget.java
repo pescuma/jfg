@@ -263,10 +263,10 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	public void copyToGUI()
 	{
 		Shell shell = frame.getShell();
+		
+		shell.setRedraw(false);
 		try
 		{
-			shell.setRedraw(false);
-			
 			super.copyToGUI();
 		}
 		finally

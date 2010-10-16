@@ -182,44 +182,50 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 		
 		buttom.setRedraw(false);
 		
-		cleanupButton();
-		
-		boolean hasWebcam = (webcam.getWebcamCount() > 0);
-		Menu menu = buttom.getMenu();
-		
-		if (webcam.isShowingWebcam())
+		try
 		{
-			createTakeImage();
-			createSetImage(menu);
-			createClear(menu);
-		}
-		else if (snapshot != null)
-		{
-			if (hasWebcam)
+			cleanupButton();
+			
+			boolean hasWebcam = (webcam.getWebcamCount() > 0);
+			Menu menu = buttom.getMenu();
+			
+			if (webcam.isShowingWebcam())
 			{
-				createWebcam();
+				createTakeImage();
 				createSetImage(menu);
+				createClear(menu);
+			}
+			else if (snapshot != null)
+			{
+				if (hasWebcam)
+				{
+					createWebcam();
+					createSetImage(menu);
+				}
+				else
+				{
+					createSetImage();
+				}
+				createClear(menu);
 			}
 			else
 			{
-				createSetImage();
+				if (hasWebcam)
+				{
+					createWebcam();
+					createSetImage(menu);
+				}
+				else
+				{
+					createSetImage();
+				}
 			}
-			createClear(menu);
+			
 		}
-		else
+		finally
 		{
-			if (hasWebcam)
-			{
-				createWebcam();
-				createSetImage(menu);
-			}
-			else
-			{
-				createSetImage();
-			}
+			buttom.setRedraw(true);
 		}
-		
-		buttom.setRedraw(true);
 	}
 	
 	private void cleanupButton()
