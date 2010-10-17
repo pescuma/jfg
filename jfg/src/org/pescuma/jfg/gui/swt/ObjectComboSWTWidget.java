@@ -100,7 +100,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		{
 			int index = combo.getSelectionIndex();
 			if (index < 0)
-				return fixNull(null);
+				return getNullObject();
 			
 			return comboObjects.get(index);
 		}
@@ -124,9 +124,9 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		}
 	}
 	
-	private Object fixNull(Object value)
+	private Object getNullObject()
 	{
-		if (!canBeNull() && value == null && comboObjects.size() > 0)
+		if (!canBeNull() && comboObjects.size() > 0)
 			return comboObjects.get(0);
 		else
 			return null;

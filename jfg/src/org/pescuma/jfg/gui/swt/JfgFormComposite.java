@@ -92,9 +92,7 @@ public class JfgFormComposite extends Composite
 				@Override
 				public void handleEvent(Event event)
 				{
-					postponeFinishInitialize = false;
-					finishInitialize();
-					
+					assertInitialized();
 					root.removeListener(SWT.Show, this);
 				}
 			});
@@ -112,7 +110,18 @@ public class JfgFormComposite extends Composite
 	
 	public GuiWidget getWidgets()
 	{
+		assertInitialized();
 		return widgets;
+	}
+	
+	private void assertInitialized()
+	{
+		if (postponeFinishInitialize)
+		{
+			postponeFinishInitialize = false;
+			startInitialize();
+			finishInitialize();
+		}
 	}
 	
 	private Composite getRoot()
@@ -168,10 +177,10 @@ public class JfgFormComposite extends Composite
 			return;
 		
 		copyToGUI(filter);
-		notifyAllListeners(filter);
+		notifyCreation(filter);
 	}
 	
-	private void notifyAllListeners(Set<GuiWidget> filter)
+	private void notifyCreation(Set<GuiWidget> filter)
 	{
 		for (GuiWidget widget : widgets.findAllWidgets())
 		{
@@ -181,7 +190,7 @@ public class JfgFormComposite extends Composite
 			if (widget.getAttribute() == null)
 				continue;
 			
-			listenerManager.notifyChange(widget.getAttribute().getName(), widget);
+			listenerManager.notifyCreation(widget.getAttribute().getName(), widget);
 		}
 	}
 	
@@ -396,6 +405,8 @@ public class JfgFormComposite extends Composite
 	
 	private void copyToGUI(Set<GuiWidget> filter)
 	{
+		assertInitialized();
+		
 		Set<GuiWidget> handled = new HashSet<GuiWidget>();
 		if (filter != null)
 			handled.addAll(filter);
@@ -421,6 +432,8 @@ public class JfgFormComposite extends Composite
 	
 	public void copyToModel()
 	{
+		assertInitialized();
+		
 		widgets.copyToModel();
 	}
 	

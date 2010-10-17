@@ -16,5 +16,7 @@ package org.pescuma.jfg.gui;
 
 public interface GuiUpdateListener
 {
+	void onGuiCreated(GuiWidget widget);
+	
 	void onGuiUpdated(GuiWidget widget);
 }

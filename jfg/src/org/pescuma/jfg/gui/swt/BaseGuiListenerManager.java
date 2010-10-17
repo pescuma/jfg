@@ -60,4 +60,17 @@ class BaseGuiListenerManager
 				listener.onGuiUpdated(widget);
 	}
 	
+	public void notifyCreation(String attributeName, GuiWidget widget)
+	{
+		List<GuiUpdateListener> list = listeners.get(attributeName);
+		if (list != null)
+			for (GuiUpdateListener listener : list)
+				listener.onGuiCreated(widget);
+		
+		list = listeners.get(null);
+		if (list != null)
+			for (GuiUpdateListener listener : list)
+				listener.onGuiCreated(widget);
+	}
+	
 }
