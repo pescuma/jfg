@@ -21,8 +21,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -30,8 +28,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeListener;
 import org.pescuma.jfg.AttributeValueRange;
+import org.pescuma.jfg.gui.AbstractGuiWidgetListener;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiWidget;
+import org.pescuma.jfg.gui.GuiWidgetListener;
 import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
@@ -41,11 +41,12 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected final JfgFormData data;
 	protected final List<GuiWidget> children = new ArrayList<GuiWidget>();
 	
+	protected boolean alreadyCreated = false;
 	protected boolean ignoreToGUI = false;
 	protected boolean ignoreToAttribute = false;
 	protected AttributeListener attributeListener;
 	private GuiCopyManager manager;
-	private final List<DisposeListener> disposeListeners = new LinkedList<DisposeListener>();
+	protected final List<GuiWidgetListener> listeners = new LinkedList<GuiWidgetListener>();
 	protected WidgetValidator[] validators;
 	protected final WidgetMarks marks = new WidgetMarks();
 	protected final Collection<ValidationError> validationErrors = new ArrayList<ValidationError>();
@@ -69,14 +70,19 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 		
 		children.add(widget);
 		
-		widget.addDisposeListener(new DisposeListener() {
+		widget.addListener(new AbstractGuiWidgetListener() {
 			@Override
-			public void widgetDisposed(DisposeEvent e)
+			public void onWidgetDisposed(GuiWidget w)
 			{
-				if (!children.remove(widget))
-					throw new IllegalStateException();
+				onChildDisposed(widget);
 			}
 		});
+	}
+	
+	protected void onChildDisposed(final SWTGuiWidget child)
+	{
+		if (!children.remove(child))
+			throw new IllegalStateException();
 	}
 	
 	protected boolean canCopyToAttribute()
@@ -202,8 +208,8 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 				if (attrib.canListen())
 					attrib.removeListener(attributeListener);
 				
-				for (DisposeListener l : disposeListeners)
-					l.widgetDisposed(new DisposeEvent(event));
+				for (GuiWidgetListener l : listeners)
+					l.onWidgetDisposed(AbstractSWTWidget.this);
 			}
 		};
 	}
@@ -244,7 +250,6 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 		
 		for (GuiWidget widget : children)
 			widget.copyToGUI();
-		
 	}
 	
 	protected void thisCopyToGUI()
@@ -255,6 +260,8 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 		
 		if (data.markFieldsWhithUncommitedChanges)
 			markFieldAsCommited();
+		
+		validate();
 		
 		ignoreToAttribute = false;
 	}
@@ -267,7 +274,6 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	protected void markFieldAsInvalid()
 	{
 		marks.invalid = true;
-		
 		updateColor();
 	}
 	
@@ -319,9 +325,34 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	}
 	
 	@Override
-	public void addDisposeListener(DisposeListener listener)
+	public void notifyCreation()
 	{
-		disposeListeners.add(listener);
+		for (GuiWidgetListener listener : listeners)
+			listener.onWidgetCreated(this);
+		
+		alreadyCreated = true;
+	}
+	
+	@Override
+	public void notifyUpdate()
+	{
+		for (GuiWidgetListener listener : listeners)
+			listener.onWidgetUpdated(this);
+	}
+	
+	@Override
+	public void addListener(GuiWidgetListener listener)
+	{
+		listeners.add(listener);
+		
+		if (alreadyCreated)
+			listener.onWidgetCreated(this);
+	}
+	
+	@Override
+	public void removeListener(GuiWidgetListener listener)
+	{
+		listeners.remove(listener);
 	}
 	
 	@Override

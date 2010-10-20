@@ -113,7 +113,8 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		FieldConfig config = data.fieldsConfig.get(itemAttribute.getName());
 		if (config != null && config.type != null)
 		{
-			SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
+			SWTLayoutBuilder layout = data.createLayoutFor(itemAttribute.getName(), composite,
+					listLayout.getLayoutListener());
 			
 			innerBuilder.startBuilding();
 			addWidget(innerBuilder.buildInnerAttribute(layout, itemAttribute));
@@ -137,15 +138,21 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 			SWTLayoutBuilder layout = data.createLayoutFor(group.getName(), composite, listLayout.getLayoutListener());
 			
 			innerBuilder.startBuilding();
+			
+			HiddenSWTWidget child = new HiddenSWTWidget(itemAttribute, data);
+			addWidget(child);
+			
 			for (Attribute ga : group.getAttributes())
-				addWidget(innerBuilder.buildInnerAttribute(layout, ga));
+				child.addWidget(innerBuilder.buildInnerAttribute(layout, ga));
+			
 			innerBuilder.finishBuilding();
 			
 			return;
 		}
 		
 		// Else try the default way
-		SWTLayoutBuilder layout = data.createLayoutFor(null, composite, listLayout.getLayoutListener());
+		SWTLayoutBuilder layout = data.createLayoutFor(itemAttribute.getName(), composite,
+				listLayout.getLayoutListener());
 		
 		innerBuilder.startBuilding();
 		addWidget(innerBuilder.buildInnerAttribute(layout, itemAttribute));

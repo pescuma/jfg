@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -33,8 +32,8 @@ import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeValueRange;
 import org.pescuma.jfg.gui.GuiCopyManager;
-import org.pescuma.jfg.gui.GuiUpdateListener;
 import org.pescuma.jfg.gui.GuiWidget;
+import org.pescuma.jfg.gui.GuiWidgetListener;
 import org.pescuma.jfg.gui.TextBasedGuiWidget;
 import org.pescuma.jfg.gui.WidgetValidator;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
@@ -44,7 +43,6 @@ public class JfgFormComposite extends Composite
 	private final JfgFormData data;
 	private final RootSWTWidget widgets;
 	private final GuiCopyManager copyManager;
-	private final BaseGuiListenerManager listenerManager = new BaseGuiListenerManager();
 	private int initializing = 0;
 	private SWTLayoutBuilder layout;
 	private boolean layoutInitialized = false;
@@ -97,20 +95,10 @@ public class JfgFormComposite extends Composite
 				}
 			});
 		}
-		
-		for (Entry<String, FieldConfig> entry : data.fieldsConfig.entrySet())
-		{
-			String attributeName = entry.getKey();
-			FieldConfig config = entry.getValue();
-			
-			for (GuiUpdateListener listener : config.guiUpdateListeners)
-				addGuiUpdateListener(attributeName, listener);
-		}
 	}
 	
 	public GuiWidget getWidgets()
 	{
-		assertInitialized();
 		return widgets;
 	}
 	
@@ -178,20 +166,6 @@ public class JfgFormComposite extends Composite
 		
 		copyToGUI(filter);
 		notifyCreation(filter);
-	}
-	
-	private void notifyCreation(Set<GuiWidget> filter)
-	{
-		for (GuiWidget widget : widgets.findAllWidgets())
-		{
-			if (filter != null && filter.contains(widget))
-				continue;
-			
-			if (widget.getAttribute() == null)
-				continue;
-			
-			listenerManager.notifyCreation(widget.getAttribute().getName(), widget);
-		}
 	}
 	
 	/** Add all the attributes from the group, without adding the group itself */
@@ -266,7 +240,7 @@ public class JfgFormComposite extends Composite
 			return null;
 		
 		if (!builder.accept(attrib))
-			throw new IllegalArgumentException("Wrong configuration");
+			return null;
 		
 		if (data.hideAttribute(attrib))
 			return null;
@@ -390,6 +364,12 @@ public class JfgFormComposite extends Composite
 			validators.addAll(Arrays.asList(range.getValidators()));
 		if (validators.size() > 0)
 			widget.setValidators(validators.toArray(new WidgetValidator[validators.size()]));
+		
+		if (config != null)
+		{
+			for (GuiWidgetListener listener : config.listeners)
+				widget.addListener(listener);
+		}
 	}
 	
 	private void addAttributes(SWTLayoutBuilder layout, AttributeGroup group, int currentLevel)
@@ -437,42 +417,33 @@ public class JfgFormComposite extends Composite
 		widgets.copyToModel();
 	}
 	
+	private void notifyCreation(Set<GuiWidget> filter)
+	{
+		// We need to do this here to batch update notifications at the end
+		for (GuiWidget widget : widgets.findAllWidgets())
+		{
+			if (filter != null && filter.contains(widget))
+				continue;
+			
+			if (widget.getAttribute() == null)
+				continue;
+			
+			((SWTGuiWidget) widget).notifyCreation();
+			
+			widgets.notifyCreation(widget);
+		}
+	}
+	
 	void onGuiUpdated(GuiWidget widget)
 	{
+		// We need to do this here to have some control to when it will notify
+		
 		if (initializing > 0)
 			return;
 		
-		listenerManager.notifyChange(widget.getAttribute().getName(), widget);
-	}
-	
-	public void addGuiUpdateListener(GuiUpdateListener listener)
-	{
-		listenerManager.addListener(null, listener);
-	}
-	
-	public void addGuiUpdateListener(Attribute attribute, GuiUpdateListener listener)
-	{
-		addGuiUpdateListener(attribute.getName(), listener);
-	}
-	
-	public void addGuiUpdateListener(String attributeName, GuiUpdateListener listener)
-	{
-		listenerManager.addListener(attributeName, listener);
-	}
-	
-	public void removeGuiUpdateListener(GuiUpdateListener listener)
-	{
-		listenerManager.removeListener(null, listener);
-	}
-	
-	public void removeGuiUpdateListener(Attribute attribute, GuiUpdateListener listener)
-	{
-		removeGuiUpdateListener(attribute.getName(), listener);
-	}
-	
-	public void removeGuiUpdateListener(String attributeName, GuiUpdateListener listener)
-	{
-		listenerManager.removeListener(attributeName, listener);
+		((SWTGuiWidget) widget).notifyUpdate();
+		
+		widgets.notifyUpdate(widget);
 	}
 	
 	public static class LayoutEvent extends TypedEvent

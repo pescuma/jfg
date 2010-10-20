@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
-import org.pescuma.jfg.gui.GuiUpdateListener;
+import org.pescuma.jfg.gui.GuiWidgetListener;
 import org.pescuma.jfg.gui.SimpleTextTranslator;
 import org.pescuma.jfg.gui.TextTranslator;
 import org.pescuma.jfg.gui.WidgetFormater;
@@ -457,7 +457,7 @@ public final class JfgFormData
 		WidgetFormater formater;
 		Object widgetData;
 		WidgetValidator[] validators;
-		final List<GuiUpdateListener> guiUpdateListeners = new ArrayList<GuiUpdateListener>();
+		final List<GuiWidgetListener> listeners = new ArrayList<GuiWidgetListener>();
 		
 		public FieldConfig setVisible(boolean visible)
 		{
@@ -535,20 +535,14 @@ public final class JfgFormData
 			return this;
 		}
 		
-		public FieldConfig addGuiUpdateListener(GuiUpdateListener listener)
+		public FieldConfig addListener(GuiWidgetListener listener)
 		{
-			guiUpdateListeners.add(listener);
+			listeners.add(listener);
 			return this;
 		}
-		
 	}
 	
 	public final Map<String, FieldConfig> fieldsConfig = new HashMap<String, FieldConfig>();
-	
-	public FieldConfig configure(Class<?> cls, String fieldName)
-	{
-		return configure(cls.getName() + "." + fieldName);
-	}
 	
 	public FieldConfig configure(String fieldName)
 	{

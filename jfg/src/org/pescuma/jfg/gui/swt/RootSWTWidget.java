@@ -2,9 +2,9 @@ package org.pescuma.jfg.gui.swt;
 
 import java.util.Collection;
 
-import org.eclipse.swt.events.DisposeListener;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiWidget;
+import org.pescuma.jfg.gui.GuiWidgetListener;
 
 public class RootSWTWidget extends AbstractSWTWidget
 {
@@ -39,12 +39,6 @@ public class RootSWTWidget extends AbstractSWTWidget
 	}
 	
 	@Override
-	public void addDisposeListener(DisposeListener listener)
-	{
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
 	public Object getValue()
 	{
 		throw new IllegalStateException();
@@ -64,5 +58,19 @@ public class RootSWTWidget extends AbstractSWTWidget
 	public Collection<GuiWidget> findAllWidgets()
 	{
 		return new ChildManipulationLogic(this).findAllWidgets();
+	}
+	
+	public void notifyCreation(GuiWidget widget)
+	{
+		for (GuiWidgetListener listener : listeners)
+			listener.onWidgetCreated(widget);
+		
+		alreadyCreated = true;
+	}
+	
+	public void notifyUpdate(GuiWidget widget)
+	{
+		for (GuiWidgetListener listener : listeners)
+			listener.onWidgetUpdated(widget);
 	}
 }

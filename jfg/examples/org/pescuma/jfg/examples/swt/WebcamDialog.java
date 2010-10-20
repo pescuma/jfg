@@ -1,5 +1,7 @@
 package org.pescuma.jfg.examples.swt;
 
+import static org.pescuma.jfg.gui.swt.JfgHelper.*;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -40,8 +42,8 @@ public class WebcamDialog
 		// Create the form
 		JfgFormData data = new JfgFormData(JfgFormData.SYNC_GUI);
 		data.showReadOnly = true;
-		data.configure(TestClass.class, "name").setType("text_area");
-		data.configure(TestClass.class, "img2").validateWith(new NotEmptyValidator());
+		data.configure(attribute(TestClass.class, "name")).setType("text_area");
+		data.configure(attribute(TestClass.class, "img2")).validateWith(new NotEmptyValidator());
 		
 		final JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

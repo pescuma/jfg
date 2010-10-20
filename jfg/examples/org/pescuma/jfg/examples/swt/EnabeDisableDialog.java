@@ -8,7 +8,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.pescuma.jfg.gui.AbstractGuiUpdateListener;
+import org.pescuma.jfg.gui.AbstractGuiWidgetListener;
 import org.pescuma.jfg.gui.GuiWidget;
 import org.pescuma.jfg.gui.swt.JfgFormComposite;
 import org.pescuma.jfg.gui.swt.JfgFormData;
@@ -32,19 +32,19 @@ public class EnabeDisableDialog
 		// Add elements to form
 		form.addContentsFrom(new ReflectionGroup(obj));
 		
-		form.addGuiUpdateListener(TestClass.class.getName() + ".a", new AbstractGuiUpdateListener() {
+		form.getWidgets().findChild(TestClass.class.getName() + ".a").addListener(new AbstractGuiWidgetListener() {
 			@Override
-			public void onGuiUpdated(GuiWidget widget)
+			public void onWidgetCreated(GuiWidget widget)
+			{
+				onWidgetUpdated(widget);
+			}
+			
+			@Override
+			public void onWidgetUpdated(GuiWidget widget)
 			{
 				int a = (Integer) widget.getValue();
 				form.getWidgets().findChild(TestClass.class.getName() + ".b").setEnabled(a > 0);
 				form.getWidgets().findChild(TestClass.class.getName() + ".b").setValue(a + 1);
-			}
-			
-			@Override
-			public void onGuiCreated(GuiWidget widget)
-			{
-				onGuiUpdated(widget);
 			}
 		});
 		

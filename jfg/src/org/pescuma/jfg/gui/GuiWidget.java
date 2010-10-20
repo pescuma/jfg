@@ -33,6 +33,9 @@ public interface GuiWidget
 	void setValidators(WidgetValidator... validator);
 	Collection<ValidationError> getValidationErrors();
 	
+	void addListener(GuiWidgetListener listener);
+	void removeListener(GuiWidgetListener listener);
+
 	Collection<GuiWidget> getChildren();
 	
 	GuiWidget getChild(String attributeName);
