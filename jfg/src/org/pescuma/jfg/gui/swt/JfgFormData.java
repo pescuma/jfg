@@ -265,18 +265,18 @@ public final class JfgFormData
 		
 		attributeFilters.add(new SWTAttributeFilter() {
 			@Override
-			public Boolean hideAttribute(Attribute attrib)
+			public Boolean ignoreAttribute(Attribute attrib)
 			{
 				FieldConfig config = fieldsConfig.get(attrib.getName());
-				if (config == null || config.visible == null)
+				if (config == null || config.ignored == null)
 					return null;
-				return !config.visible;
+				return !config.ignored;
 			}
 		});
 		
 		attributeFilters.add(new SWTAttributeFilter() {
 			@Override
-			public Boolean hideAttribute(Attribute attrib)
+			public Boolean ignoreAttribute(Attribute attrib)
 			{
 				// Check for groups and show then if they exist
 				
@@ -308,7 +308,7 @@ public final class JfgFormData
 				}
 				
 				for (Attribute ga : group.getAttributes())
-					if (!JfgFormData.this.hideAttribute(ga))
+					if (!JfgFormData.this.ignoreAttribute(ga))
 						return Boolean.FALSE;
 				
 				// Hide because no internal attribute is shown
@@ -318,7 +318,7 @@ public final class JfgFormData
 		
 		attributeFilters.add(new SWTAttributeFilter() {
 			@Override
-			public Boolean hideAttribute(Attribute attrib)
+			public Boolean ignoreAttribute(Attribute attrib)
 			{
 				if (!showReadOnly && !attrib.canWrite())
 					return Boolean.TRUE;
@@ -431,13 +431,13 @@ public final class JfgFormData
 		return ret;
 	}
 	
-	public boolean hideAttribute(Attribute attrib)
+	public boolean ignoreAttribute(Attribute attrib)
 	{
 		for (SWTAttributeFilter filter : attributeFilters)
 		{
-			Boolean hide = filter.hideAttribute(attrib);
-			if (hide != null)
-				return hide;
+			Boolean ignore = filter.ignoreAttribute(attrib);
+			if (ignore != null)
+				return ignore;
 		}
 		
 		return false;
@@ -445,7 +445,7 @@ public final class JfgFormData
 	
 	public static class FieldConfig
 	{
-		Boolean visible;
+		Boolean ignored;
 		Object type;
 		SWTWidgetBuilder builder;
 		Boolean showLabel;
@@ -459,9 +459,9 @@ public final class JfgFormData
 		WidgetValidator[] validators;
 		final List<GuiWidgetListener> listeners = new ArrayList<GuiWidgetListener>();
 		
-		public FieldConfig setVisible(boolean visible)
+		public FieldConfig ignore()
 		{
-			this.visible = visible;
+			this.ignored = false;
 			return this;
 		}
 		

@@ -242,7 +242,7 @@ public class JfgFormComposite extends Composite
 		if (!builder.accept(attrib))
 			return null;
 		
-		if (data.hideAttribute(attrib))
+		if (data.ignoreAttribute(attrib))
 			return null;
 		
 		InnerBuilder innerBuilder = createInnerBuilder(currentLevel + 1);
