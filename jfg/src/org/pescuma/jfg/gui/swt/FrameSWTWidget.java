@@ -18,8 +18,6 @@ import org.eclipse.swt.widgets.Group;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 class FrameSWTWidget extends AbstractSWTWidget
 {
 	private Group frame;
@@ -54,7 +52,7 @@ class FrameSWTWidget extends AbstractSWTWidget
 	public void setValue(Object value)
 	{
 		if (value != attrib.getValue())
-			throw new NotImplementedException();
+			throw new UnsupportedOperationException();
 	}
 	
 	@Override

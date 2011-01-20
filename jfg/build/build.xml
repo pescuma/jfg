@@ -50,6 +50,9 @@
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
 				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
+				</fileset>
 			</classpath>
 		</javac>
 	</target>
@@ -61,6 +64,9 @@
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
 				</fileset>
 			</classpath>
 			<compilerarg line="-warn:+hiding -warn:+conditionAssign -warn:+uselessTypeCheck" />
@@ -75,6 +81,9 @@
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
 				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
+				</fileset>
 			</classpath>
 		</javac>
 
@@ -82,6 +91,9 @@
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -95,6 +107,9 @@
 				<pathelement location="${build.debug}" />
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
 				</fileset>
 				<fileset dir="${libs.build}">
 					<include name="*.jar" />
@@ -112,6 +127,9 @@
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
 				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
+				</fileset>
 				<fileset dir="${libs.perf}">
 					<include name="*.jar" />
 				</fileset>
@@ -128,6 +146,9 @@
 				<pathelement location="${build.test}" />
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
 				</fileset>
 				<fileset dir="${libs.build}">
 					<include name="*.jar" />
@@ -175,6 +196,9 @@
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
 				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
+				</fileset>
 				<fileset dir="${libs.build}">
 					<include name="*.jar" />
 				</fileset>
@@ -219,6 +243,9 @@
 				<pathelement location="${build.test}" />
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
 				</fileset>
 				<fileset dir="${libs.build}">
 					<include name="*.jar" />
@@ -277,6 +304,9 @@
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
 				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
+				</fileset>
 			</auxClasspath>
 			<sourcePath path="${src.src}" />
 			<class location="${build.debug}" />
@@ -287,6 +317,9 @@
 				<pathelement location="${build.debug}" />
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${libs.src}/lti-civil">
+					<include name="lti-civil-no_s_w_t.jar" />
 				</fileset>
 			</auxClasspath>
 			<sourcePath path="${src.src}" />
@@ -317,6 +350,9 @@
 						<fileset dir="${libs.src}">
 							<include name="*.jar" />
 						</fileset>
+						<fileset dir="${libs.src}/lti-civil">
+							<include name="lti-civil-no_s_w_t.jar" />
+						</fileset>
 						<fileset dir="${libs.perf}">
 							<include name="*.jar" />
 						</fileset>
@@ -345,7 +381,7 @@
 		<zip zipfile="${dist.jar}/${project}-src.zip" basedir="${src.src}" />
 	</target>
 
-	<target name="dist" depends="clean, compile, pack, test, crap4j, emma, findbugs, japex, compile-warning" description="generate the distribution">
+	<target name="dist" depends="clean, compile, pack, test, crap4j, emma, findbugs, japex" description="generate the distribution">
 		<antcall target="clean-build" />
 	</target>
 

@@ -28,8 +28,6 @@ import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 class InlineObjectListSWTWidget extends AbstractSWTWidget
 {
 	private SWTLayoutBuilder.ListBuilder listLayout;
@@ -175,7 +173,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 	public void setValue(Object value)
 	{
 		if (value != attrib.getValue())
-			throw new NotImplementedException();
+			throw new UnsupportedOperationException();
 	}
 	
 	@Override
