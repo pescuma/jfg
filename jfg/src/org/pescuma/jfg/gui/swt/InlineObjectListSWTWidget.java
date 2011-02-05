@@ -17,6 +17,7 @@ package org.pescuma.jfg.gui.swt;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -57,6 +58,8 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		listLayout = layout.addList(list.getName(), createLayoutHints(attrib), createHeightHint(attrib));
 		frame = listLayout.getContents();
 		background = frame.getBackground();
+		
+		frame.addListener(SWT.Dispose, getDisposeListener());
 		
 		Control addMore = null;
 		if (list.canWrite())

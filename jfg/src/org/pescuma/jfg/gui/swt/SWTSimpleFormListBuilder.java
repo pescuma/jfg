@@ -119,6 +119,7 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 		if (remove != null)
 		{
 			remove.moveBelow(null);
+			remove.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 			
 			Control[] children = parent.getChildren();
 			
