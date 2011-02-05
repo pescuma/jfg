@@ -295,8 +295,7 @@ public final class JfgFormData
 					AttributeList list = attrib.asList();
 					
 					// Have to create a new element to inspect
-					Attribute item = list.createNewEmptyElement();
-					item.setValue(list.createNewElementInstance());
+					Attribute item = list.createNewElement();
 					
 					group = item.asGroup();
 					if (group == null)

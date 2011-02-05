@@ -24,8 +24,11 @@ public interface AttributeList
 	int indexOf(Attribute attrib);
 	
 	boolean canWrite();
-	Attribute createNewEmptyElement();
-	Object createNewElementInstance();
+	/**
+	 * Create a new element. This element is not in the list yet. The element has not null value, but the object will be 
+	 * created only on first access to getValue(), so if you want an specific object you can call setValue and is all good.
+	 */
+	Attribute createNewElement();
 	void add(int index, Attribute item);
 	void remove(int index);
 	

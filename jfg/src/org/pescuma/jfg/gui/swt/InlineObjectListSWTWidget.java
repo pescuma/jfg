@@ -27,9 +27,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
+import org.pescuma.jfg.gui.ObjectListGuiWidget;
 import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
-class InlineObjectListSWTWidget extends AbstractSWTWidget
+class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListGuiWidget
 {
 	private SWTLayoutBuilder.ListBuilder listLayout;
 	private InnerBuilder innerBuilder;
@@ -68,7 +69,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 				@Override
 				public void handleEvent(Event event)
 				{
-					buildAttributeInsideList(list.createNewEmptyElement(), true);
+					buildAttributeInsideList(list.createNewElement(), true);
 					onWidgetModify();
 				}
 			};
@@ -122,14 +123,6 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 			innerBuilder.finishBuilding();
 			
 			return;
-		}
-		
-		if (addingNew && itemAttribute.getValue() == null)
-		{
-			// Lets try to create one here
-			Object val = list.createNewElementInstance();
-			if (val != null)
-				itemAttribute.setValue(val);
 		}
 		
 		// Else, if we can get a group from it, let's use it
@@ -281,5 +274,15 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget
 		{
 			shell.setRedraw(true);
 		}
+	}
+	
+	@Override
+	public void addObject(Object obj)
+	{
+		Attribute el = list.createNewElement();
+		el.setValue(obj);
+		
+		buildAttributeInsideList(el, true);
+		onWidgetModify();
 	}
 }

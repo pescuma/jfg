@@ -167,7 +167,7 @@ public class ReflectionList implements AttributeList
 		if (attrib == null)
 		{
 			Object obj = list.get(index);
-			attrib = new ReflectionListAttribute(obj, true, obj == null ? elementType : obj.getClass());
+			attrib = new ReflectionListAttribute(obj, true, obj == null ? elementType : obj.getClass(), false);
 			attributes.set(index, attrib);
 		}
 		return attrib;
@@ -188,13 +188,12 @@ public class ReflectionList implements AttributeList
 	}
 	
 	@Override
-	public Attribute createNewEmptyElement()
+	public Attribute createNewElement()
 	{
-		return new ReflectionListAttribute(null, false, elementType);
+		return new ReflectionListAttribute(null, false, elementType, true);
 	}
 	
-	@Override
-	public Object createNewElementInstance()
+	private Object createNewElementInstance()
 	{
 		Object obj = newInstance(elementType);
 		if (obj == null)
@@ -257,13 +256,15 @@ public class ReflectionList implements AttributeList
 	{
 		private Object obj;
 		private final Class<?> type;
+		private boolean buildOnGet;
 		private boolean connected;
 		
-		public ReflectionListAttribute(Object obj, boolean connected, Class<?> type)
+		public ReflectionListAttribute(Object obj, boolean connected, Class<?> type, boolean buildOnGet)
 		{
 			this.obj = obj;
 			this.connected = connected;
 			this.type = type;
+			this.buildOnGet = buildOnGet;
 		}
 		
 		@Override
@@ -299,6 +300,7 @@ public class ReflectionList implements AttributeList
 		@Override
 		public Object getValue()
 		{
+			buildObjIfNeeded();
 			return obj;
 		}
 		
@@ -319,6 +321,8 @@ public class ReflectionList implements AttributeList
 			}
 			
 			obj = value;
+			
+			buildOnGet = false;
 		}
 		
 		@Override
@@ -345,10 +349,23 @@ public class ReflectionList implements AttributeList
 				return null;
 			if (data.ignoreForAsGroup(type.getName()))
 				return null;
+			
+			buildObjIfNeeded();
 			if (obj == null)
 				return null;
 			
 			return new ReflectionGroup(getName(), obj, data);
+		}
+		
+		private void buildObjIfNeeded()
+		{
+			if (!buildOnGet)
+				return;
+			
+			if (obj == null)
+				obj = createNewElementInstance();
+			
+			buildOnGet = false;
 		}
 		
 		@Override
