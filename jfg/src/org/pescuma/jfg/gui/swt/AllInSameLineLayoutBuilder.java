@@ -27,10 +27,21 @@ import org.eclipse.swt.widgets.Label;
 
 public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 {
+	private final Boolean makeColumnsEqualWidth;
 	private Composite parent;
 	private Runnable layoutListener;
 	private JfgFormData data;
 	private int desidedColumns = 0;
+	
+	public AllInSameLineLayoutBuilder(Boolean makeColumnsEqualWidth)
+	{
+		this.makeColumnsEqualWidth = makeColumnsEqualWidth;
+	}
+	
+	public AllInSameLineLayoutBuilder()
+	{
+		this(null);
+	}
 	
 	@Override
 	public void init(Composite root, Runnable layoutListener, JfgFormData data)
@@ -57,7 +68,12 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 	private void updateColumns(int columnsToAdd)
 	{
 		desidedColumns += columnsToAdd;
-		((GridLayout) parent.getLayout()).numColumns = desidedColumns;
+		
+		GridLayout layout = (GridLayout) parent.getLayout();
+		layout.numColumns = desidedColumns;
+		
+		if (makeColumnsEqualWidth != null)
+			layout.makeColumnsEqualWidth = makeColumnsEqualWidth;
 	}
 	
 	@Override
