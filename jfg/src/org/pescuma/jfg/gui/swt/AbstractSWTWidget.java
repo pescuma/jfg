@@ -443,4 +443,15 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 	{
 		return new ChildManipulationLogic(this).findChildren(attributeName);
 	}
+	
+	protected boolean showLabel()
+	{
+		boolean showLabel = true;
+		
+		FieldConfig config = data.fieldsConfig.get(attrib.getName());
+		if (config != null && config.showLabel != null)
+			showLabel = config.showLabel;
+		
+		return showLabel;
+	}
 }

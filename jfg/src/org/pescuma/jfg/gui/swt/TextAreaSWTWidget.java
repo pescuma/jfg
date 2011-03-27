@@ -16,19 +16,28 @@ package org.pescuma.jfg.gui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeValueRange;
+import org.pescuma.jfg.gui.TextBasedGuiWidget;
+import org.pescuma.jfg.gui.WidgetFormater;
+import org.pescuma.jfg.gui.WidgetFormater.TextAndPos;
 
-class TextAreaSWTWidget extends AbstractControlSWTWidget
+class TextAreaSWTWidget extends AbstractControlSWTWidget implements TextBasedGuiWidget
 {
 	private Text text;
 	private Color background;
+	private Listener formaterListener;
+	private WidgetFormater formater;
+	private boolean ignoreFormat = false;
 	
 	TextAreaSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -41,7 +50,7 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 		String description = data.textTranslator.fieldName(attrib.getName());
 		
 		Group group = null;
-		if (!description.isEmpty())
+		if (!description.isEmpty() && showLabel())
 		{
 			group = data.componentFactory.createGroup(parent, SWT.NONE);
 			group.setText(description);
@@ -122,5 +131,65 @@ class TextAreaSWTWidget extends AbstractControlSWTWidget
 		Object max = range.getMax();
 		if (max != null && (max instanceof Number))
 			text.setTextLimit(((Number) max).intValue());
+	}
+	
+	@Override
+	public void setShadowText(String shadowText)
+	{
+		this.text.setMessage(shadowText == null ? "" : shadowText);
+	}
+	
+	@Override
+	public void setFormater(final WidgetFormater formater)
+	{
+		if (!attrib.canWrite())
+			return;
+		
+		if (formaterListener != null)
+		{
+			text.removeListener(SWT.Modify, formaterListener);
+			formaterListener = null;
+		}
+		
+		this.formater = formater;
+		
+		if (formater != null)
+		{
+			formaterListener = new Listener() {
+				@Override
+				public void handleEvent(Event event)
+				{
+					formatText();
+				}
+			};
+			text.addListener(SWT.Modify, formaterListener);
+			
+			formatText();
+		}
+	}
+	
+	private void formatText()
+	{
+		if (formater == null || ignoreFormat)
+			return;
+		
+		TextAndPos actual = new TextAndPos();
+		actual.text = text.getText();
+		actual.selectionStart = text.getSelection().x;
+		actual.selectionEnd = text.getSelection().y;
+		
+		TextAndPos formated = formater.format(attrib, actual);
+		
+		ignoreFormat = true;
+		
+		boolean changedText = !formated.text.equals(actual.text);
+		if (changedText)
+			text.setText(formated.text);
+		
+		if (changedText || formated.selectionStart != actual.selectionStart
+				|| formated.selectionEnd != actual.selectionEnd)
+			text.setSelection(new Point(formated.selectionStart, formated.selectionEnd));
+		
+		ignoreFormat = false;
 	}
 }

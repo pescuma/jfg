@@ -56,7 +56,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		{
 			combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
 			fill();
-			combo.addListener(SWT.Modify, getModifyListener());
+			combo.addListener(SWT.Selection, getModifyListener());
 			combo.addListener(SWT.Dispose, getDisposeListener());
 			
 			ret = combo;
@@ -225,7 +225,9 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 			int index = getIndex(oldValue, true);
 			if (index < 0)
 				index = 0;
-			combo.select(index);
+			
+			if (combo.getSelectionIndex() != index)
+				combo.select(index);
 		}
 	}
 }

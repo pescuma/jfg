@@ -457,6 +457,7 @@ public final class JfgFormData
 		Object widgetData;
 		WidgetValidator[] validators;
 		final List<GuiWidgetListener> listeners = new ArrayList<GuiWidgetListener>();
+		int order = 0;
 		
 		public FieldConfig ignore()
 		{
@@ -515,6 +516,12 @@ public final class JfgFormData
 			return this;
 		}
 		
+		public FieldConfig hideLabel()
+		{
+			this.showLabel = false;
+			return this;
+		}
+		
 		public FieldConfig showNameAsShadowText()
 		{
 			this.showNameAsShadowText = true;
@@ -537,6 +544,12 @@ public final class JfgFormData
 		public FieldConfig addListener(GuiWidgetListener listener)
 		{
 			listeners.add(listener);
+			return this;
+		}
+		
+		public FieldConfig setOrder(int order)
+		{
+			this.order = order;
 			return this;
 		}
 	}

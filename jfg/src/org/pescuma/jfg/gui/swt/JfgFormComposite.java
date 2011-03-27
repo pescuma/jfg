@@ -17,6 +17,7 @@ package org.pescuma.jfg.gui.swt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -374,8 +375,51 @@ public class JfgFormComposite extends Composite
 	
 	private void addAttributes(SWTLayoutBuilder layout, AttributeGroup group, int currentLevel)
 	{
+		List<SortData> attributes = new ArrayList<SortData>();
+		
+		int groupOrder = 0;
 		for (Attribute attrib : group.getAttributes())
-			widgets.addWidget(addAttribute(layout, null, attrib, currentLevel));
+		{
+			FieldConfig config = data.fieldsConfig.get(attrib.getName());
+			
+			attributes.add(new SortData(config == null ? 0 : config.order, groupOrder, attrib));
+			
+			groupOrder++;
+		}
+		
+		Collections.sort(attributes);
+		
+		for (SortData data : attributes)
+			widgets.addWidget(addAttribute(layout, null, data.attribute, currentLevel));
+	}
+	
+	private static class SortData implements Comparable<SortData>
+	{
+		public final int order;
+		public final int groupOrder;
+		public final Attribute attribute;
+		
+		public SortData(int order, int groupOrder, Attribute attribute)
+		{
+			this.order = order;
+			this.groupOrder = groupOrder;
+			this.attribute = attribute;
+		}
+		
+		@Override
+		public int compareTo(SortData o)
+		{
+			if (order != o.order)
+				return order - o.order;
+			
+			return groupOrder - o.groupOrder;
+		}
+		
+		@Override
+		public String toString()
+		{
+			return "[" + attribute.getName() + " " + order + " " + groupOrder + "] SortData";
+		}
 	}
 	
 	public void copyToGUI()

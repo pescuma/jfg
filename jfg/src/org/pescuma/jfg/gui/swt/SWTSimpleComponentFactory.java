@@ -30,46 +30,55 @@ import org.eclipse.swt.widgets.ToolItem;
 
 public class SWTSimpleComponentFactory implements SWTComponentFactory
 {
+	@Override
 	public Text createText(Composite parent, int style)
 	{
 		return new Text(parent, SWT.BORDER | style);
 	}
 	
+	@Override
 	public Button createCheckbox(Composite parent, int style)
 	{
 		return new Button(parent, SWT.CHECK | style);
 	}
 	
+	@Override
 	public Combo createCombo(Composite parent, int style)
 	{
 		return new Combo(parent, style);
 	}
 	
+	@Override
 	public Group createGroup(Composite parent, int style)
 	{
 		return new Group(parent, style);
 	}
 	
+	@Override
 	public Scale createScale(Composite parent, int style)
 	{
 		return new Scale(parent, style);
 	}
 	
+	@Override
 	public Label createLabel(Composite parent, int style)
 	{
 		return new Label(parent, style);
 	}
 	
+	@Override
 	public Composite createComposite(Composite parent, int style)
 	{
 		return new Composite(parent, style);
 	}
 	
+	@Override
 	public Button createButton(Composite parent, int style)
 	{
 		return new Button(parent, style);
 	}
 	
+	@Override
 	public Control createFlatButton(Composite parent, String text, String image, Listener selectionListener)
 	{
 		ToolBar addMore = new ToolBar(parent, SWT.FLAT | SWT.RIGHT | SWT.NO_BACKGROUND);

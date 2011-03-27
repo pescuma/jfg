@@ -43,7 +43,7 @@ class ComboSWTWidget extends AbstractLabelControlSWTWidget
 		{
 			combo = data.componentFactory.createCombo(parent, SWT.READ_ONLY);
 			fill();
-			combo.addListener(SWT.Modify, getModifyListener());
+			combo.addListener(SWT.Selection, getModifyListener());
 			combo.addListener(SWT.Dispose, getDisposeListener());
 			
 			ret = combo;

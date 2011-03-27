@@ -285,4 +285,17 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 		buildAttributeInsideList(el, true);
 		onWidgetModify();
 	}
+	
+	@Override
+	public void removeAllObjects()
+	{
+		for (int i = 0; i < items.size(); i++)
+		{
+			Item item = items.get(i);
+			listLayout.removeListItem(item.listItem);
+		}
+		items.clear();
+		
+		onWidgetModify();
+	}
 }

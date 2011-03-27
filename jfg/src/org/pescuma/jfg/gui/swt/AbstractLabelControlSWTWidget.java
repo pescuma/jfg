@@ -19,7 +19,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.pescuma.jfg.Attribute;
-import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 
 abstract class AbstractLabelControlSWTWidget extends AbstractSWTWidget
 {
@@ -33,11 +32,7 @@ abstract class AbstractLabelControlSWTWidget extends AbstractSWTWidget
 	@Override
 	protected void createWidgets(SWTLayoutBuilder layout, InnerBuilder innerBuilder)
 	{
-		boolean showLabel = true;
-		
-		FieldConfig config = data.fieldsConfig.get(attrib.getName());
-		if (config != null && config.showLabel != null)
-			showLabel = config.showLabel;
+		boolean showLabel = showLabel();
 		
 		String attribDescription = null;
 		if (showLabel)

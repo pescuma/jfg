@@ -38,7 +38,7 @@ class CheckboxSWTWidget extends AbstractControlSWTWidget
 	{
 		checkbox = data.componentFactory.createCheckbox(parent, SWT.NONE);
 		
-		if (attrib.getName() != null)
+		if (attrib.getName() != null && showLabel())
 			checkbox.setText(data.textTranslator.fieldName(attrib.getName()));
 		
 		checkbox.addListener(SWT.Selection, getModifyListener());
