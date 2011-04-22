@@ -64,7 +64,7 @@ class TextWithOptionsSWTWidget extends AbstractLabelControlSWTWidget implements 
 		{
 			combo = data.componentFactory.createCombo(parent, SWT.DROP_DOWN);
 			fill();
-			combo.addListener(SWT.Selection, getModifyListener());
+			combo.addListener(SWT.Modify, getModifyListener());
 			combo.addListener(SWT.Dispose, getDisposeListener());
 			
 			ret = combo;

@@ -14,19 +14,20 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import org.eclipse.nebula.widgets.calendarcombo.CalendarCombo;
+import org.eclipse.nebula.widgets.calendarcombo.ISettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 
 public class SWTSimpleComponentFactory implements SWTComponentFactory
 {
@@ -81,14 +82,31 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 	@Override
 	public Control createFlatButton(Composite parent, String text, String image, Listener selectionListener)
 	{
-		ToolBar addMore = new ToolBar(parent, SWT.FLAT | SWT.RIGHT | SWT.NO_BACKGROUND);
-		ToolItem item = new ToolItem(addMore, SWT.PUSH);
-		item.setText(text);
-		item.setImage(new Image(item.getDisplay(), image));
-		item.addListener(SWT.Selection, selectionListener);
-		item.addListener(SWT.DefaultSelection, selectionListener);
+//		ToolBar addMore = new ToolBar(parent, SWT.FLAT | SWT.RIGHT | SWT.NO_BACKGROUND);
+//		ToolItem item = new ToolItem(addMore, SWT.PUSH);
+//		item.setText(text);
+//		item.setImage(new Image(item.getDisplay(), image));
+//		item.addListener(SWT.Selection, selectionListener);
+//		item.addListener(SWT.DefaultSelection, selectionListener);
+//		
+//		return addMore;
 		
-		return addMore;
+		Button button = new Button(parent, SWT.PUSH | SWT.FLAT);
+		button.setText(text);
+		button.setImage(new Image(button.getDisplay(), image));
+		button.addListener(SWT.Selection, selectionListener);
+		return button;
 	}
 	
+	@Override
+	public CalendarCombo createCalendarCombo(Composite parent, int style, ISettings settings)
+	{
+		return new CalendarCombo(parent, style, settings);
+	}
+	
+	@Override
+	public DateTime createDateTime(Composite parent, int style)
+	{
+		return new DateTime(parent, style);
+	}
 }

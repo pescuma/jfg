@@ -75,7 +75,7 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 	public void addAddMore(Control addMore)
 	{
 		if (addMore != null)
-			addMore.setLayoutData(new GridData(FILL_HORIZONTAL));
+			addMore.setLayoutData(new GridData(HORIZONTAL_ALIGN_BEGINNING));
 	}
 	
 	@Override

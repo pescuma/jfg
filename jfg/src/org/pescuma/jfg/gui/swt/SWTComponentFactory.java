@@ -14,10 +14,13 @@
 
 package org.pescuma.jfg.gui.swt;
 
+import org.eclipse.nebula.widgets.calendarcombo.CalendarCombo;
+import org.eclipse.nebula.widgets.calendarcombo.ISettings;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -46,4 +49,8 @@ public interface SWTComponentFactory
 	Button createButton(Composite parent, int style);
 	
 	Control createFlatButton(Composite parent, String text, String image, Listener selectionListener);
+	
+	CalendarCombo createCalendarCombo(Composite parent, int style, ISettings defaultSettings);
+	
+	DateTime createDateTime(Composite parent, int style);
 }

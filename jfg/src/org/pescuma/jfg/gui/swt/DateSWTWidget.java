@@ -17,6 +17,9 @@ package org.pescuma.jfg.gui.swt;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.eclipse.nebula.widgets.calendarcombo.CalendarCombo;
+import org.eclipse.nebula.widgets.calendarcombo.CalendarListenerAdapter;
+import org.eclipse.nebula.widgets.calendarcombo.DefaultSettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
@@ -24,14 +27,16 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DateTime;
 import org.pescuma.jfg.Attribute;
+import org.pescuma.jfg.AttributeValueRange;
 
 class DateSWTWidget extends AbstractLabelControlSWTWidget
 {
 	private final boolean showDate;
 	private final boolean showTime;
-	private DateTime date;
+	private CalendarCombo date;
 	private DateTime time;
-	private Color background;
+	private Color dateBackground;
+	private Color timeBackground;
 	
 	DateSWTWidget(Attribute attrib, JfgFormData data, boolean showDate, boolean showTime)
 	{
@@ -49,42 +54,76 @@ class DateSWTWidget extends AbstractLabelControlSWTWidget
 	{
 		if (showTime && showDate)
 		{
-			Composite tmp = new Composite(parent, 0);
+			Composite tmp = data.componentFactory.createComposite(parent, SWT.NONE);
 			tmp.setLayout(SWTUtils.createBorderlessGridLayout(2, false));
 			
-			date = new DateTime(tmp, SWT.DATE | (attrib.canWrite() ? 0 : SWT.READ_ONLY));
-			date.addListener(SWT.Selection, getModifyListener());
+			createDate(tmp);
 			date.addListener(SWT.Dispose, getDisposeListener());
 			date.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
-			time = new DateTime(tmp, SWT.TIME | (attrib.canWrite() ? 0 : SWT.READ_ONLY));
-			time.addListener(SWT.Selection, getModifyListener());
+			createTime(tmp);
 			time.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			
-			background = date.getBackground();
 			
 			return tmp;
 		}
 		else if (showDate)
 		{
-			date = new DateTime(parent, SWT.DATE | (attrib.canWrite() ? 0 : SWT.READ_ONLY));
-			date.addListener(SWT.Selection, getModifyListener());
+			createDate(parent);
 			date.addListener(SWT.Dispose, getDisposeListener());
-			
-			background = date.getBackground();
 			
 			return date;
 		}
 		else
 		{
-			time = new DateTime(parent, SWT.TIME | (attrib.canWrite() ? 0 : SWT.READ_ONLY));
-			time.addListener(SWT.Selection, getModifyListener());
+			createTime(parent);
 			time.addListener(SWT.Dispose, getDisposeListener());
-			
-			background = date.getBackground();
 			
 			return time;
 		}
+	}
+	
+	private void createDate(Composite parent)
+	{
+		final boolean canBeNull = canBeNull();
+		
+		date = data.componentFactory.createCalendarCombo(parent, (attrib.canWrite() ? 0 : SWT.READ_ONLY),
+				new DefaultSettings() {
+					@Override
+					public boolean keyboardNavigatesCalendar()
+					{
+						return false;
+					}
+					
+					@Override
+					public boolean allowEmptyDate()
+					{
+						return canBeNull;
+					}
+				});
+		date.addCalendarListener(new CalendarListenerAdapter() {
+			@Override
+			public void dateChanged(Calendar date)
+			{
+				onWidgetModify();
+			}
+		});
+		
+		AttributeValueRange range = attrib.getValueRange();
+		if (range != null)
+		{
+			date.setDisallowBeforeDate(toCalendar(range.getMin(), true));
+			date.setDisallowAfterDate(toCalendar(range.getMax(), true));
+		}
+		
+		dateBackground = date.getBackground();
+	}
+	
+	private void createTime(Composite parent)
+	{
+		time = data.componentFactory.createDateTime(parent, SWT.TIME | (attrib.canWrite() ? 0 : SWT.READ_ONLY));
+		time.addListener(SWT.Selection, getModifyListener());
+		
+		timeBackground = time.getBackground();
 	}
 	
 	@Override
@@ -92,15 +131,30 @@ class DateSWTWidget extends AbstractLabelControlSWTWidget
 	{
 		if (attrib.canWrite())
 		{
-			Calendar calendar = Calendar.getInstance();
+			if (canBeNull())
+			{
+				if (date != null && date.getDate() == null)
+					return null;
+			}
 			
-			if (date != null && time != null)
-				calendar.set(date.getYear(), date.getMonth(), date.getDay(), time.getHours(), time.getMinutes(),
-						time.getSeconds());
-			else if (date != null)
-				calendar.set(date.getYear(), date.getMonth(), date.getDay(), 0, 0, 0);
+			Calendar calendar;
+			if (date != null)
+			{
+				calendar = date.getDate();
+			}
 			else
-				calendar.set(1970, 0, 1, time.getHours(), time.getMinutes(), time.getSeconds());
+			{
+				calendar = Calendar.getInstance();
+				calendar.set(1970, 0, 1, 0, 0, 0);
+				calendar.set(Calendar.MILLISECOND, 0);
+			}
+			
+			if (time != null)
+			{
+				calendar.set(Calendar.HOUR, time.getHours());
+				calendar.set(Calendar.MINUTE, time.getMinutes());
+				calendar.set(Calendar.SECOND, time.getSeconds());
+			}
 			
 			if (attrib.getType() == Calendar.class)
 				return calendar;
@@ -114,20 +168,27 @@ class DateSWTWidget extends AbstractLabelControlSWTWidget
 	@Override
 	public void setValue(Object value)
 	{
-		Calendar calendar = toCalendar(value, false);
+		Calendar calendar = toCalendar(value, canBeNull());
 		
 		if (date != null)
 		{
-			date.setYear(calendar.get(Calendar.YEAR));
-			date.setMonth(calendar.get(Calendar.MONTH));
-			date.setDay(calendar.get(Calendar.DAY_OF_MONTH));
+			date.setDate(calendar);
 		}
 		
 		if (time != null)
 		{
-			time.setYear(calendar.get(Calendar.HOUR));
-			time.setMonth(calendar.get(Calendar.MINUTE));
-			time.setDay(calendar.get(Calendar.SECOND));
+			if (calendar != null)
+			{
+				time.setHours(calendar.get(Calendar.HOUR));
+				time.setMinutes(calendar.get(Calendar.MINUTE));
+				time.setSeconds(calendar.get(Calendar.SECOND));
+			}
+			else
+			{
+				time.setHours(0);
+				time.setMinutes(0);
+				time.setSeconds(0);
+			}
 		}
 	}
 	
@@ -158,9 +219,9 @@ class DateSWTWidget extends AbstractLabelControlSWTWidget
 	protected void updateColor()
 	{
 		if (date != null)
-			date.setBackground(createColor(date, background));
+			date.setBackground(createColor(date, dateBackground));
 		if (time != null)
-			time.setBackground(createColor(date, background));
+			time.setBackground(createColor(date, timeBackground));
 	}
 	
 	@Override
