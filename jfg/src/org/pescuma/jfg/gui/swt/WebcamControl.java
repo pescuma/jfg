@@ -31,6 +31,7 @@ public class WebcamControl extends Canvas
 	private int webcamIndex = -1;
 	private LTIManager.Image pendingImage;
 	private boolean cropImage = true;
+	private boolean mirrorImage = false;
 	
 	private LTIManager.CaptureObserver captureObserver = new LTIManager.CaptureObserver() {
 		@Override
@@ -47,7 +48,7 @@ public class WebcamControl extends Canvas
 	
 	public WebcamControl(Composite parent, int style)
 	{
-		super(parent, style | SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND);
+		super(parent, (style | SWT.DOUBLE_BUFFERED | SWT.NO_BACKGROUND));
 		
 		ltiInitialized = lti.init(getShell());
 		
@@ -76,6 +77,16 @@ public class WebcamControl extends Canvas
 	public void setCropImage(boolean crop)
 	{
 		this.cropImage = crop;
+	}
+	
+	public boolean isMirrorImage()
+	{
+		return mirrorImage;
+	}
+	
+	public void setMirrorImage(boolean mirrorImage)
+	{
+		this.mirrorImage = mirrorImage;
 	}
 	
 	public int getWebcamCount()
@@ -300,7 +311,11 @@ public class WebcamControl extends Canvas
 		
 		try
 		{
-			Image processed = new Image(getDisplay(), lti.convertToSWTImageData(pendingImage));
+			ImageData imageData = lti.convertToSWTImageData(pendingImage);
+			if (mirrorImage)
+				imageData = flip(imageData);
+			
+			Image processed = new Image(getDisplay(), imageData);
 			disposeImage();
 			image = processed;
 		}
@@ -308,6 +323,29 @@ public class WebcamControl extends Canvas
 		{
 			pendingImage = null;
 		}
+	}
+	
+	private static ImageData flip(ImageData srcData)
+	{
+		int bytesPerPixel = srcData.bytesPerLine / srcData.width;
+		int destBytesPerLine = srcData.width * bytesPerPixel;
+		byte[] newData = new byte[srcData.data.length];
+		for (int srcY = 0; srcY < srcData.height; srcY++)
+		{
+			for (int srcX = 0; srcX < srcData.width; srcX++)
+			{
+				int destX = 0, destY = 0, destIndex = 0, srcIndex = 0;
+				destX = srcData.width - srcX - 1;
+				destY = srcY;
+				
+				destIndex = (destY * destBytesPerLine) + (destX * bytesPerPixel);
+				srcIndex = (srcY * srcData.bytesPerLine) + (srcX * bytesPerPixel);
+				System.arraycopy(srcData.data, srcIndex, newData, destIndex, bytesPerPixel);
+			}
+		}
+		// destBytesPerLine is used as scanlinePad to ensure that no padding is required
+		return new ImageData(srcData.width, srcData.height, srcData.depth, srcData.palette, srcData.scanlinePad,
+				newData);
 	}
 	
 	private static class LTIManagerBuilder
@@ -465,10 +503,29 @@ public class WebcamControl extends Canvas
 			long clients = 0;
 			com.lti.civil.CaptureStream captureStream;
 			final List<CaptureObserverAdapter> observers = new ArrayList<CaptureObserverAdapter>();
+			
+			public void addClient(CaptureObserver captureObserver)
+			{
+				synchronized (observers)
+				{
+					clients++;
+					observers.add(new CaptureObserverAdapter(captureObserver));
+				}
+			}
+			
+			public void removeClient(CaptureObserver captureObserver)
+			{
+				synchronized (observers)
+				{
+					clients--;
+					observers.remove(new CaptureObserverAdapter(captureObserver));
+				}
+			}
 		}
 		
 		private Map<Integer, WebcamData> webcams = new HashMap<Integer, WebcamData>();
 		
+		@Override
 		public boolean init(Shell shell)
 		{
 			clients++;
@@ -497,6 +554,7 @@ public class WebcamControl extends Canvas
 			}
 		}
 		
+		@Override
 		public boolean startCapture(Shell shell, int index, LTIManager.CaptureObserver captureObserver)
 		{
 			if (system == null)
@@ -510,15 +568,13 @@ public class WebcamControl extends Canvas
 				WebcamData data = webcams.get(index);
 				if (data != null)
 				{
-					data.clients++;
-					data.observers.add(new CaptureObserverAdapter(captureObserver));
+					data.addClient(captureObserver);
 					return true;
 				}
 			}
 			
 			final WebcamData data = new WebcamData();
-			data.clients++;
-			data.observers.add(new CaptureObserverAdapter(captureObserver));
+			data.addClient(captureObserver);
 			
 			try
 			{
@@ -528,8 +584,11 @@ public class WebcamControl extends Canvas
 					@Override
 					public void onNewImage(com.lti.civil.CaptureStream sender, com.lti.civil.Image image)
 					{
-						for (com.lti.civil.CaptureObserver observer : data.observers)
-							observer.onNewImage(sender, image);
+						synchronized (data.observers)
+						{
+							for (com.lti.civil.CaptureObserver observer : data.observers)
+								observer.onNewImage(sender, image);
+						}
 					}
 					
 					@Override
@@ -538,8 +597,11 @@ public class WebcamControl extends Canvas
 						System.err.println("Error loading image from " + sender);
 						e.printStackTrace();
 						
-						for (com.lti.civil.CaptureObserver observer : data.observers)
-							observer.onError(sender, e);
+						synchronized (data.observers)
+						{
+							for (com.lti.civil.CaptureObserver observer : data.observers)
+								observer.onError(sender, e);
+						}
 					}
 				});
 				
@@ -564,6 +626,7 @@ public class WebcamControl extends Canvas
 			}
 		}
 		
+		@Override
 		public void stopCapture(int index, LTIManager.CaptureObserver captureObserver)
 		{
 			if (system == null)
@@ -573,8 +636,7 @@ public class WebcamControl extends Canvas
 			if (data == null)
 				return;
 			
-			data.clients--;
-			data.observers.remove(new CaptureObserverAdapter(captureObserver));
+			data.removeClient(captureObserver);
 			if (data.clients > 0)
 				return;
 			
@@ -606,6 +668,7 @@ public class WebcamControl extends Canvas
 			}
 		}
 		
+		@Override
 		public void dispose()
 		{
 			clients--;
