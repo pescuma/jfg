@@ -15,7 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import static java.lang.Math.*;
-import static org.pescuma.jfg.StringUtils.*;
+import static org.pescuma.jfg.StringUtils.firstUpper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -74,7 +74,11 @@ public final class JfgFormData
 	
 	enum ModelUpdateStrategy
 	{
-		Never, UpdateOnGuiChange, BufferUpdatesForTimeout, UpdateAfterFieldStoppedChanging, UpdateAfterAllFieldsStoppedChanging,
+		Never,
+		UpdateOnGuiChange,
+		BufferUpdatesForTimeout,
+		UpdateAfterFieldStoppedChanging,
+		UpdateAfterAllFieldsStoppedChanging,
 	}
 	
 	public ModelUpdateStrategy modelUpdateStrategy = ModelUpdateStrategy.UpdateAfterAllFieldsStoppedChanging;

@@ -14,7 +14,7 @@
 
 package org.pescuma.jfg.reflect;
 
-import static org.pescuma.jfg.StringUtils.*;
+import static org.pescuma.jfg.StringUtils.firstLower;
 import static org.pescuma.jfg.reflect.ReflectionUtils.*;
 
 import java.lang.reflect.Field;
@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeListener;
+import org.pescuma.jfg.model.ann.IgnoreInGUI;
 
 public class ReflectionGroup implements AttributeGroup
 {
@@ -223,12 +224,22 @@ public class ReflectionGroup implements AttributeGroup
 		{
 			FieldAndName fn = it.next();
 			
-			boolean accept = false;
+			boolean accept = true;
 			
-			if (fn.field != null && memberFilter.accept(fn.field))
-				accept = true;
-			if (fn.method != null && memberFilter.accept(fn.method))
-				accept = true;
+			if (fn.field != null && fn.field.getAnnotation(IgnoreInGUI.class) != null)
+				accept = false;
+			if (fn.method != null && fn.method.getAnnotation(IgnoreInGUI.class) != null)
+				accept = false;
+			
+			if (accept)
+			{
+				accept = false;
+				
+				if (fn.field != null && memberFilter.accept(fn.field))
+					accept = true;
+				if (fn.method != null && memberFilter.accept(fn.method))
+					accept = true;
+			}
 			
 			if (!accept)
 				it.remove();
