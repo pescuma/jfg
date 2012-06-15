@@ -148,7 +148,9 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		if (allowNotFind)
 			return -1;
 		else
-			throw new IllegalArgumentException();
+			// What to do???
+			return -1;
+//			throw new IllegalArgumentException();
 	}
 	
 	private String convertToString(Object value, Object type)
@@ -223,6 +225,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 			fill();
 			
 			int index = getIndex(oldValue, true);
+			
 			if (index < 0)
 				index = 0;
 			
