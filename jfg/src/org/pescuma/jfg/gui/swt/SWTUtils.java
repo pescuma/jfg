@@ -19,6 +19,7 @@ import static org.eclipse.swt.layout.GridData.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 class SWTUtils
 {
@@ -49,6 +50,16 @@ class SWTUtils
 		if ((layoutHints & JfgFormData.VERTICAL_FILL) != 0)
 			style += FILL_VERTICAL;
 		return style;
+	}
+	
+	public static void asyncExec(Runnable run)
+	{
+		Display display = Display.getDefault();
+		
+		if (Thread.currentThread() == display.getThread())
+			run.run();
+		else
+			display.asyncExec(run);
 	}
 	
 }

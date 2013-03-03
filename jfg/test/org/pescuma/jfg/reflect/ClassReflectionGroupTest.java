@@ -119,7 +119,8 @@ public class ClassReflectionGroupTest
 		}
 	}
 	
-	private static void assertFieldAttribute(Object obj, boolean canWrite, boolean canListen, boolean asGroup, boolean hasRange)
+	private static void assertFieldAttribute(Object obj, boolean canWrite, boolean canListen, boolean asGroup,
+			boolean hasRange)
 	{
 		assertTrue(obj instanceof Attribute);
 		
@@ -213,7 +214,8 @@ public class ClassReflectionGroupTest
 		Object obj = it.next();
 		assertSimpleFieldAttribute(obj, int.class);
 		Attribute attr = (Attribute) obj;
-		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.aa", attr.getName());
+		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.aa",
+				attr.getName());
 		assertEquals(Integer.valueOf(100), attr.getValue());
 		TestClassWithPublicFieldsAndGettersSetters.aa = 1;
 		assertEquals(Integer.valueOf(101), attr.getValue());
@@ -224,7 +226,8 @@ public class ClassReflectionGroupTest
 		obj = it.next();
 		assertFieldAttribute(obj, false, false, false, true);
 		attr = (Attribute) obj;
-		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.bb", attr.getName());
+		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.bb",
+				attr.getName());
 		assertEquals(long.class, attr.getType());
 		AttributeValueRange range = attr.getValueRange();
 		assertFalse(range.canBeNull());
@@ -250,7 +253,8 @@ public class ClassReflectionGroupTest
 		obj = it.next();
 		assertSimpleFieldAttribute(obj, String.class);
 		attr = (Attribute) obj;
-		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.cc", attr.getName());
+		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithPublicFieldsAndGettersSetters.cc",
+				attr.getName());
 		assertEquals(null, attr.getValue());
 		TestClassWithPublicFieldsAndGettersSetters.cc = "x";
 		assertEquals("x", attr.getValue());
@@ -410,6 +414,7 @@ public class ClassReflectionGroupTest
 		assertSimpleFieldAttribute(obj, int.class);
 		Attribute attr = (Attribute) obj;
 		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.aa", attr.getName());
+		TestClassWithEverything.aa = 0;
 		assertEquals(Integer.valueOf(100), attr.getValue());
 		TestClassWithEverything.aa = 1;
 		assertEquals(Integer.valueOf(101), attr.getValue());
@@ -421,6 +426,7 @@ public class ClassReflectionGroupTest
 		assertSimpleFieldAttribute(obj, long.class);
 		attr = (Attribute) obj;
 		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.bb", attr.getName());
+		TestClassWithEverything.bb = 0;
 		assertEquals(Long.valueOf(0), attr.getValue());
 		TestClassWithEverything.setBb(1);
 		assertEquals(Long.valueOf(1), attr.getValue());
@@ -432,6 +438,7 @@ public class ClassReflectionGroupTest
 		assertSimpleFieldAttribute(obj, String.class);
 		attr = (Attribute) obj;
 		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithEverything.cc", attr.getName());
+		TestClassWithEverything.cc = null;
 		assertEquals(null, attr.getValue());
 		TestClassWithEverything.setCc("x");
 		assertEquals("x", attr.getValue());
@@ -665,7 +672,8 @@ public class ClassReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithStrangeFieldListener.aa", attr.getName());
+		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithStrangeFieldListener.aa",
+				attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -801,7 +809,8 @@ public class ClassReflectionGroupTest
 		assertTrue(obj instanceof Attribute);
 		
 		Attribute attr = (Attribute) obj;
-		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithWrongFieldListener.aa", attr.getName());
+		assertEquals("org.pescuma.jfg.reflect.ClassReflectionGroupTest$TestClassWithWrongFieldListener.aa",
+				attr.getName());
 		assertEquals(true, attr.canWrite());
 		assertEquals(long.class, attr.getType());
 		
@@ -1009,8 +1018,7 @@ public class ClassReflectionGroupTest
 		ObjectReflectionGroupTest.testWithEverything(TestClassWithOther.aa, ag);
 	}
 	
-	private static enum TestEnum
-	{
+	private static enum TestEnum {
 		EnumValue1,
 		EnumValue2,
 		EnumValue3

@@ -18,6 +18,8 @@
 	<property name="libs.perf" location="../lib-perf" />
 	<property name="libs.build" location="lib" />
 	<property name="src.src" location="../src" />
+	<property name="src.splitbutton" location="../splitbutton-src" />
+	<property name="src.calendarcombo" location="../calendarcombo-src" />
 	<property name="src.test" location="../test" />
 	<property name="src.perf" location="../perf" />
 	<property name="src.examples" location="../examples" />
@@ -41,11 +43,12 @@
 	</target>
 
 	<target name="compile" depends="init" description="compile the source">
-		<!-- Create the build directory structure used by compile -->
 		<mkdir dir="${build.src}" />
 
-		<!-- Compile the java code from ${src} into ${build} -->
-		<javac srcdir="${src.src}" destdir="${build.src}">
+		<javac destdir="${build.src}">
+			<src path="${src.src}" />
+			<src path="${src.calendarcombo}" />
+			<src path="${src.splitbutton}" />
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
@@ -60,7 +63,10 @@
 	<target name="compile-warning" depends="init">
 		<mkdir dir="${build.warning}" />
 
-		<javac srcdir="${src.src}" destdir="${build.warning}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" source="1.5" target="1.5">
+		<javac destdir="${build.warning}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" source="1.5" target="1.5">
+			<src path="${src.src}" />
+			<src path="${src.calendarcombo}" />
+			<src path="${src.splitbutton}" />
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
@@ -76,7 +82,10 @@
 	<target name="compile-debug" depends="init" description="compile the source with version data">
 		<mkdir dir="${build.debug}" />
 
-		<javac srcdir="${src.src}" destdir="${build.debug}" debug="true">
+		<javac destdir="${build.debug}" debug="true">
+			<src path="${src.src}" />
+			<src path="${src.calendarcombo}" />
+			<src path="${src.splitbutton}" />
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
@@ -378,7 +387,11 @@
 
 		<zip zipfile="${dist.jar}/${project}-examples.zip" basedir="${src.examples}" />
 
-		<zip zipfile="${dist.jar}/${project}-src.zip" basedir="${src.src}" />
+		<zip zipfile="${dist.jar}/${project}-src.zip">
+			<fileset dir="${src.src}" />
+			<fileset dir="${src.splitbutton}" />
+			<fileset dir="${src.calendarcombo}" />
+		</zip>
 	</target>
 
 	<target name="dist" depends="clean, compile, pack, test, crap4j, emma, findbugs, japex" description="generate the distribution">

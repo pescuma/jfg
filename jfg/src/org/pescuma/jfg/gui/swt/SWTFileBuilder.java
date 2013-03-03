@@ -47,8 +47,16 @@ public class SWTFileBuilder implements SWTWidgetBuilder
 	protected String openDialog(Attribute attrib, Text text)
 	{
 		FileDialog dialog = new FileDialog(text.getShell(), SWT.OPEN);
-		dialog.setFilterNames(new String[] { "All Files (*.*)" });
-		dialog.setFilterExtensions(new String[] { "*.*" });
+		if (SystemUtils.isWindows())
+		{
+			dialog.setFilterNames(new String[] { "All Files (*.*)" });
+			dialog.setFilterExtensions(new String[] { "*.*" });
+		}
+		else
+		{
+			dialog.setFilterNames(new String[] { "All Files (*)" });
+			dialog.setFilterExtensions(new String[] { "*" });
+		}
 		
 		String str = text.getText().trim();
 		if (!str.isEmpty())

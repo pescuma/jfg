@@ -107,10 +107,16 @@ public abstract class AbstractSWTWidget implements SWTGuiWidget
 				@Override
 				public void onChange()
 				{
-					if (ignoreToGUI)
-						return;
-					
-					onModelChange();
+					SWTUtils.asyncExec(new Runnable() {
+						@Override
+						public void run()
+						{
+							if (ignoreToGUI)
+								return;
+							
+							onModelChange();
+						}
+					});
 				}
 			};
 			
