@@ -14,7 +14,7 @@
 
 package org.pescuma.jfg.gui.swt;
 
-public class SystemUtils
+class SystemUtils
 {
 	public static boolean isWindows()
 	{
