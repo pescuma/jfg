@@ -36,6 +36,7 @@
 	<property name="dist.emma" location="dist/emma" />
 	<property name="dist.findbugs" location="dist/findbugs" />
 	<property name="dist.japex" location="dist/japex" />
+	<property name="dist.buildhealth" location="dist/buildhealth" />
 
 	<target name="init" depends="clean">
 		<!-- Create the time stamp -->
@@ -45,7 +46,7 @@
 	<target name="compile" depends="init" description="compile the source">
 		<mkdir dir="${build.src}" />
 
-		<javac destdir="${build.src}">
+		<javac destdir="${build.src}" includeantruntime="false">
 			<src path="${src.src}" />
 			<src path="${src.calendarcombo}" />
 			<src path="${src.splitbutton}" />
@@ -63,7 +64,7 @@
 	<target name="compile-warning" depends="init">
 		<mkdir dir="${build.warning}" />
 
-		<javac destdir="${build.warning}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" source="1.5" target="1.5">
+		<javac destdir="${build.warning}" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" source="1.5" target="1.5" includeantruntime="false">
 			<src path="${src.src}" />
 			<src path="${src.calendarcombo}" />
 			<src path="${src.splitbutton}" />
@@ -82,7 +83,7 @@
 	<target name="compile-debug" depends="init" description="compile the source with version data">
 		<mkdir dir="${build.debug}" />
 
-		<javac destdir="${build.debug}" debug="true">
+		<javac destdir="${build.debug}" debug="true" includeantruntime="false">
 			<src path="${src.src}" />
 			<src path="${src.calendarcombo}" />
 			<src path="${src.splitbutton}" />
@@ -96,7 +97,7 @@
 			</classpath>
 		</javac>
 
-		<javac srcdir="${src.examples}" destdir="${build.debug}" debug="true">
+		<javac srcdir="${src.examples}" destdir="${build.debug}" debug="true" includeantruntime="false">
 			<classpath>
 				<fileset dir="${libs.src}">
 					<include name="*.jar" />
@@ -111,7 +112,7 @@
 	<target name="compile-tests" depends="compile-debug">
 		<mkdir dir="${build.test}" />
 
-		<javac srcdir="${src.test}" destdir="${build.test}" debug="true">
+		<javac srcdir="${src.test}" destdir="${build.test}" debug="true" includeantruntime="false">
 			<classpath>
 				<pathelement location="${build.debug}" />
 				<fileset dir="${libs.src}">
@@ -130,7 +131,7 @@
 	<target name="compile-perf" depends="compile-debug">
 		<mkdir dir="${build.perf}" />
 
-		<javac srcdir="${src.perf}" destdir="${build.perf}" debug="true">
+		<javac srcdir="${src.perf}" destdir="${build.perf}" debug="true" includeantruntime="false">
 			<classpath>
 				<pathelement location="${build.debug}" />
 				<fileset dir="${libs.src}">
@@ -340,11 +341,7 @@
 	<target name="japex" depends="compile-perf">
 		<mkdir dir="${dist.japex}" />
 
-		<taskdef resource="net/sf/antcontrib/antlib.xml">
-			<classpath>
-				<pathelement location="${libs.build}/ant-contrib-1.0b3.jar" />
-			</classpath>
-		</taskdef>
+		<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${libs.build}/ant-contrib-1.0b3.jar" />
 
 		<for param="file">
 			<path>
@@ -363,9 +360,6 @@
 							<include name="lti-civil-no_s_w_t.jar" />
 						</fileset>
 						<fileset dir="${libs.perf}">
-							<include name="*.jar" />
-						</fileset>
-						<fileset dir="${libs.build}">
 							<include name="*.jar" />
 						</fileset>
 						<pathelement location="${build.debug}" />
@@ -394,7 +388,42 @@
 		</zip>
 	</target>
 
-	<target name="dist" depends="clean, compile, pack, test, crap4j, emma, findbugs, japex" description="generate the distribution">
+	<target name="report">
+		<taskdef resource="org/pescuma/buildhealth/ant/antlib.xml" classpath="${libs.build}/buildhealth-0.1.jar" />
+
+		<buildhealth home="${dist.buildhealth}">
+			
+			<config key="performance ms good" value="0.55" />
+			
+			<compute-loc>
+				<fileset dir="${src.src}" />
+				<fileset dir="${src.test}" />
+				<fileset dir="${src.perf}" />
+			</compute-loc>
+			<add-junit>
+				<fileset dir="${dist.junit}" />
+			</add-junit>
+			<add-emma>
+				<fileset dir="${dist.emma}" />
+			</add-emma>
+			<add-findbugs>
+				<fileset dir="${dist.findbugs}" />
+			</add-findbugs>
+			<add-japex>
+				<fileset dir="${dist.japex}">
+					<include name="**/report.xml" />
+				</fileset>
+			</add-japex>
+			<add-diskusage dir="${dist.jar}" />
+			<compute-tasks>
+				<fileset dir="${src.src}" />
+				<fileset dir="${src.test}" />
+				<fileset dir="${src.perf}" />
+			</compute-tasks>
+		</buildhealth>
+	</target>
+
+	<target name="dist" depends="clean, compile, pack, test, crap4j, emma, findbugs, japex, report" description="generate the distribution">
 		<antcall target="clean-build" />
 	</target>
 
