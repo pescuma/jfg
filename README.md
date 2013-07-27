@@ -73,17 +73,9 @@ form.add(new AbstractAttribute() {
 
 ## Documentation
 
- - [HowItWroks How it works]
-   - [HowItWroks#Attributes Attributes]
-   - [HowItWroks#Groups Groups]
- - [GUI GUI]
-   - [GUI#SWT SWT]
- - [Attributes Attributes]
-   - [Attributes#Reflection Reflection]
-   - [Attributes#Map Map]
-   - [Attributes#Custom Custom]
- - [Examples]
- - [TODO TODO list]
+ - [How it works](https://github.com/pescuma/jfg/wiki/How-it-works)
+ - [GUI](https://github.com/pescuma/jfg/wiki/GUI)
+ - [Attributes](https://github.com/pescuma/jfg/wiki/Attributes)
 
 
 ## Change log
