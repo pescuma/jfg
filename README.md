@@ -74,8 +74,14 @@ form.add(new AbstractAttribute() {
 ## Documentation
 
  - [How it works](https://github.com/pescuma/jfg/wiki/How-it-works)
+  - [Attributes](https://github.com/pescuma/jfg/wiki/How-it-works#attributes)
+  - [Groups](https://github.com/pescuma/jfg/wiki/How-it-works#groups)
  - [GUI](https://github.com/pescuma/jfg/wiki/GUI)
+  - [SWT](https://github.com/pescuma/jfg/wiki/GUI#swt)
  - [Attributes](https://github.com/pescuma/jfg/wiki/Attributes)
+  - [Reflection](https://github.com/pescuma/jfg/wiki/Attributes#reflection)
+  - [Map](https://github.com/pescuma/jfg/wiki/Attributes#map)
+  - [Custom](https://github.com/pescuma/jfg/wiki/Attributes#custom)
 
 
 ## Change log
