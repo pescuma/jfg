@@ -16,7 +16,7 @@ For the model, it supports *Reflection*, a *Map of fields* or *Custom attributes
 _(To run the examples you will need the SWT jars from http://www.eclipse.org/swt)_
 
 The simplest way to use it is:
-```
+```java
 // Create the form
 JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE);
 
@@ -27,7 +27,7 @@ form.addContentsFrom(new ReflectionGroup(obj));
 
 
 You can use a Map:
-```
+```java
 // Create the object
 Map<String, Object> map = new LinkedHashMap<String, Object>();
 map.put("Text", "abcd");
@@ -44,7 +44,7 @@ form.addContentsFrom(new MapGroup(map));
 
 
 You can also add custom attributes:
-```
+```java
 // Create the form
 JfgFormComposite form = new JfgFormComposite(shell, SWT.NONE);
 
