@@ -390,9 +390,9 @@
 	</target>
 
 	<target name="report">
-		<taskdef resource="org/pescuma/buildhealth/ant/antlib.xml" classpath="${libs.build}/buildhealth-0.1.jar" />
+		<taskdef resource="org/pescuma/buildhealth/ant/antlib.xml" classpath="${libs.build}/buildhealth-0.2.jar" />
 
-		<buildhealth home="${dist.buildhealth}">
+		<buildhealth home="${dist.buildhealth}" notify="true">
 			
 			<config key="performance ms good" value="0.55" />
 			
