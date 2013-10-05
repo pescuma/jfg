@@ -47,6 +47,7 @@
 		<mkdir dir="${build.src}" />
 
 		<javac destdir="${build.src}" includeantruntime="false">
+			<compilerarg value="-Xlint:unchecked"/>
 			<src path="${src.src}" />
 			<src path="${src.calendarcombo}" />
 			<src path="${src.splitbutton}" />
