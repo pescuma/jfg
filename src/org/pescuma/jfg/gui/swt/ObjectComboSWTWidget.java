@@ -137,7 +137,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		int i = 0;
 		for (Object obj : comboObjects)
 		{
-			if (obj == value)
+			if (obj.equals(value))
 				return i;
 			++i;
 		}
