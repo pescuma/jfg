@@ -15,7 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import static java.lang.Math.*;
-import static org.pescuma.jfg.StringUtils.firstUpper;
+import static org.pescuma.jfg.StringUtils.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import org.pescuma.jfg.gui.WidgetValidator;
 
 public final class JfgFormData
 {
-	// Object/gui syncronization constants 
+	// Object/gui syncronization constants
 	public static final int SYNC_GUI = 1;
 	public static final int SYNC_GUI_BATCH = 2;
 	public static final int SYNC_GUI_FAST = 3;
@@ -207,7 +207,7 @@ public final class JfgFormData
 		});
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
-			private SWTComboBuilder comboBuilder = new SWTComboBuilder();
+			private final SWTComboBuilder comboBuilder = new SWTComboBuilder();
 			
 			@Override
 			public Object getTypeFor(Attribute attrib)
@@ -220,7 +220,7 @@ public final class JfgFormData
 		});
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
-			private SWTScaleBuilder scaleBuilder = new SWTScaleBuilder();
+			private final SWTScaleBuilder scaleBuilder = new SWTScaleBuilder();
 			
 			@Override
 			public Object getTypeFor(Attribute attrib)
@@ -252,7 +252,7 @@ public final class JfgFormData
 		});
 		
 		builderTypeSelectors.add(new SWTBuilderTypeSelector() {
-			private SWTGroupBuilder groupBuilder = new SWTGroupBuilder();
+			private final SWTGroupBuilder groupBuilder = new SWTGroupBuilder();
 			
 			@Override
 			public Object getTypeFor(Attribute attrib)
@@ -462,6 +462,7 @@ public final class JfgFormData
 		WidgetValidator[] validators;
 		final List<GuiWidgetListener> listeners = new ArrayList<GuiWidgetListener>();
 		int order = 0;
+		boolean readOnly;
 		
 		public FieldConfig ignore()
 		{
@@ -554,6 +555,12 @@ public final class JfgFormData
 		public FieldConfig setOrder(int order)
 		{
 			this.order = order;
+			return this;
+		}
+		
+		public FieldConfig readOnly()
+		{
+			readOnly = true;
 			return this;
 		}
 	}

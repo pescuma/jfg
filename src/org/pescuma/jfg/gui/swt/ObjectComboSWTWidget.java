@@ -35,6 +35,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 	private final List<Object> options = new ArrayList<Object>();
 	private DescriptionGetter toDescription;
 	private List<Object> comboObjects;
+	private Boolean hardcodedCanBeNull;
 	
 	ObjectComboSWTWidget(Attribute attrib, JfgFormData data)
 	{
@@ -45,6 +46,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		{
 			ReferenceGuiWidget.Data widgetData = (ReferenceGuiWidget.Data) config.widgetData;
 			setObjects(widgetData.objects, widgetData.toDescription);
+			hardcodedCanBeNull = widgetData.canBeNull;
 		}
 	}
 	
@@ -91,6 +93,15 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 			comboObjects.add(obj);
 			combo.add(toDescription.getDescription(obj));
 		}
+	}
+	
+	@Override
+	protected boolean canBeNull()
+	{
+		if (hardcodedCanBeNull != null)
+			return hardcodedCanBeNull;
+		
+		return super.canBeNull();
 	}
 	
 	@Override
@@ -150,7 +161,7 @@ class ObjectComboSWTWidget extends AbstractLabelControlSWTWidget implements Refe
 		else
 			// What to do???
 			return -1;
-//			throw new IllegalArgumentException();
+		// throw new IllegalArgumentException();
 	}
 	
 	private String convertToString(Object value, Object type)

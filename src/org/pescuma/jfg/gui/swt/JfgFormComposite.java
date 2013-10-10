@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeValueRange;
+import org.pescuma.jfg.ReadOnlyAttribute;
 import org.pescuma.jfg.gui.GuiCopyManager;
 import org.pescuma.jfg.gui.GuiWidget;
 import org.pescuma.jfg.gui.GuiWidgetListener;
@@ -381,6 +382,9 @@ public class JfgFormComposite extends Composite
 		for (Attribute attrib : group.getAttributes())
 		{
 			FieldConfig config = data.fieldsConfig.get(attrib.getName());
+			
+			if (config != null && config.readOnly)
+				attrib = new ReadOnlyAttribute(attrib);
 			
 			attributes.add(new SortData(config == null ? 0 : config.order, groupOrder, attrib));
 			
