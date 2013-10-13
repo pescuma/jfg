@@ -16,6 +16,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
@@ -27,13 +28,13 @@ public class WebcamControl extends Canvas
 	
 	private Image image;
 	
-	private boolean ltiInitialized;
+	private final boolean ltiInitialized;
 	private int webcamIndex = -1;
 	private LTIManager.Image pendingImage;
 	private boolean cropImage = true;
 	private boolean mirrorImage = false;
 	
-	private LTIManager.CaptureObserver captureObserver = new LTIManager.CaptureObserver() {
+	private final LTIManager.CaptureObserver captureObserver = new LTIManager.CaptureObserver() {
 		@Override
 		public void onNewImage(LTIManager.Image image)
 		{
@@ -170,11 +171,14 @@ public class WebcamControl extends Canvas
 		}
 	}
 	
-	public Image takeSnapshot()
+	public ImageData takeSnapshot()
 	{
 		processPendingImage();
 		
-		return cloneImage(image);
+		if (image == null)
+			return null;
+		else
+			return image.getImageData();
 	}
 	
 	public boolean isEmpty()
@@ -182,6 +186,21 @@ public class WebcamControl extends Canvas
 		processPendingImage();
 		
 		return image == null;
+	}
+	
+	/**
+	 * Set a static image to be show. Use null to show no image. A copy of the
+	 * image is taken and no pointer is stored to the passed image.
+	 */
+	public void showImage(ImageData newImage)
+	{
+		stopWebcam();
+		disposeImage();
+		if (newImage == null)
+			image = null;
+		else
+			image = new Image(Display.getCurrent(), newImage);
+		invalidate();
 	}
 	
 	/**
@@ -523,7 +542,7 @@ public class WebcamControl extends Canvas
 			}
 		}
 		
-		private Map<Integer, WebcamData> webcams = new HashMap<Integer, WebcamData>();
+		private final Map<Integer, WebcamData> webcams = new HashMap<Integer, WebcamData>();
 		
 		@Override
 		public boolean init(Shell shell)

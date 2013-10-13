@@ -22,6 +22,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -124,7 +125,7 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 		webcam = new WebcamControl(webcamBorder, SWT.NONE);
 		webcam.setLayoutData(new GridData(GridData.FILL_BOTH));
 		webcam.addListener(SWT.Dispose, getDisposeListener());
-		//webcam.setCropImage(false);
+		// webcam.setCropImage(false);
 		
 		backgrounds[2] = webcam.getBackground();
 		
@@ -141,13 +142,21 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 	@Override
 	public Object getValue()
 	{
-		return snapshot;
+		if (getAttribute().getType() == ImageData.class)
+			return snapshot.getImageData();
+		else
+			return snapshot;
 	}
 	
 	@Override
 	public void setValue(Object value)
 	{
-		replaceSnapshot((Image) value, true);
+		if (value instanceof Image)
+			replaceSnapshot((Image) value, true);
+		else if (value instanceof ImageData)
+			replaceSnapshot(new Image(Display.getCurrent(), (ImageData) value), false);
+		else
+			replaceSnapshot(null, false);
 		
 		updateButton();
 	}
@@ -261,21 +270,21 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 	private void createTakeImage()
 	{
 		buttom.setText(data.textTranslator.translate("WebcamGuiWidget:Take picture"));
-		buttom.setImage(new Image(buttom.getDisplay(), "icons/webcam.png"));
+		buttom.setImage(data.resourcesManager.newImage("icons/webcam.png"));
 		buttom.addListener(SWT.Selection, takeSnapshotListener);
 	}
 	
 	private void createWebcam()
 	{
 		buttom.setText(data.textTranslator.translate("WebcamGuiWidget:Webcam"));
-		buttom.setImage(new Image(buttom.getDisplay(), "icons/webcam.png"));
+		buttom.setImage(data.resourcesManager.newImage("icons/webcam.png"));
 		buttom.addListener(SWT.Selection, showWebcamListener);
 	}
 	
 	private void createSetImage()
 	{
 		buttom.setText(data.textTranslator.translate("WebcamGuiWidget:Set image"));
-		buttom.setImage(new Image(buttom.getDisplay(), "icons/picture.png"));
+		buttom.setImage(data.resourcesManager.newImage("icons/picture.png"));
 		buttom.addListener(SWT.Selection, setImageListener);
 	}
 	
@@ -290,7 +299,7 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 	{
 		MenuItem setImage = new MenuItem(menu, SWT.PUSH);
 		setImage.setText(data.textTranslator.translate("WebcamGuiWidget:Set image"));
-		setImage.setImage(new Image(buttom.getDisplay(), "icons/picture.png"));
+		setImage.setImage(data.resourcesManager.newImage("icons/picture.png"));
 		setImage.addListener(SWT.Selection, setImageListener);
 	}
 	
@@ -310,7 +319,7 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 		if (webcam.isEmpty())
 			webcam.showImage(snapshot);
 		else
-			replaceSnapshot(webcam.takeSnapshot(), false);
+			replaceSnapshot(new Image(Display.getCurrent(), webcam.takeSnapshot()), false);
 		
 		updateButton();
 	}

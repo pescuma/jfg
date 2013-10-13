@@ -17,7 +17,6 @@ package org.pescuma.jfg.gui.swt;
 import org.eclipse.nebula.widgets.calendarcombo.CalendarCombo;
 import org.eclipse.nebula.widgets.calendarcombo.ISettings;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -31,6 +30,13 @@ import org.eclipse.swt.widgets.Text;
 
 public class SWTSimpleComponentFactory implements SWTComponentFactory
 {
+	private final SWTResourcesManager resourcesManager;
+	
+	public SWTSimpleComponentFactory(SWTResourcesManager resourcesManager)
+	{
+		this.resourcesManager = resourcesManager;
+	}
+	
 	@Override
 	public Text createText(Composite parent, int style)
 	{
@@ -93,7 +99,7 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 		
 		Button button = new Button(parent, SWT.PUSH | SWT.FLAT);
 		button.setText(text);
-		button.setImage(new Image(button.getDisplay(), image));
+		button.setImage(resourcesManager.newImage(image));
 		button.addListener(SWT.Selection, selectionListener);
 		return button;
 	}

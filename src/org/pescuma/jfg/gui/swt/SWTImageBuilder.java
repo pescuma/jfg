@@ -15,6 +15,7 @@
 package org.pescuma.jfg.gui.swt;
 
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.pescuma.jfg.Attribute;
 
 public class SWTImageBuilder implements SWTWidgetBuilder
@@ -23,7 +24,7 @@ public class SWTImageBuilder implements SWTWidgetBuilder
 	public boolean accept(Attribute attrib)
 	{
 		Object type = attrib.getType();
-		return type == Image.class || "image".equals(type) || "webcam".equals(type);
+		return type == ImageData.class || type == Image.class || "image".equals(type) || "webcam".equals(type);
 	}
 	
 	@Override

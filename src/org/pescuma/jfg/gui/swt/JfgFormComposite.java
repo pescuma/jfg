@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.internal.SWTEventListener;
 import org.eclipse.swt.widgets.Composite;
@@ -50,7 +52,7 @@ public class JfgFormComposite extends Composite
 	private boolean layoutInitialized = false;
 	private boolean postponeFinishInitialize = false;
 	
-	public JfgFormComposite(Composite parent, int style, JfgFormData data)
+	public JfgFormComposite(Composite parent, int style, final JfgFormData data)
 	{
 		super(parent, style);
 		this.data = data;
@@ -97,6 +99,14 @@ public class JfgFormComposite extends Composite
 				}
 			});
 		}
+		
+		addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e)
+			{
+				data.resourcesManager.disposeAll();
+			}
+		});
 	}
 	
 	public GuiWidget getWidgets()

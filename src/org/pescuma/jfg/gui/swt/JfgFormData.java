@@ -28,6 +28,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Widget;
 import org.pescuma.jfg.Attribute;
@@ -60,7 +61,9 @@ public final class JfgFormData
 	public List<SWTBuilderTypeSelector> builderTypeSelectors = new ArrayList<SWTBuilderTypeSelector>();
 	public List<SWTAttributeFilter> attributeFilters = new ArrayList<SWTAttributeFilter>();
 	
-	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory();
+	public SWTResourcesManager resourcesManager = new SWTResourcesManager();
+	
+	public SWTComponentFactory componentFactory = new SWTSimpleComponentFactory(resourcesManager);
 	
 	public SWTLayoutBuilder layout = new OneAttributePerLineFormLayout();
 	
@@ -117,6 +120,7 @@ public final class JfgFormData
 		builders.put(Enum.class, new SWTComboBuilder());
 		builders.put(File.class, new SWTFileBuilder());
 		builders.put(Image.class, new SWTImageBuilder());
+		builders.put(ImageData.class, new SWTImageBuilder());
 		builders.put(List.class, new SWTInlineObjectListBuilder());
 		builders.put(Date.class, new SWTDateBuilder(true, true));
 		builders.put(Calendar.class, new SWTDateBuilder(true, true));
@@ -395,7 +399,7 @@ public final class JfgFormData
 		else
 			b += 40;
 		b = max(0, min(255, b));
-		return new Color(ctrl.getDisplay(), r, g, b);
+		return resourcesManager.newColor(r, g, b);
 	}
 	
 	public Color createInvalidBackgroundColor(Widget ctrl, Color background)
@@ -406,14 +410,14 @@ public final class JfgFormData
 		
 		int add = Math.max(0, 25 - Math.min(g, b));
 		
-		return new Color(ctrl.getDisplay(), r + add, g + add - 25, b + add - 25);
+		return resourcesManager.newColor(r + add, g + add - 25, b + add - 25);
 	}
 	
 	public Color createUncommitedInvalidBackgroundColor(Widget ctrl, Color background)
 	{
 		Color uncommitedColor = createUncommitedBackgroundColor(ctrl, background);
 		Color invalidColor = createInvalidBackgroundColor(ctrl, background);
-		return new Color(ctrl.getDisplay(), (uncommitedColor.getRed() + invalidColor.getRed()) / 2,
+		return resourcesManager.newColor((uncommitedColor.getRed() + invalidColor.getRed()) / 2,
 				(uncommitedColor.getGreen() + invalidColor.getGreen()) / 2,
 				(uncommitedColor.getBlue() + invalidColor.getBlue()) / 2);
 	}

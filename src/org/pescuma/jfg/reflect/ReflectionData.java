@@ -83,6 +83,7 @@ public class ReflectionData
 		classPrefixesIgnoredInAsGroup.add("sun.");
 		
 		memberFilter = new MemberFilter() {
+			@Override
 			public boolean accept(Member member)
 			{
 				if (member.isSynthetic())
