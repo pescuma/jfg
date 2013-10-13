@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Layout;
 
 public class OneAttributePerLineFormLayout implements SWTLayoutBuilder, Cloneable
 {
@@ -41,7 +42,7 @@ public class OneAttributePerLineFormLayout implements SWTLayoutBuilder, Cloneabl
 		this.layoutListener = layoutListener;
 		this.data = data;
 		
-		GridLayout layout = (GridLayout) this.parent.getLayout();
+		Layout layout = this.parent.getLayout();
 		
 		if (layout == null)
 			this.parent.setLayout(createBorderlessGridLayout(2, false));
@@ -50,7 +51,7 @@ public class OneAttributePerLineFormLayout implements SWTLayoutBuilder, Cloneabl
 			throw new IllegalArgumentException("SWTSimpleFormBuilder needs a GridLayout");
 		
 		else
-			layout.numColumns = 2;
+			((GridLayout) layout).numColumns = 2;
 	}
 	
 	@Override

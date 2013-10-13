@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Layout;
 
 public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 {
@@ -53,7 +54,7 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 		this.layoutListener = layoutListener;
 		this.data = data;
 		
-		GridLayout layout = (GridLayout) parent.getLayout();
+		Layout layout = parent.getLayout();
 		
 		if (layout == null)
 			parent.setLayout(createBorderlessGridLayout(1, false));
@@ -62,7 +63,7 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 			throw new IllegalArgumentException("SWTAllInSameLineBuilder needs a GridLayout");
 		
 		else
-			layout.numColumns = 1;
+			((GridLayout) layout).numColumns = 1;
 	}
 	
 	private void updateColumns(int columnsToAdd)
