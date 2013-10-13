@@ -239,27 +239,13 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 	
 	private void cleanupButton()
 	{
-		{
-			Image image = buttom.getImage();
-			buttom.setImage(null);
-			if (image != null)
-				image.dispose();
-		}
+		buttom.setImage(null);
 		
 		Menu menu = buttom.getMenu();
 		MenuItem[] items = menu.getItems();
 		if (items != null)
-		{
 			for (MenuItem item : items)
-			{
-				Image image = item.getImage();
-				item.setImage(null);
-				if (image != null)
-					image.dispose();
-				
 				item.dispose();
-			}
-		}
 		
 		buttom.removeListener(SWT.Selection, showWebcamListener);
 		buttom.removeListener(SWT.Selection, takeSnapshotListener);
