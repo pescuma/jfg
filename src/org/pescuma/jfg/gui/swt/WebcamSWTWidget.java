@@ -143,7 +143,7 @@ class WebcamSWTWidget extends AbstractLabelControlSWTWidget implements WebcamGui
 	public Object getValue()
 	{
 		if (getAttribute().getType() == ImageData.class)
-			return snapshot.getImageData();
+			return (snapshot == null ? null : snapshot.getImageData());
 		else
 			return snapshot;
 	}

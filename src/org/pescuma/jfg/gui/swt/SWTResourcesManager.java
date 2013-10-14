@@ -62,6 +62,9 @@ public class SWTResourcesManager
 		for (Color color : colors.values())
 			color.dispose();
 		colors.clear();
+		for (Font font : fonts.values())
+			font.dispose();
+		fonts.clear();
 	}
 	
 }
