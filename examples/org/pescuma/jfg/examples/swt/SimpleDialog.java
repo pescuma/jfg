@@ -11,9 +11,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.gui.swt.JfgFormComposite;
-import org.pescuma.jfg.gui.swt.JfgFormData;
 import org.pescuma.jfg.gui.swt.JfgFormComposite.LayoutEvent;
 import org.pescuma.jfg.gui.swt.JfgFormComposite.LayoutListener;
+import org.pescuma.jfg.gui.swt.JfgFormData;
 import org.pescuma.jfg.reflect.ReflectionGroup;
 
 public class SimpleDialog
@@ -33,7 +33,25 @@ public class SimpleDialog
 		TestClass obj = new TestClass();
 		
 		// Create the form
-		final JfgFormComposite form = new JfgFormComposite(contents, SWT.NONE, new JfgFormData(JfgFormData.DIALOG));
+		JfgFormData data = new JfgFormData(JfgFormData.DIALOG);
+		
+		// To allow the expand/collapse the subitems in the subs list, uncomment
+		// the following line
+		// And maybe add a name field as the first item of TestSub class?
+		//
+		// data.configure(JfgHelper.attribute(TestClass.class,
+		// "subs")).setWidgetData(
+		// new ObjectListGuiWidget.Data().allowToCollapse());
+		//
+		// or
+		//
+		// data.allowCollapseObjectsInListByDefault = true;
+		
+		// Depending on your objects depth, you may need this too
+		//
+		// data.maxAttributeSubLevels = 5;
+		
+		final JfgFormComposite form = new JfgFormComposite(contents, SWT.NONE, data);
 		form.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		// Add elements to form
@@ -56,6 +74,7 @@ public class SimpleDialog
 		// Add an ok button
 		Button ok = new Button(shell, SWT.PUSH);
 		ok.addListener(SWT.Selection, new Listener() {
+			@Override
 			public void handleEvent(Event event)
 			{
 				form.copyToModel();
@@ -65,8 +84,8 @@ public class SimpleDialog
 		ok.setText("Ok");
 		
 		// If you want that the form appears without scroll bars, use this line.
-		// The problem with it is that depending on the contents of your objects the form will have 
-		// a different size.
+		// The problem with it is that depending on the contents of your objects
+		// the form will have a different size.
 		form.copyToGUI();
 		
 		shell.setText("Simple Dialog");

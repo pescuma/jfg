@@ -91,6 +91,8 @@ public final class JfgFormData
 	
 	public boolean markFieldsWhithUncommitedChanges = true;
 	
+	public boolean allowCollapseObjectsInListByDefault = false;
+	
 	public JfgFormData()
 	{
 		this(-1);

@@ -27,6 +27,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
 public class SWTSimpleComponentFactory implements SWTComponentFactory
 {
@@ -88,20 +90,27 @@ public class SWTSimpleComponentFactory implements SWTComponentFactory
 	@Override
 	public Control createFlatButton(Composite parent, String text, String image, Listener selectionListener)
 	{
-//		ToolBar addMore = new ToolBar(parent, SWT.FLAT | SWT.RIGHT | SWT.NO_BACKGROUND);
-//		ToolItem item = new ToolItem(addMore, SWT.PUSH);
-//		item.setText(text);
-//		item.setImage(new Image(item.getDisplay(), image));
-//		item.addListener(SWT.Selection, selectionListener);
-//		item.addListener(SWT.DefaultSelection, selectionListener);
-//		
-//		return addMore;
+		ToolBar toolbar = new ToolBar(parent, SWT.FLAT | SWT.RIGHT | SWT.NO_BACKGROUND);
+		ToolItem item = new ToolItem(toolbar, SWT.PUSH);
+		item.setText(text);
+		item.setImage(resourcesManager.newImage(image));
+		item.addListener(SWT.Selection, selectionListener);
+		item.addListener(SWT.DefaultSelection, selectionListener);
 		
-		Button button = new Button(parent, SWT.PUSH | SWT.FLAT);
-		button.setText(text);
-		button.setImage(resourcesManager.newImage(image));
-		button.addListener(SWT.Selection, selectionListener);
-		return button;
+		return toolbar;
+		//
+		// Button button = new Button(parent, SWT.PUSH | SWT.FLAT);
+		// button.setText(text);
+		// button.setImage(resourcesManager.newImage(image));
+		// button.addListener(SWT.Selection, selectionListener);
+		// return button;
+	}
+	
+	@Override
+	public void changeFlatButtonIcon(Control expand, String image)
+	{
+		ToolBar toolbar = (ToolBar) expand;
+		toolbar.getItem(0).setImage(resourcesManager.newImage(image));
 	}
 	
 	@Override

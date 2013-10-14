@@ -37,10 +37,10 @@ public interface SWTLayoutBuilder
 		Composite getParentForAddMore();
 		void addAddMore(Control addMore);
 
-		Composite startListItem(String attributeName);
+		Composite startListItem(String attributeName, boolean addingNewAndEmpty);
 		Composite getParentForRemove();
 		ListItem endListItem(String attributeName, Control remove);
-		void removeListItem(ListItem item);
+		void removeListItem (ListItem item);
 		void moveAfter(ListItem baseItem, ListItem itemToMove);
 	}
 }

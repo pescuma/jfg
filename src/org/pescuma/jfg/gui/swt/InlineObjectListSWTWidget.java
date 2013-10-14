@@ -79,13 +79,13 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 		}
 	}
 	
-	protected void buildAttributeInsideList(Attribute itemAttribute, boolean addingNew)
+	protected void buildAttributeInsideList(Attribute itemAttribute, boolean addingNewAndEmpty)
 	{
 		final Item item = new Item();
 		
-		Composite composite = listLayout.startListItem(list.getName());
+		Composite composite = listLayout.startListItem(list.getName(), addingNewAndEmpty);
 		
-		buildInnerAttribute(composite, itemAttribute, addingNew);
+		buildInnerAttribute(composite, itemAttribute);
 		
 		Control remove = null;
 		if (list.canWrite())
@@ -109,7 +109,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 		items.add(item);
 	}
 	
-	private void buildInnerAttribute(Composite composite, Attribute itemAttribute, boolean addingNew)
+	private void buildInnerAttribute(Composite composite, Attribute itemAttribute)
 	{
 		// If someone set the type, lets build it
 		FieldConfig config = data.fieldsConfig.get(itemAttribute.getName());
@@ -279,11 +279,20 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 	@Override
 	public void addObject(Object obj)
 	{
-		Attribute el = list.createNewElement();
-		el.setValue(obj);
-		
-		buildAttributeInsideList(el, true);
-		onWidgetModify();
+		Shell shell = frame.getShell();
+		shell.setRedraw(false);
+		try
+		{
+			Attribute el = list.createNewElement();
+			el.setValue(obj);
+			
+			buildAttributeInsideList(el, false);
+			onWidgetModify();
+		}
+		finally
+		{
+			shell.setRedraw(true);
+		}
 	}
 	
 	@Override

@@ -50,7 +50,10 @@ public interface SWTComponentFactory
 	
 	Control createFlatButton(Composite parent, String text, String image, Listener selectionListener);
 	
+	void changeFlatButtonIcon(Control expand, String string);
+	
 	CalendarCombo createCalendarCombo(Composite parent, int style, ISettings defaultSettings);
 	
 	DateTime createDateTime(Composite parent, int style);
+	
 }

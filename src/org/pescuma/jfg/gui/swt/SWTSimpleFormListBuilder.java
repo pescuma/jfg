@@ -18,6 +18,7 @@ import static org.eclipse.swt.layout.GridData.*;
 import static org.pescuma.jfg.gui.swt.SWTUtils.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -25,8 +26,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.pescuma.jfg.gui.ObjectListGuiWidget;
+import org.pescuma.jfg.gui.swt.JfgFormData.FieldConfig;
 import org.pescuma.jfg.gui.swt.SWTLayoutBuilder.ListBuilder;
 
 public class SWTSimpleFormListBuilder implements ListBuilder
@@ -34,10 +39,12 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 	private final Group parent;
 	private final Runnable layoutListener;
 	private final JfgFormData data;
+	private final int originalColumnCount;
+	private final boolean allowToCollapse;
 	
 	private int listItemStart = 0;
 	private Composite addMoreParent;
-	private int internalNumColumns = -1;
+	private boolean addingEmptyItem;
 	
 	private static class ControlsToRemove implements ListItem
 	{
@@ -49,6 +56,18 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 		this.parent = frame;
 		this.layoutListener = layoutListener;
 		this.data = data;
+		originalColumnCount = ((GridLayout) parent.getLayout()).numColumns;
+		
+		FieldConfig config = data.fieldsConfig.get(attributeName);
+		if (config != null && config.widgetData != null)
+		{
+			ObjectListGuiWidget.Data widgetData = (ObjectListGuiWidget.Data) config.widgetData;
+			allowToCollapse = widgetData.collapse;
+		}
+		else
+		{
+			allowToCollapse = data.allowCollapseObjectsInListByDefault;
+		}
 	}
 	
 	@Override
@@ -79,8 +98,9 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 	}
 	
 	@Override
-	public Composite startListItem(String attributeName)
+	public Composite startListItem(String attributeName, boolean addingNewAndEmpty)
 	{
+		addingEmptyItem = addingNewAndEmpty;
 		listItemStart = parent.getChildren().length;
 		return parent;
 	}
@@ -93,7 +113,7 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 		{
 			// Create empty composite to fill space
 			Composite composite = data.componentFactory.createComposite(parent, SWT.NONE);
-			setupHorizontalComposite(composite, updateInternalNumColumns());
+			setupHorizontalComposite(composite, getCurrentParentNumColumns());
 		}
 		return parent;
 	}
@@ -116,42 +136,97 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 			addMoreParent.moveBelow(null);
 		}
 		
+		GridLayout parentLayout = (GridLayout) parent.getLayout();
+		boolean isFirstItem = (originalColumnCount == parentLayout.numColumns);
+		
+		int lines = computeNumberOfLines(remove, addMoreOffset);
+		
 		if (remove != null)
 		{
+			int internalNumColumns = parentLayout.numColumns;
+			
+			if (isFirstItem)
+				parentLayout.numColumns++;
+			
 			remove.moveBelow(null);
-			remove.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+			remove.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
 			
 			Control[] children = parent.getChildren();
 			
-			int items = 0;
-			for (int i = listItemStart; i < children.length - 1 + addMoreOffset; i++)
-				items += getGridData(children[i]).horizontalSpan;
-			items /= updateInternalNumColumns();
-			
-			if (items == 0)
+			if (lines == 0)
 				throw new IllegalStateException();
 			
-			int moveBelow = findNextLineControl(children, listItemStart);
+			int moveBelow = findControlAfterColumns(children, listItemStart, internalNumColumns) - 1;
 			remove.moveBelow(children[moveBelow]);
 			
-			if (items > 1)
+			for (int i = 1; i < lines; i++)
 			{
 				Label empty = data.componentFactory.createLabel(parent, SWT.NONE);
-				GridData gridData = new GridData();
-				gridData.verticalSpan = items - 1;
-				empty.setLayoutData(gridData);
+				empty.setLayoutData(new GridData());
 				
-				moveBelow = findNextLineControl(children, moveBelow + 1);
+				moveBelow = findControlAfterColumns(children, moveBelow + 1, internalNumColumns) - 1;
 				empty.moveBelow(children[moveBelow]);
 			}
+		}
+		
+		if (allowToCollapse && lines > 1)
+		{
+			final int internalNumColumns = parentLayout.numColumns;
+			
+			if (isFirstItem)
+				parentLayout.numColumns++;
+			
+			Control[] allChildren = parent.getChildren();
+			final Control[] children = Arrays.copyOfRange(allChildren, listItemStart, allChildren.length
+					+ addMoreOffset);
+			
+			final Control[] expand = new Control[1];
+			
+			Listener expandListener = new Listener() {
+				private boolean expanded = true;
+				
+				@Override
+				public void handleEvent(Event event)
+				{
+					expanded = !expanded;
+					
+					data.componentFactory.changeFlatButtonIcon(expand[0], expanded ? "icons/collapse.png"
+							: "icons/expand.png");
+					
+					int firstCtrl = findControlAfterColumns(children, 0, internalNumColumns);
+					for (int i = firstCtrl; i < children.length; i++)
+					{
+						children[i].setVisible(expanded);
+						getGridData(children[i]).exclude = !expanded;
+					}
+					
+					layoutListener.run();
+				}
+			};
+			
+			expand[0] = data.componentFactory.createFlatButton(parent, "", "icons/collapse.png", expandListener);
+			
+			expand[0].setLayoutData(new GridData(GridData.VERTICAL_ALIGN_CENTER));
+			expand[0].moveAbove(children[0]);
+			
+			int firstCtrlInLine = findControlAfterColumns(children, 0, internalNumColumns);
+			for (int i = 1; i < lines; i++)
+			{
+				getGridData(children[firstCtrlInLine]).horizontalSpan++;
+				// +1 because we just added one to firstCtrlInLine
+				firstCtrlInLine = findControlAfterColumns(children, firstCtrlInLine, internalNumColumns + 1);
+			}
+			
+			if (!addingEmptyItem)
+				expandListener.handleEvent(null);
 		}
 		
 		if (addMoreParent != null)
 			getGridData(addMoreParent).horizontalSpan = getCurrentParentNumColumns();
 		
-		Control[] children = parent.getChildren();
-		
 		SWTSimpleFormListBuilder.ControlsToRemove constrols = new ControlsToRemove();
+		
+		Control[] children = parent.getChildren();
 		for (int i = listItemStart; i < children.length + addMoreOffset; i++)
 			constrols.constrols.add(children[i]);
 		
@@ -160,16 +235,19 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 		return constrols;
 	}
 	
-	private int updateInternalNumColumns()
+	private int computeNumberOfLines(Control remove, int addMoreOffset)
 	{
-		if (internalNumColumns != getCurrentParentNumColumns() - 1)
+		int lines;
 		{
-			GridLayout parentLayout = (GridLayout) parent.getLayout();
-			internalNumColumns = parentLayout.numColumns;
-			parentLayout.numColumns++;
+			Control[] children = parent.getChildren();
+			
+			lines = 0;
+			for (int i = listItemStart; i < children.length + addMoreOffset; i++)
+				if (children[i] != remove)
+					lines += getGridData(children[i]).horizontalSpan;
+			lines /= getCurrentParentNumColumns();
 		}
-		
-		return internalNumColumns;
+		return lines;
 	}
 	
 	private int getCurrentParentNumColumns()
@@ -180,13 +258,11 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 		return layout.numColumns;
 	}
 	
-	private int findNextLineControl(Control[] children, int start)
+	private int findControlAfterColumns(Control[] children, int start, int numCols)
 	{
-		int moveBelow = start;
-		int numCols = updateInternalNumColumns();
-		for (int columns = 0; columns < numCols; moveBelow++)
-			columns += getGridData(children[moveBelow]).horizontalSpan;
-		return moveBelow - 1;
+		for (int columns = 0; columns < numCols; start++)
+			columns += getGridData(children[start]).horizontalSpan;
+		return start;
 	}
 	
 	private int indexOf(Control[] arr, Control find)
