@@ -34,7 +34,7 @@ class FrameSWTWidget extends AbstractSWTWidget
 		
 		frame = layout.addGroup(group.getName(), createLayoutHints(attrib), createHeightHint(attrib));
 		
-		SWTLayoutBuilder innerLayout = data.createLayoutFor(group.getName(), frame, layout.getLayoutListener());
+		SWTLayoutBuilder innerLayout = data.createLayoutFor(group.getName(), frame);
 		
 		innerBuilder.startBuilding();
 		for (Attribute ga : group.getAttributes())

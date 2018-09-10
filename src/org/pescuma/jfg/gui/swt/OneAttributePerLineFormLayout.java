@@ -14,8 +14,9 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import static org.eclipse.swt.layout.GridData.*;
-import static org.pescuma.jfg.gui.swt.SWTUtils.*;
+import static org.eclipse.swt.layout.GridData.HORIZONTAL_ALIGN_END;
+import static org.pescuma.jfg.gui.swt.SWTUtils.createBorderlessGridLayout;
+import static org.pescuma.jfg.gui.swt.SWTUtils.layoutHintsToGridDataStyle;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -29,17 +30,15 @@ import org.eclipse.swt.widgets.Layout;
 public class OneAttributePerLineFormLayout implements SWTLayoutBuilder, Cloneable
 {
 	private Composite parent;
-	private Runnable layoutListener;
 	private JfgFormData data;
 	
 	@Override
-	public void init(Composite parent, Runnable layoutListener, JfgFormData data)
+	public void init(Composite parent, JfgFormData data)
 	{
 		if (this.parent != null)
 			throw new IllegalStateException("Already initialized. Create a new one!");
 		
 		this.parent = parent;
-		this.layoutListener = layoutListener;
 		this.data = data;
 		
 		Layout layout = this.parent.getLayout();
@@ -52,12 +51,6 @@ public class OneAttributePerLineFormLayout implements SWTLayoutBuilder, Cloneabl
 		
 		else
 			((GridLayout) layout).numColumns = 2;
-	}
-	
-	@Override
-	public Runnable getLayoutListener()
-	{
-		return layoutListener;
 	}
 	
 	@Override
@@ -114,7 +107,7 @@ public class OneAttributePerLineFormLayout implements SWTLayoutBuilder, Cloneabl
 		
 		addWidget(attributeName, frame, layoutHints, heightHint);
 		
-		return new SWTSimpleFormListBuilder(attributeName, frame, layoutListener, data);
+		return new SWTSimpleFormListBuilder(attributeName, frame, data);
 	}
 	
 	@Override

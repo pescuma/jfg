@@ -14,8 +14,9 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import static org.eclipse.swt.layout.GridData.*;
-import static org.pescuma.jfg.gui.swt.SWTUtils.*;
+import static org.eclipse.swt.layout.GridData.HORIZONTAL_ALIGN_END;
+import static org.pescuma.jfg.gui.swt.SWTUtils.createBorderlessGridLayout;
+import static org.pescuma.jfg.gui.swt.SWTUtils.layoutHintsToGridDataStyle;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -30,7 +31,6 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 {
 	private final Boolean makeColumnsEqualWidth;
 	private Composite parent;
-	private Runnable layoutListener;
 	private JfgFormData data;
 	private int desidedColumns = 0;
 	
@@ -45,13 +45,12 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 	}
 	
 	@Override
-	public void init(Composite root, Runnable layoutListener, JfgFormData data)
+	public void init(Composite root, JfgFormData data)
 	{
 		if (parent != null)
 			throw new IllegalStateException("Already initialized. Create a new one!");
 		
 		this.parent = root;
-		this.layoutListener = layoutListener;
 		this.data = data;
 		
 		Layout layout = parent.getLayout();
@@ -75,12 +74,6 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 		
 		if (makeColumnsEqualWidth != null)
 			layout.makeColumnsEqualWidth = makeColumnsEqualWidth;
-	}
-	
-	@Override
-	public Runnable getLayoutListener()
-	{
-		return layoutListener;
 	}
 	
 	@Override
@@ -140,7 +133,7 @@ public class AllInSameLineLayoutBuilder implements SWTLayoutBuilder, Cloneable
 		
 		addWidget(attributeName, frame, layoutHints, heightHint);
 		
-		return new SWTSimpleFormListBuilder(attributeName, frame, layoutListener, data);
+		return new SWTSimpleFormListBuilder(attributeName, frame, data);
 	}
 	
 	@Override

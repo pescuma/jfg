@@ -14,8 +14,9 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import static java.lang.Math.*;
-import static org.pescuma.jfg.StringUtils.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static org.pescuma.jfg.StringUtils.firstUpper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -92,6 +93,8 @@ public final class JfgFormData
 	public boolean markFieldsWhithUncommitedChanges = true;
 	
 	public boolean allowCollapseObjectsInListByDefault = false;
+	
+	LayoutChanges layoutChanges;
 	
 	public JfgFormData()
 	{
@@ -172,9 +175,8 @@ public final class JfgFormData
 				if (attrib.getType() == String.class && (matches(name, "filename") || matches(name, "file")))
 					return "file";
 				
-				if ((attrib.getType() == String.class || attrib.getType() == File.class)
-						&& (matches(name, "folder") || matches(name, "path") || matches(name, "directory") || matches(
-								name, "dir")))
+				if ((attrib.getType() == String.class || attrib.getType() == File.class) && (matches(name, "folder")
+						|| matches(name, "path") || matches(name, "directory") || matches(name, "dir")))
 					return "directory";
 				
 				return null;
@@ -319,7 +321,7 @@ public final class JfgFormData
 				for (Attribute ga : group.getAttributes())
 					if (!JfgFormData.this.ignoreAttribute(ga))
 						return Boolean.FALSE;
-				
+					
 				// Hide because no internal attribute is shown
 				return Boolean.TRUE;
 			}
@@ -424,7 +426,7 @@ public final class JfgFormData
 				(uncommitedColor.getBlue() + invalidColor.getBlue()) / 2);
 	}
 	
-	public SWTLayoutBuilder createLayoutFor(String attributeName, Composite root, Runnable layoutListener)
+	public SWTLayoutBuilder createLayoutFor(String attributeName, Composite root)
 	{
 		SWTLayoutBuilder ret = null;
 		
@@ -436,7 +438,7 @@ public final class JfgFormData
 			ret = layout;
 		
 		ret = ret.clone();
-		ret.init(root, layoutListener, this);
+		ret.init(root, this);
 		return ret;
 	}
 	

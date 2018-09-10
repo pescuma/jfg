@@ -84,9 +84,12 @@ form.add(new AbstractAttribute() {
   - [Custom](https://github.com/pescuma/jfg/wiki/Attributes#custom)
 
 
-## Change log
+## Changelog
 
 ```
+. 0.5
+  * Bug fixes
+
 . 0.4
   + Added Nebula CalendarCombo to display dates
   + Added @IgnoreInGUI

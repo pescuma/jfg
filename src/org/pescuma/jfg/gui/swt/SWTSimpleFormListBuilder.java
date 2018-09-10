@@ -14,8 +14,8 @@
 
 package org.pescuma.jfg.gui.swt;
 
-import static org.eclipse.swt.layout.GridData.*;
-import static org.pescuma.jfg.gui.swt.SWTUtils.*;
+import static org.eclipse.swt.layout.GridData.HORIZONTAL_ALIGN_BEGINNING;
+import static org.pescuma.jfg.gui.swt.SWTUtils.setupHorizontalComposite;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +37,6 @@ import org.pescuma.jfg.gui.swt.SWTLayoutBuilder.ListBuilder;
 public class SWTSimpleFormListBuilder implements ListBuilder
 {
 	private final Group parent;
-	private final Runnable layoutListener;
 	private final JfgFormData data;
 	private final int originalColumnCount;
 	private final boolean allowToCollapse;
@@ -51,10 +50,9 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 		final List<Control> constrols = new ArrayList<Control>();
 	}
 	
-	public SWTSimpleFormListBuilder(String attributeName, Group frame, Runnable layoutListener, JfgFormData data)
+	public SWTSimpleFormListBuilder(String attributeName, Group frame, JfgFormData data)
 	{
 		this.parent = frame;
-		this.layoutListener = layoutListener;
 		this.data = data;
 		originalColumnCount = ((GridLayout) parent.getLayout()).numColumns;
 		
@@ -74,12 +72,6 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 	public Composite getContents()
 	{
 		return parent;
-	}
-	
-	@Override
-	public Runnable getLayoutListener()
-	{
-		return layoutListener;
 	}
 	
 	@Override
@@ -177,8 +169,8 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 				parentLayout.numColumns++;
 			
 			Control[] allChildren = parent.getChildren();
-			final Control[] children = Arrays.copyOfRange(allChildren, listItemStart, allChildren.length
-					+ addMoreOffset);
+			final Control[] children = Arrays.copyOfRange(allChildren, listItemStart,
+					allChildren.length + addMoreOffset);
 			
 			final Control[] expand = new Control[1];
 			
@@ -190,8 +182,8 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 				{
 					expanded = !expanded;
 					
-					data.componentFactory.changeFlatButtonIcon(expand[0], expanded ? "icons/collapse.png"
-							: "icons/expand.png");
+					data.componentFactory.changeFlatButtonIcon(expand[0],
+							expanded ? "icons/collapse.png" : "icons/expand.png");
 					
 					int firstCtrl = findControlAfterColumns(children, 0, internalNumColumns);
 					for (int i = firstCtrl; i < children.length; i++)
@@ -200,7 +192,7 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 						getGridData(children[i]).exclude = !expanded;
 					}
 					
-					layoutListener.run();
+					data.layoutChanges.changed();
 				}
 			};
 			
@@ -230,7 +222,7 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 		for (int i = listItemStart; i < children.length + addMoreOffset; i++)
 			constrols.constrols.add(children[i]);
 		
-		layoutListener.run();
+		data.layoutChanges.changed();
 		
 		return constrols;
 	}
@@ -284,9 +276,11 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 	public void removeListItem(ListItem item)
 	{
 		SWTSimpleFormListBuilder.ControlsToRemove constrols = (SWTSimpleFormListBuilder.ControlsToRemove) item;
+		
 		for (Control control : constrols.constrols)
 			control.dispose();
-		layoutListener.run();
+		
+		data.layoutChanges.changed();
 	}
 	
 	@Override
@@ -307,6 +301,6 @@ public class SWTSimpleFormListBuilder implements ListBuilder
 				constrolsToMove.constrols.get(i).moveBelow(base);
 		}
 		
-		layoutListener.run();
+		data.layoutChanges.changed();
 	}
 }

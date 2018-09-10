@@ -12,8 +12,7 @@ import org.eclipse.swt.widgets.Label;
  */
 public interface SWTLayoutBuilder
 {
-	void init(Composite parent, Runnable layoutListener, JfgFormData data);
-	Runnable getLayoutListener();
+	void init(Composite parent, JfgFormData data);
 	
 	Composite[] getParentsForLabelWidget(String attributeName);
 	void addLabelWidget(String attributeName, Label label, Control widget, int layoutHints, int heightHint);
@@ -32,7 +31,6 @@ public interface SWTLayoutBuilder
 		static interface ListItem {}
 		
 		Composite getContents();
-		Runnable getLayoutListener();
 		
 		Composite getParentForAddMore();
 		void addAddMore(Control addMore);

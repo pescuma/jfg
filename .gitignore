@@ -1,3 +1,4 @@
-bin
+bin/
 build/build
 build/dist
+.svn/

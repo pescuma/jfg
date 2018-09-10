@@ -23,7 +23,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
 import org.pescuma.jfg.Attribute;
 import org.pescuma.jfg.AttributeGroup;
 import org.pescuma.jfg.AttributeList;
@@ -115,8 +114,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 		FieldConfig config = data.fieldsConfig.get(itemAttribute.getName());
 		if (config != null && config.type != null)
 		{
-			SWTLayoutBuilder layout = data.createLayoutFor(itemAttribute.getName(), composite,
-					listLayout.getLayoutListener());
+			SWTLayoutBuilder layout = data.createLayoutFor(itemAttribute.getName(), composite);
 			
 			innerBuilder.startBuilding();
 			addWidget(innerBuilder.buildInnerAttribute(layout, itemAttribute));
@@ -129,7 +127,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 		AttributeGroup group = itemAttribute.asGroup();
 		if (group != null)
 		{
-			SWTLayoutBuilder layout = data.createLayoutFor(group.getName(), composite, listLayout.getLayoutListener());
+			SWTLayoutBuilder layout = data.createLayoutFor(group.getName(), composite);
 			
 			innerBuilder.startBuilding();
 			
@@ -145,8 +143,7 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 		}
 		
 		// Else try the default way
-		SWTLayoutBuilder layout = data.createLayoutFor(itemAttribute.getName(), composite,
-				listLayout.getLayoutListener());
+		SWTLayoutBuilder layout = data.createLayoutFor(itemAttribute.getName(), composite);
 		
 		innerBuilder.startBuilding();
 		addWidget(innerBuilder.buildInnerAttribute(layout, itemAttribute));
@@ -263,48 +260,47 @@ class InlineObjectListSWTWidget extends AbstractSWTWidget implements ObjectListG
 	@Override
 	public void copyToGUI()
 	{
-		Shell shell = frame.getShell();
-		
-		shell.setRedraw(false);
-		try
-		{
-			super.copyToGUI();
-		}
-		finally
-		{
-			shell.setRedraw(true);
-		}
+		data.layoutChanges.freezeScreenAndExecute(new Runnable() {
+			@Override
+			public void run()
+			{
+				InlineObjectListSWTWidget.super.copyToGUI();
+			}
+		});
 	}
 	
 	@Override
-	public void addObject(Object obj)
+	public void addObject(final Object obj)
 	{
-		Shell shell = frame.getShell();
-		shell.setRedraw(false);
-		try
-		{
-			Attribute el = list.createNewElement();
-			el.setValue(obj);
-			
-			buildAttributeInsideList(el, false);
-			onWidgetModify();
-		}
-		finally
-		{
-			shell.setRedraw(true);
-		}
+		data.layoutChanges.freezeScreenAndExecute(new Runnable() {
+			@Override
+			public void run()
+			{
+				Attribute el = list.createNewElement();
+				el.setValue(obj);
+				
+				buildAttributeInsideList(el, false);
+				onWidgetModify();
+			}
+		});
 	}
 	
 	@Override
 	public void removeAllObjects()
 	{
-		for (int i = 0; i < items.size(); i++)
-		{
-			Item item = items.get(i);
-			listLayout.removeListItem(item.listItem);
-		}
-		items.clear();
-		
-		onWidgetModify();
+		data.layoutChanges.freezeScreenAndExecute(new Runnable() {
+			@Override
+			public void run()
+			{
+				for (int i = 0; i < items.size(); i++)
+				{
+					Item item = items.get(i);
+					listLayout.removeListItem(item.listItem);
+				}
+				items.clear();
+				
+				onWidgetModify();
+			}
+		});
 	}
 }

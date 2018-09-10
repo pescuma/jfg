@@ -107,6 +107,25 @@ public class JfgFormComposite extends Composite
 				data.resourcesManager.disposeAll();
 			}
 		});
+		
+		data.layoutChanges = new LayoutChanges(this, new Runnable() {
+			@Override
+			public void run()
+			{
+				if (postponeFinishInitialize)
+					return;
+				
+				layout();
+				
+				LayoutEvent event = new LayoutEvent(JfgFormComposite.this);
+				event.widget = JfgFormComposite.this;
+				event.display = event.widget.getDisplay();
+				event.time = 0; // TODO
+				
+				for (LayoutListener l : layoutListeners)
+					l.layoutChanged(event);
+			}
+		});
 	}
 	
 	public GuiWidget getWidgets()
@@ -136,26 +155,10 @@ public class JfgFormComposite extends Composite
 	{
 		if (!layoutInitialized)
 		{
-			layout = data.createLayoutFor(null, this, new Runnable() {
-				@Override
-				public void run()
-				{
-					if (postponeFinishInitialize)
-						return;
-					
-					layout();
-					
-					LayoutEvent event = new LayoutEvent(JfgFormComposite.this);
-					event.widget = JfgFormComposite.this;
-					event.display = event.widget.getDisplay();
-					event.time = 0; // TODO
-					
-					for (LayoutListener l : layoutListeners)
-						l.layoutChanged(event);
-				}
-			});
+			layout = data.createLayoutFor(null, this);
 			layoutInitialized = true;
 		}
+		
 		return layout;
 	}
 	
@@ -522,15 +525,15 @@ public class JfgFormComposite extends Composite
 	public static interface LayoutListener extends SWTEventListener
 	{
 		/**
-		 * Sent when the layout changes in this composite due to add or remove
-		 * items from a list.
+		 * Sent when the layout changes in this composite due to add or remove items
+		 * from a list.
 		 * 
 		 * @param e an event containing information about the operation
 		 */
 		public void layoutChanged(LayoutEvent e);
 	}
 	
-	private final List<LayoutListener> layoutListeners = new LinkedList<LayoutListener>();
+	final List<LayoutListener> layoutListeners = new LinkedList<LayoutListener>();
 	
 	public void addLayoutListener(LayoutListener listener)
 	{
